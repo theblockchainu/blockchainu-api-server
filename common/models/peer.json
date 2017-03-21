@@ -1,0 +1,44 @@
+{
+  "name": "peer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true,
+    "caseSensitiveEmail": true
+  },
+  "properties": {
+    "id": {
+      "type": "number",
+      "required": true
+    },
+    "username": {
+      "type": "String"
+    },
+    "password": {
+      "type": "String",
+      "required": true
+    },
+    "email": {
+      "type": "String"
+    },
+    "phone": {
+      "type": "number"
+    },
+    "emailVerified": "boolean",
+    "verificationToken": "string"
+  },
+  "hidden": ["password", "verificationToken"],
+  "validations": [],
+  "relations": {
+    "userTokens": {
+      "type": "hasMany",
+      "model": "UserToken",
+      "foreignKey": "userId",
+      "options": {
+        "disableInclude": true
+      }
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
