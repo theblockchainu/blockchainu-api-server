@@ -1,0 +1,9 @@
+source "https://supermarket.chef.io"
+cookbook "chef-client"
+cookbook "build-essential"
+cookbook "firewall"
+cookbook "nginx"
+cookbook "openssl"
+cookbook "supervisor"
+cookbook "pm2"
+cookbook "neo4j-server", path: 'cookbooks/neo4j'

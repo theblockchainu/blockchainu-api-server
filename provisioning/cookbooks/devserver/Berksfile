@@ -1,0 +1,3 @@
+source 'https://supermarket.chef.io'
+cookbook 'neo4j-server', path: '../neo4j'
+metadata

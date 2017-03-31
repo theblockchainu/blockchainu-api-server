@@ -2,6 +2,9 @@
 
 apt-get update
 sudo apt-get install python-software-properties
+
+
+
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 sudo apt-get install nodejs
 node -v
@@ -11,6 +14,7 @@ npm install pm2@latest -g
 cd /vagrant/server
 pm2 start server.js
 pm2 startup
+
 echo "deb http://httpredir.debian.org/debian jessie-backports main" | sudo tee -a /etc/apt/sources.list.d/jessie-backports.list
 sudo apt-get update
 wget -O - https://debian.neo4j.org/neotechnology.gpg.key | sudo apt-key add -

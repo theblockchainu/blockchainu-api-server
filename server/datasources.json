@@ -5,6 +5,6 @@
     "password": "0C6&7vvvv",
     "name": "neo4j",
     "connector": "neo4j-graph",
-    "hostname": "52.89.22.223"
+    "hostname": "127.0.0.1"
   }
 }

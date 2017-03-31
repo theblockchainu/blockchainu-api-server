@@ -67,5 +67,13 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision :shell, path: "bootstrap.sh"
+
+  config.vm.provision "chef_solo" do |chef|
+    #chef.chef_server_url = "https://chef-automate-pb-dev-9ys6bvyfllzbhhzm.us-west-2.opsworks-cm.io/organizations/default"
+    #chef.validation_key_path = "validation.pem"
+    #chef.validation_client_name = "default-validator"
+    chef.cookbooks_path = ["provisioning/cookbooks", "provisioning/berks-cookbooks"]
+    chef.add_recipe "devserver"
+    #chef.add_recipe "neo4j-server::tarball"
+  end
 end

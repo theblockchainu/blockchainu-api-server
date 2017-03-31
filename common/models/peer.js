@@ -14,6 +14,7 @@ var qs = require('querystring');
 var SALT_WORK_FACTOR = 10;
 var crypto = require('crypto');
 var MAX_PASSWORD_LENGTH = 72;
+var debug = require('debug')('loopback:peer');
 
 try {
     // Try the native module first
@@ -292,7 +293,7 @@ module.exports = function(Peer) {
     };
 
 
-    Peer.observe('before delete', function(ctx, next) {
+    /*Peer.observe('before delete', function(ctx, next) {
         var AccessToken = ctx.Model.relations.accessTokens.modelTo;
         var pkName = ctx.Model.definition.idName() || 'id';
         ctx.Model.find({where: ctx.where, fields: [pkName]}, function(err, list) {
@@ -304,7 +305,7 @@ module.exports = function(Peer) {
 
             AccessToken.destroyAll({userId: {inq: ids}}, next);
         });
-    });
+    });*/
 
     Peer.observe('before delete', function(ctx, next) {
 
