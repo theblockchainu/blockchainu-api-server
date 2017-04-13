@@ -20,5 +20,13 @@
   "UserToken": {
     "dataSource": "neo4j",
     "public": false
+  },
+  "userCredential": {
+    "dataSource": "neo4j",
+    "public": false
+  },
+  "userIdentity": {
+    "dataSource": "neo4j",
+    "public": false
   }
 }

@@ -1,0 +1,25 @@
+{
+  "name": "userIdentity",
+  "plural": "userIdentities",
+  "base": "UserIdentity",
+  "properties": {
+    "provider": "string",
+    "externalId": "string",
+    "authScheme": "string",
+    "profile": "string",
+    "credentials": "string",
+    "userId": "string",
+    "created": "string",
+    "modified": "string"
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "userId"
+    }
+  },
+  "acls": [],
+  "methods": []
+}

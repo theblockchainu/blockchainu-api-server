@@ -150,6 +150,7 @@ module.exports = function(Peer) {
      */
 
     Peer.logout = function(tokenId, fn) {
+        console.log("Logout function called");
         fn = fn || utils.createPromiseCallback();
 
         var err;
@@ -566,8 +567,8 @@ module.exports = function(Peer) {
             message: g.f('Must provide a valid email'),
         });
 
-        PeerModel.validatesUniquenessOf('email', {message: 'Email already exists'});
-        PeerModel.validatesUniquenessOf('username', {message: 'User already exists'});
+        //PeerModel.validatesUniquenessOf('email', {message: 'Email already exists'});
+        //PeerModel.validatesUniquenessOf('username', {message: 'User already exists'});
 
         return PeerModel;
     }

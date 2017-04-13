@@ -37,6 +37,22 @@
       "options": {
         "disableInclude": true
       }
+    },
+    "identities": {
+      "type": "hasMany",
+      "model": "userIdentity",
+      "foreignKey": "id",
+      "options": {
+        "disableInclude": true
+      }
+    },
+    "credentials": {
+      "type": "hasMany",
+      "model": "userCredential",
+      "foreignKey": "id",
+      "options": {
+        "disableInclude": true
+      }
     }
   },
   "acls": [],
