@@ -5,6 +5,23 @@ var boot = require('loopback-boot');
 var app = module.exports = loopback();
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+var SALT_WORK_FACTOR = 10;
+var g = require('../node_modules/loopback/lib/globalize');
+var bcrypt;
+var MAX_PASSWORD_LENGTH = 72;
+
+
+try {
+    // Try the native module first
+    bcrypt = require('bcrypt');
+    // Browserify returns an empty object
+    if (bcrypt && typeof bcrypt.compare !== 'function') {
+        bcrypt = require('bcryptjs');
+    }
+} catch (err) {
+    // Fall back to pure JS impl
+    bcrypt = require('bcryptjs');
+}
 
 // Passport configurators..
 var loopbackPassport = require('loopback-component-passport');
@@ -128,22 +145,126 @@ app.post('/signup', function(req, res, next) {
     newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
 
-    User.create(newUser, function(err, user) {
+    var hashedPassword = '';
+    var query;
+    if (newUser.email && newUser.username) {
+        query = {or: [
+            {username: newUser.username},
+            {email: newUser.email},
+        ]};
+    } else if (newUser.email) {
+        query = {email: newUser.email};
+    } else {
+        query = {username: newUser.username};
+    }
+
+    /*!
+     * Hash the plain password
+     */
+    var hashPassword = function(plain) {
+        validatePassword(plain);
+        var salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
+        return bcrypt.hashSync(plain, salt);
+    };
+
+    var validatePassword = function(plain) {
+        var err;
+        if (plain && typeof plain === 'string' && plain.length <= MAX_PASSWORD_LENGTH) {
+            return true;
+        }
+        if (plain.length > MAX_PASSWORD_LENGTH) {
+            err = new Error(g.f('Password too long: %s', plain));
+            err.code = 'PASSWORD_TOO_LONG';
+        } else {
+            err =  new Error(g.f('Invalid password: %s', plain));
+            err.code = 'INVALID_PASSWORD';
+        }
+        err.statusCode = 422;
+        throw err;
+    };
+
+    var setPassword = function(plain) {
+        if (typeof plain !== 'string') {
+            return;
+        }
+        if (plain.indexOf('$2a$') === 0 && plain.length === 60) {
+            // The password is already hashed. It can be the case
+            // when the instance is loaded from DB
+            hashedPassword = plain;
+        } else {
+            hashedPassword = hashPassword(plain);
+        }
+    };
+
+    var loopbackLogin = function(user) {
+        console.log("inside loopbackLogin");
+        User.login({username: newUser.username, password: newUser.password}, function(err, accessToken){
+            if(err) {
+                console.log("User model login error: " + err);
+                req.flash('error', err);
+                return res.redirect('back');
+            }
+            if(accessToken) {
+                console.log("Access token: " + JSON.stringify(accessToken));
+                // Passport exposes a login() function on req (also aliased as logIn())
+                // that can be used to establish a login session. This function is
+                // primarily used when users sign up, during which req.login() can
+                // be invoked to log in the newly registered user.
+                req.login(user, function(err) {
+                    if (err) {
+                        req.flash('error', err.message);
+                        return res.redirect('back');
+                    }
+                    res.cookie('access_token', accessToken[0].token.properties.id, {
+                        signed: req.signedCookies ? true : false,
+                        maxAge: 1000 * accessToken[0].token.properties.ttl,
+                    });
+                    res.cookie('userId', user.id.toString(), {
+                        signed: req.signedCookies ? true : false,
+                        maxAge: 1000 * accessToken[0].token.properties.ttl,
+                    });
+                    return res.redirect('/auth/account');
+                });
+            }else {
+                console.log("no access token");
+                req.flash('error', 'Could not create access token');
+                return res.redirect('back');
+            }
+        });
+    };
+
+    User.findOrCreate({where: query}, newUser, function(err, user, created) {
         if (err) {
+            console.log("Error is: " + err);
             req.flash('error', err.message);
             return res.redirect('back');
         } else {
-            // Passport exposes a login() function on req (also aliased as logIn())
-            // that can be used to establish a login session. This function is
-            // primarily used when users sign up, during which req.login() can
-            // be invoked to log in the newly registered user.
-            req.login(user, function(err) {
-                if (err) {
-                    req.flash('error', err.message);
-                    return res.redirect('back');
-                }
-                return res.redirect('/auth/account');
-            });
+            console.log("User is: " + JSON.stringify(user));
+
+            setPassword(newUser.password);
+
+            if(created) {
+                console.log("created new instance");
+                loopbackLogin(user);
+            }
+            // Found an existing account with this email ID and username
+            // Update the password field of that account with new password
+            // Update the username field of that account with new username
+            else {
+
+                console.log("found existing instance");
+                User.dataSource.connector.execute(
+                    "MATCH (p:peer {username: '" + user.username + "'}) SET p.password = '"+hashedPassword+"'",
+                    function(err, results) {
+                        if(!err) {
+                            loopbackLogin(user);
+                        }
+                        else {
+
+                        }
+                    }
+                );
+            }
         }
     });
 });
@@ -156,8 +277,18 @@ app.get('/login', function(req, res, next) {
 });
 
 app.get('/auth/logout', function(req, res, next) {
-    req.logout();
-    res.redirect('/');
+    var User = app.models.Peer;
+    var tokenId = !!req.accessToken ? req.accessToken.id : '';
+    console.log("Access token to delete is: " + JSON.stringify(tokenId));
+    User.dataSource.connector.execute(
+        "match (:peer)-[:hasToken]->(token:UserToken {id:'"+tokenId+"'}) DETACH DELETE token",
+        function (err, results) {
+            if(!err) {
+                req.logout();
+                res.redirect('/');
+            }
+        }
+    );
 });
 
 app.start = function() {

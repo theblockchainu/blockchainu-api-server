@@ -43,9 +43,8 @@ module.exports = function(Peer) {
      * @param {Object} credentials username/password or email/password
      * @param {String[]|String} [include] Optionally set it to "user" to include
      * the user info
-     * @callback {Function} callback Callback function
-     * @param {Error} err Error object
-     * @param {AccessToken} token Access token if login is successful
+     * @param fn
+     * @callback {Function} fn Callback function
      * @promise
      */
     Peer.login = function (credentials, include, fn) {
@@ -131,7 +130,7 @@ module.exports = function(Peer) {
 
         return fn.promise;
 
-    }
+    };
 
 
     /**
@@ -143,9 +142,9 @@ module.exports = function(Peer) {
   *    });
      * ```
      *
-     * @param {String} accessTokenID
-     * @callback {Function} callback
-     * @param {Error} err
+     * @param {String} tokenId
+     * @param fn
+     * @callback {Function} fn
      * @promise
      */
 
@@ -178,11 +177,11 @@ module.exports = function(Peer) {
     /**
      * Confirm the user's identity.
      *
-     * @param {Any} userId
+     * @param uid
      * @param {String} token The validation token
      * @param {String} redirect URL to redirect the user to once confirmed
+     * @param fn
      * @callback {Function} callback
-     * @param {Error} err
      * @promise
      */
     Peer.confirm = function(uid, token, redirect, fn) {
@@ -227,8 +226,9 @@ module.exports = function(Peer) {
      * @prop {String} email The user's email address
      * @property {String} realm The user's realm (optional)
      * @callback {Function} callback
-     * @param {Error} err
      * @promise
+     * @param options
+     * @param cb
      */
 
     Peer.resetPassword = function(options, cb) {
@@ -252,7 +252,7 @@ module.exports = function(Peer) {
             return cb(err);
         }
         var where = {
-            email: options.email,
+            email: options.email
         };
         if (options.realm) {
             where.realm = options.realm;
@@ -285,7 +285,7 @@ module.exports = function(Peer) {
                     email: options.email,
                     accessToken: accessToken,
                     user: user,
-                    options: options,
+                    options: options
                 });
             });
         });
@@ -308,6 +308,7 @@ module.exports = function(Peer) {
         });
     });*/
 
+    //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function(ctx, next) {
 
         Peer.dataSource.connector.execute(
@@ -327,11 +328,11 @@ module.exports = function(Peer) {
      * Create access token for the logged in user. This method can be overridden to
      * customize how access tokens are generated
      *
+     * @param peer
      * @param {Number} ttl The requested ttl
      * @param {Object} [options] The options for access token, such as scope, appId
+     * @param cb
      * @callback {Function} cb The callback function
-     * @param {String|Error} err The error string or object
-     * @param {AccessToken} token The generated access token object
      * @promise
      */
     Peer.prototype.createAccessToken = function(peer, ttl, options, cb) {
@@ -382,8 +383,6 @@ module.exports = function(Peer) {
     /**
      * Normalize the credentials
      * @param {Object} credentials The credential object
-     * @param {Boolean} realmRequired
-     * @param {String} realmDelimiter The realm delimiter, if not set, no realm is needed
      * @returns {Object} The normalized credential object
      */
     Peer.normalizeCredentials = function(credentials) {
@@ -445,7 +444,6 @@ module.exports = function(Peer) {
     /*!
      * Setup an extended user model.
      */
-
     Peer.setup = function() {
 
         // We need to call the base class's setup method
@@ -486,7 +484,7 @@ module.exports = function(Peer) {
             next();
         });
 
-        PeerModel.remoteMethod(
+        /*PeerModel.remoteMethod(
             'login',
             {
                 description: 'Login a user with username/email and password.',
@@ -494,7 +492,7 @@ module.exports = function(Peer) {
                     {arg: 'credentials', type: 'object', required: true, http: {source: 'body'}},
                     {arg: 'include', type: ['string'], http: {source: 'query'},
                         description: 'Related objects to include in the response. ' +
-                        'See the description of return value for more details.'},
+                        'See the description of return value for more details.'}
                 ],
                 returns: {
                     arg: 'accessToken', type: 'object', root: true,
@@ -503,9 +501,9 @@ module.exports = function(Peer) {
                             'Depending on the value of `include` parameter, the body may contain ' +
                             'additional properties:\n\n' +
                             '  - `user` - `U+007BUserU+007D` - Data of the currently logged in user. ' +
-                            '{{(`include=user`)}}\n\n'),
+                            '{{(`include=user`)}}\n\n')
                 },
-                http: {verb: 'post'},
+                http: {verb: 'post'}
             }
         );
 
@@ -516,16 +514,14 @@ module.exports = function(Peer) {
                 accepts: [
                     {arg: 'access_token', type: 'string', http: function(ctx) {
                         var req = ctx.req;
-                        var accessToken = req.query.access_token;
-                        var tokenID = accessToken;
-                        return tokenID;
+                        return req.query.access_token;
                     }, description: 'Do not supply this argument, it is automatically extracted ' +
-                    'from request headers.',
-                    },
+                    'from request headers.'
+                    }
                 ],
-                http: {verb: 'all'},
+                http: {verb: 'all'}
             }
-        );
+        );*/
 
 
         PeerModel.remoteMethod(
@@ -535,9 +531,9 @@ module.exports = function(Peer) {
                 accepts: [
                     {arg: 'uid', type: 'string', required: true},
                     {arg: 'token', type: 'string', required: true},
-                    {arg: 'redirect', type: 'string'},
+                    {arg: 'redirect', type: 'string'}
                 ],
-                http: {verb: 'get', path: '/confirm'},
+                http: {verb: 'get', path: '/confirm'}
             }
         );
 
@@ -546,9 +542,9 @@ module.exports = function(Peer) {
             {
                 description: 'Reset password for a user with email.',
                 accepts: [
-                    {arg: 'options', type: 'object', required: true, http: {source: 'body'}},
+                    {arg: 'options', type: 'object', required: true, http: {source: 'body'}}
                 ],
-                http: {verb: 'post', path: '/reset'},
+                http: {verb: 'post', path: '/reset'}
             }
         );
 
@@ -564,7 +560,7 @@ module.exports = function(Peer) {
         });
 
         PeerModel.validate('email', emailValidator, {
-            message: g.f('Must provide a valid email'),
+            message: g.f('Must provide a valid email')
         });
 
         //PeerModel.validatesUniquenessOf('email', {message: 'Email already exists'});
@@ -580,6 +576,7 @@ module.exports = function(Peer) {
     Peer.setup();
 
     // Access token to normalize email credentials
+    //noinspection JSCheckFunctionSignatures
     Peer.observe('access', function normalizeEmailCase(ctx, next) {
         if (!ctx.Model.settings.caseSensitiveEmail && ctx.query.where &&
             ctx.query.where.email && typeof(ctx.query.where.email) === 'string') {
@@ -588,6 +585,7 @@ module.exports = function(Peer) {
         next();
     });
 
+    //noinspection JSCheckFunctionSignatures
     Peer.observe('before save', function prepareForTokenInvalidation(ctx, next) {
         if (ctx.isNewInstance) return next();
         if (!ctx.where && !ctx.instance) return next();
@@ -616,7 +614,7 @@ module.exports = function(Peer) {
                 }
             } else if (ctx.data.email) {
                 emailChanged = ctx.hookState.originalUserData.some(function(data) {
-                    return data.email != ctx.data.email;
+                    return data.email !== ctx.data.email;
                 });
                 if (emailChanged && ctx.Model.settings.emailVerificationRequired) {
                     ctx.data.emailVerified = false;
@@ -627,6 +625,7 @@ module.exports = function(Peer) {
         });
     });
 
+    //noinspection JSCheckFunctionSignatures
     Peer.observe('after save', function invalidateOtherTokens(ctx, next) {
         if (!ctx.instance && !ctx.data) return next();
         if (!ctx.hookState.originalUserData) return next();
@@ -649,7 +648,7 @@ module.exports = function(Peer) {
 
     function emailValidator(err, done) {
         var value = this.email;
-        if (value == null)
+        if (value === null)
             return;
         if (typeof value !== 'string')
             return err('string');

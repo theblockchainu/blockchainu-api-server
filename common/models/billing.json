@@ -1,0 +1,41 @@
+{
+  "name": "billing",
+  "plural": "billings",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "alias": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "currency": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "rate": {
+      "type": "number"
+    },
+    "frequency": {
+      "type": "string"
+    },
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

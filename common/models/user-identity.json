@@ -3,14 +3,30 @@
   "plural": "userIdentities",
   "base": "UserIdentity",
   "properties": {
-    "provider": "string",
-    "externalId": "string",
-    "authScheme": "string",
-    "profile": "string",
-    "credentials": "string",
-    "userId": "string",
-    "created": "string",
-    "modified": "string"
+    "provider": {
+      "type": "string"
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "authScheme": {
+      "type": "string"
+    },
+    "profile": {
+      "type": "string"
+    },
+    "credentials": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string"
+    },
+    "modified": {
+      "type": "string"
+    }
   },
   "validations": [],
   "relations": {
@@ -21,5 +37,5 @@
     }
   },
   "acls": [],
-  "methods": []
+  "methods": {}
 }

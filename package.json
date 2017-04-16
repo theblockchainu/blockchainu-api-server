@@ -32,7 +32,11 @@
     "passport-local": "^1.0.0",
     "passport-oauth2": "^1.1.2",
     "serve-favicon": "^2.0.1",
-    "strong-error-handler": "^1.0.1"
+    "strong-error-handler": "^1.0.1",
+    "bcryptjs": "latest",
+    "uid2": "latest",
+    "isemail": "latest",
+    "debug": "latest"
   },
   "devDependencies": {
     "eslint": "^2.13.1",

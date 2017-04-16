@@ -28,15 +28,17 @@
     "provider": "google",
     "module": "passport-google-oauth",
     "strategy": "OAuth2Strategy",
-    "clientID": "710964511329-e2fcuv188vilt8qd5quj4vuqru1k4196.apps.googleusercontent.com",
-    "clientSecret": "buaxIvHdQBHAy2_nGI8ahpmY",
+    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
+    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
     "successRedirect": "/auth/account",
     "failureRedirect": "/login",
     "scope": ["email", "profile"],
-    "failureFlash": true
+    "failureFlash": true,
+    "accessType": "offline",
+    "approvalPrompt": "force"
   },
   "twitter-login": {
     "provider": "twitter",
@@ -69,8 +71,8 @@
     "provider": "google",
     "module": "passport-google-oauth",
     "strategy": "OAuth2Strategy",
-    "clientID": "710964511329-e2fcuv188vilt8qd5quj4vuqru1k4196.apps.googleusercontent.com",
-    "clientSecret": "buaxIvHdQBHAy2_nGI8ahpmY",
+    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
+    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
     "callbackURL": "/link/google/callback",
     "authPath": "/link/google",
     "callbackPath": "/link/google/callback",
@@ -78,6 +80,8 @@
     "failureRedirect": "/login",
     "scope": ["email", "profile"],
     "link": true,
-    "failureFlash": true
+    "failureFlash": true,
+    "accessType": "offline",
+    "approvalPrompt": "force"
   }
 }
