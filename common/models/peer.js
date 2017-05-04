@@ -32,193 +32,6 @@ module.exports = function(Peer) {
 
 
     /**
-     * Login a user by with the given `credentials`.
-     *
-     * ```js
-     *    User.login({username: 'foo', password: 'bar'}, function (err, token) {
-        console.log(token.id);
-      });
-     * ```
-     *
-     * @param {Object} credentials username/password or email/password
-     * @param {String[]|String} [include] Optionally set it to "user" to include
-     * the user info
-     * @param fn
-     * @callback {Function} fn Callback function
-     * @promise
-     */
-    Peer.login = function (credentials, include, fn) {
-        var self = this;
-        if (typeof include === 'function') {
-            fn = include;
-            include = undefined;
-        }
-
-        fn = fn || utils.createPromiseCallback();
-
-        include = (include || '');
-        if (Array.isArray(include)) {
-            include = include.map(function(val) {
-                return val.toLowerCase();
-            });
-        } else {
-            include = include.toLowerCase();
-        }
-
-        var query = self.normalizeCredentials(credentials);
-
-        if (!query.email && !query.username) {
-            var err2 = new Error(g.f('{{username}} or {{email}} is required'));
-            err2.statusCode = 400;
-            err2.code = 'USERNAME_EMAIL_REQUIRED';
-            fn(err2);
-            return fn.promise;
-        }
-
-        self.findOne({where: query}, function(err, peer) {
-
-            var defaultError = new Error(g.f('login failed'));
-            defaultError.statusCode = 401;
-            defaultError.code = 'LOGIN_FAILED';
-
-            function tokenHandler(err, token) {
-                if (err) return fn(err);
-                // if user information is requested along with token, include it in response
-                if (Array.isArray(include) ? include.indexOf('peer') !== -1 : include === 'peer') {
-                    token.__data.user = peer;
-                }
-                fn(err, token);
-            }
-
-            if(err) {
-                fn(defaultError);
-            }
-            else if(peer){
-
-                peer.hasPassword(credentials.password, function(err, isMatch) {
-                    if(err) {
-                        fn(defaultError);
-                    }
-                    else if(isMatch){
-                        if (self.settings.emailVerificationRequired && !peer.emailVerified) {
-                            // Fail to log in if email verification is not done yet
-                            err = new Error(g.f('login failed as the email has not been verified'));
-                            err.statusCode = 401;
-                            err.code = 'LOGIN_FAILED_EMAIL_NOT_VERIFIED';
-                            fn(err);
-                        } else {
-                            if (peer.createAccessToken.length === 2) {
-                                peer.createAccessToken(peer, credentials.ttl, tokenHandler);
-                            } else {
-                                peer.createAccessToken(peer, credentials.ttl, credentials, tokenHandler);
-                            }
-                        }
-                    }
-                    else {
-                        var incorrectPasswordError = new Error(g.f('incorrect password'));
-                        incorrectPasswordError.statusCode = 401;
-                        incorrectPasswordError.code = 'INCORRECT_PASSWORD';
-                        fn(incorrectPasswordError);
-                    }
-                });
-            }
-            else {
-                fn(defaultError);
-            }
-
-        });
-
-        return fn.promise;
-
-    };
-
-
-    /**
-     * Logout a user with the given accessToken id.
-     *
-     * ```js
-     *    User.logout('asd0a9f8dsj9s0s3223mk', function (err) {
-  *      console.log(err || 'Logged out');
-  *    });
-     * ```
-     *
-     * @param {String} tokenId
-     * @param fn
-     * @callback {Function} fn
-     * @promise
-     */
-
-    Peer.logout = function(tokenId, fn) {
-        console.log("Logout function called");
-        fn = fn || utils.createPromiseCallback();
-
-        var err;
-        if (!tokenId) {
-            err = new Error(g.f('{{accessToken}} is required to logout'));
-            err.status = 401;
-            process.nextTick(fn, err);
-            return fn.promise;
-        }
-
-        Peer.dataSource.connector.execute(
-            "match (:peer)-[:hasToken]->(token:UserToken {id:'"+tokenId+"'}) DETACH DELETE token",
-            function (err, results) {
-                if(err) {
-                    fn(err);
-                }
-                else {
-                    fn();
-                }
-            }
-        );
-        return fn.promise;
-    };
-
-    /**
-     * Confirm the user's identity.
-     *
-     * @param uid
-     * @param {String} token The validation token
-     * @param {String} redirect URL to redirect the user to once confirmed
-     * @param fn
-     * @callback {Function} callback
-     * @promise
-     */
-    Peer.confirm = function(uid, token, redirect, fn) {
-        fn = fn || utils.createPromiseCallback();
-        this.findById(uid, function(err, user) {
-            if (err) {
-                fn(err);
-            } else {
-                if (user && user.verificationToken === token) {
-                    user.verificationToken = null;
-                    user.emailVerified = true;
-                    user.save(function(err) {
-                        if (err) {
-                            fn(err);
-                        } else {
-                            fn();
-                        }
-                    });
-                } else {
-                    if (user) {
-                        err = new Error(g.f('Invalid token: %s', token));
-                        err.statusCode = 400;
-                        err.code = 'INVALID_TOKEN';
-                    } else {
-                        err = new Error(g.f('User not found: %s', uid));
-                        err.statusCode = 404;
-                        err.code = 'USER_NOT_FOUND';
-                    }
-                    fn(err);
-                }
-            }
-        });
-        return fn.promise;
-    };
-
-
-    /**
      * Create a short lived access token for temporary login. Allows users
      * to change passwords if forgotten.
      *
@@ -293,22 +106,7 @@ module.exports = function(Peer) {
         return cb.promise;
     };
 
-
-    /*Peer.observe('before delete', function(ctx, next) {
-        var AccessToken = ctx.Model.relations.accessTokens.modelTo;
-        var pkName = ctx.Model.definition.idName() || 'id';
-        ctx.Model.find({where: ctx.where, fields: [pkName]}, function(err, list) {
-            if (err) return next(err);
-
-            var ids = list.map(function(u) { return u[pkName]; });
-            ctx.where = {};
-            ctx.where[pkName] = {inq: ids};
-
-            AccessToken.destroyAll({userId: {inq: ids}}, next);
-        });
-    });*/
-
-    //noinspection JSCheckFunctionSignatures
+    // Delete all user tokens before deleting this peer node
     Peer.observe('before delete', function(ctx, next) {
 
         Peer.dataSource.connector.execute(
@@ -433,10 +231,6 @@ module.exports = function(Peer) {
 
 
         console.log(userIds);
-        /*Peer.dataSource.connector.execute(
-            "match (:peer {id:'"+ctx.where.id+"'})-[:hasToken]->(token:UserToken) DETACH DELETE token",
-            cb
-        );*/
 
     };
 
@@ -484,58 +278,6 @@ module.exports = function(Peer) {
             next();
         });
 
-        /*PeerModel.remoteMethod(
-            'login',
-            {
-                description: 'Login a user with username/email and password.',
-                accepts: [
-                    {arg: 'credentials', type: 'object', required: true, http: {source: 'body'}},
-                    {arg: 'include', type: ['string'], http: {source: 'query'},
-                        description: 'Related objects to include in the response. ' +
-                        'See the description of return value for more details.'}
-                ],
-                returns: {
-                    arg: 'accessToken', type: 'object', root: true,
-                    description:
-                        g.f('The response body contains properties of the {{AccessToken}} created on login.\n' +
-                            'Depending on the value of `include` parameter, the body may contain ' +
-                            'additional properties:\n\n' +
-                            '  - `user` - `U+007BUserU+007D` - Data of the currently logged in user. ' +
-                            '{{(`include=user`)}}\n\n')
-                },
-                http: {verb: 'post'}
-            }
-        );
-
-        PeerModel.remoteMethod(
-            'logout',
-            {
-                description: 'Logout a user with access token.',
-                accepts: [
-                    {arg: 'access_token', type: 'string', http: function(ctx) {
-                        var req = ctx.req;
-                        return req.query.access_token;
-                    }, description: 'Do not supply this argument, it is automatically extracted ' +
-                    'from request headers.'
-                    }
-                ],
-                http: {verb: 'all'}
-            }
-        );*/
-
-
-        PeerModel.remoteMethod(
-            'confirm',
-            {
-                description: 'Confirm a user registration with email verification token.',
-                accepts: [
-                    {arg: 'uid', type: 'string', required: true},
-                    {arg: 'token', type: 'string', required: true},
-                    {arg: 'redirect', type: 'string'}
-                ],
-                http: {verb: 'get', path: '/confirm'}
-            }
-        );
 
         PeerModel.remoteMethod(
             'resetPassword',
@@ -548,26 +290,13 @@ module.exports = function(Peer) {
             }
         );
 
-        PeerModel.afterRemote('confirm', function(ctx, inst, next) {
-            if (ctx.args.redirect !== undefined) {
-                if (!ctx.res) {
-                    return next(new Error(g.f('The transport does not support HTTP redirects.')));
-                }
-                ctx.res.location(ctx.args.redirect);
-                ctx.res.status(302);
-            }
-            next();
-        });
 
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
         });
 
-        //PeerModel.validatesUniquenessOf('email', {message: 'Email already exists'});
-        //PeerModel.validatesUniquenessOf('username', {message: 'User already exists'});
-
         return PeerModel;
-    }
+    };
 
     /*!
      * Setup the base user.
@@ -576,7 +305,6 @@ module.exports = function(Peer) {
     Peer.setup();
 
     // Access token to normalize email credentials
-    //noinspection JSCheckFunctionSignatures
     Peer.observe('access', function normalizeEmailCase(ctx, next) {
         if (!ctx.Model.settings.caseSensitiveEmail && ctx.query.where &&
             ctx.query.where.email && typeof(ctx.query.where.email) === 'string') {
@@ -585,7 +313,7 @@ module.exports = function(Peer) {
         next();
     });
 
-    //noinspection JSCheckFunctionSignatures
+    // Make sure emailVerified is not set by user input at the time of signup
     Peer.observe('before save', function prepareForTokenInvalidation(ctx, next) {
         if (ctx.isNewInstance) return next();
         if (!ctx.where && !ctx.instance) return next();
@@ -625,7 +353,7 @@ module.exports = function(Peer) {
         });
     });
 
-    //noinspection JSCheckFunctionSignatures
+    // Invalidate all existing tokens of this user if the password or email ID has changed.
     Peer.observe('after save', function invalidateOtherTokens(ctx, next) {
         if (!ctx.instance && !ctx.data) return next();
         if (!ctx.hookState.originalUserData) return next();

@@ -1,35 +1,7 @@
 {
   "name": "container",
-  "plural": "containers",
-  "base": "PersistedModel",
-  "idInjection": true,
-  "options": {
-    "validateUpsert": true
-  },
-  "properties": {
-    "title": {
-      "type": "string",
-      "required": true
-    },
-    "bio_text": {
-      "type": "string"
-    },
-    "bio_media_cover": {
-      "type": "string"
-    },
-    "bio_media_intro": {
-      "type": "string"
-    },
-    "type": {
-      "type": "string"
-    },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
-      "type": "date"
-    }
-  },
+  "base": "Model",
+  "properties": {},
   "validations": [],
   "relations": {},
   "acls": [],

@@ -41,10 +41,6 @@
     "dataSource": "neo4j",
     "public": false
   },
-  "container": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "topic": {
     "dataSource": "neo4j",
     "public": true
@@ -54,6 +50,30 @@
     "public": true
   },
   "billing": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "container": {
+    "dataSource": "storage",
+    "public": true
+  },
+  "collection": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "media": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "view": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_invite": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "content_calendar": {
     "dataSource": "neo4j",
     "public": true
   }

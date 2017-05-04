@@ -6,5 +6,12 @@
     "name": "neo4j",
     "connector": "neo4j-graph",
     "hostname": "127.0.0.1"
+  },
+  "storage": {
+    "name": "storage",
+    "connector": "loopback-component-storage",
+    "provider": "amazon",
+    "key": "QoIVIu0b40WWKp/dYgI0NXRxlZq6Kth0L9B2/YGb",
+    "keyId": "AKIAJEQ5JJ2KPRFGDMYA"
   }
 }
