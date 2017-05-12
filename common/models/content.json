@@ -7,14 +7,18 @@
     "validateUpsert": true
   },
   "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
     "title": {
       "type": "string",
       "required": true
     },
-    "item": {
-      "type": "object"
-    },
     "type": {
+      "type": "string"
+    },
+    "url": {
       "type": "string"
     },
     "created": {
@@ -25,7 +29,13 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "calendar": {
+      "type": "hasOne",
+      "model": "content_calendar",
+      "foreignKey": "content_id"
+    }
+  },
   "acls": [],
   "methods": {}
 }

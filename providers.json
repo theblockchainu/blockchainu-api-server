@@ -8,7 +8,8 @@
     "successRedirect": "/auth/account",
     "failureRedirect": "/local",
     "failureFlash": true,
-    "setAccessToken": true
+    "setAccessToken": true,
+    "json": true
   },
   "facebook-login": {
     "provider": "facebook",
@@ -22,7 +23,8 @@
     "successRedirect": "/auth/account",
     "failureRedirect": "/login",
     "scope": ["email"],
-    "failureFlash": true
+    "failureFlash": true,
+    "json": true
   },
   "google-login": {
     "provider": "google",
@@ -38,7 +40,8 @@
     "scope": ["email", "profile"],
     "failureFlash": true,
     "accessType": "offline",
-    "approvalPrompt": "force"
+    "approvalPrompt": "force",
+    "json": true
   },
   "twitter-login": {
     "provider": "twitter",

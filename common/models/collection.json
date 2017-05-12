@@ -1,0 +1,69 @@
+{
+  "name": "collection",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "peerId": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "bio_text": {
+      "type": "string"
+    },
+    "bio_image": {
+      "type": "string"
+    },
+    "bio_video": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "date"
+    },
+    "end_date": {
+      "type": "date"
+    },
+    "max_participants": {
+      "type": "number"
+    },
+    "prize_money_amount": {
+      "type": "number"
+    },
+    "prize_money_currency": {
+      "type": "string"
+    },
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "owner": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "peerId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "view"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -1,0 +1,36 @@
+{
+  "name": "view",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "type": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "browser": {
+      "type": "string"
+    },
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

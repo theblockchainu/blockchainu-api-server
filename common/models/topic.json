@@ -6,6 +6,9 @@
   "options": {
     "validateUpsert": true
   },
+  "hidden": [
+    "root"
+  ],
   "properties": {
     "name": {
       "type": "string",
