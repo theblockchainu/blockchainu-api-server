@@ -60,6 +60,11 @@
       "options": {
         "disableInclude": true
       }
+    },
+    "hasProfile": {
+      "type": "hasOne",
+      "model": "profile",
+      "foreignKey": "userId"
     }
   },
   "acls": [],

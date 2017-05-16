@@ -1,0 +1,69 @@
+{
+  "name": "profile",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "picture_url": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "joining_date": {
+      "type": "date"
+    },
+    "languages": {
+      "type": [
+        "string"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "experience_type": {
+      "type": "string"
+    },
+    "learner_type": {
+      "type": [
+        "string"
+      ]
+    },
+    "portfolio_url": {
+      "type": "string"
+    },
+    "is_teacher": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string"
+    },
+    "education": {
+      "type": "string"
+    },
+    "work_experience": {
+      "type": "string"
+    },
+    "custom_url": {
+      "type": "string"
+    },
+    "profile_video": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    
+  }
+}
