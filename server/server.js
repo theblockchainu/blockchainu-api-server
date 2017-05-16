@@ -223,7 +223,11 @@ app.post('/signup', function(req, res, next) {
                         signed: req.signedCookies ? true : false,
                         maxAge: 1000 * accessToken[0].token.properties.ttl,
                     });
-                    return res.redirect('/auth/account');
+                    //return res.redirect('/auth/account');
+                    return res.json({
+                        'access_token': accessToken[0].token.properties.id,
+                        userId: user.id
+                    });
                 });
             }else {
                 console.log("no access token");
