@@ -16,6 +16,10 @@
   "peer": {
     "dataSource": "neo4j",
     "public": true
+  }, 
+  "profile": {
+    "dataSource": "neo4j",
+    "public": true
   },
   "UserToken": {
     "dataSource": "neo4j",
