@@ -367,7 +367,7 @@ module.exports = function (Peer) {
         return cb.promise;
     };
 
-    Peer.prototype.createProfile = function (profileModel,user, cb) {
+    Peer.prototype.createProfile = function (profileModel, user, cb) {
         if (cb === undefined && typeof options === 'function') {
             // createAccessToken(ttl, cb)
             cb = options;
@@ -375,7 +375,7 @@ module.exports = function (Peer) {
         }
         cb = cb || utils.createPromiseCallback();
         console.log(user.Id);
-        var emptyProfile = {"userId":user.id};
+        var emptyProfile = { "userId": user.id };
 
         profileModel.create(emptyProfile, function (err, profileNode) {
             if (!err && profileNode) {
@@ -398,7 +398,7 @@ module.exports = function (Peer) {
                 cb(err, user, profileNode);
             }
         });
-       return cb.promise;
+        return cb.promise;
     };
 
 
@@ -475,7 +475,99 @@ module.exports = function (Peer) {
 
     };
 
+    /**
+        * Update the following relation between peer nodes
+        *
+        * @param {String}  id id of the current node
+        * @param {Object}  data details of the node to log
+        * cb
+        */
 
+    Peer.patchFollowing = function (id, data, cb) {
+        console.log("patching existing peer instance");
+
+        Peer.app.models.peer.findById(data.id, function (err, peerInstance) {
+            if (err) {
+                cb(err);
+            }
+            else {
+
+                console.log("found" + peerInstance);
+                /*
+                 NEW: Collection -[hasParticipant]-> Peer
+                 */
+                Peer.dataSource.connector.execute(
+                    "MATCH (pa:peer {id: '" + id + "'}),(p:peer {id: '" + peerInstance.id + "'}) MERGE (pa)-[r:following]->(p) RETURN p",
+                    function (err, results) {
+                        if (err) {
+                            cb(err);
+                        }
+                        else {
+                            cb(null, results);
+                        }
+                    }
+                );
+            }
+        });
+    }
+
+    Peer.patchTopics = function (id, data, cb) {
+
+        console.log("patching existing topic instance");
+
+        Peer.app.models.topic.findById(data.id, function (err, topicInstance) {
+            if (err) {
+                cb(err);
+            }
+            else {
+
+                console.log("found" + topicInstance);
+                /*
+                 NEW: Collection -[hasParticipant]-> Peer
+                 */
+                Peer.dataSource.connector.execute(
+                    "MATCH (p:peer {id: '" + id + "'}),(t:topic {id: '" + topicInstance.id + "'}) MERGE (p)-[:topics]->(t) RETURN t",
+                    function (err, results) {
+                        if (err) {
+                            cb(err);
+                        }
+                        else {
+                            cb(null, results);
+                        }
+                    }
+                );
+            }
+        });
+    }
+
+    Peer.patchCollections = function (id, data, cb) {
+
+        console.log("patching existing collections instances");
+
+        Peer.app.models.collection.findById(data.id, function (err, collectionInstance) {
+            if (err) {
+                cb(err);
+            }
+            else {
+
+                console.log("found" + collectionInstance);
+                /*
+                 NEW: Collection -[hasParticipant]-> Peer
+                 */
+                Peer.dataSource.connector.execute(
+                    "MATCH (p:peer {id: '" + id + "'}),(c:collection {id: '" + collectionInstance.id + "'}) MERGE (p)-[:collections]->(c) RETURN c",
+                    function (err, results) {
+                        if (err) {
+                            cb(err);
+                        }
+                        else {
+                            cb(null, results);
+                        }
+                    }
+                );
+            }
+        });
+    }
     /*!
      * Setup an extended user model.
      */
@@ -604,6 +696,48 @@ module.exports = function (Peer) {
 
         //PeerModel.validatesUniquenessOf('email', {message: 'Email already exists'});
         //PeerModel.validatesUniquenessOf('username', {message: 'User already exists'});
+
+        //adding remote method for updating peer connections
+        PeerModel.remoteMethod(
+            'patchFollowing',
+            {
+                description: 'Patch the peer node relation',
+                accepts: [
+                    { arg: 'id', type: 'string', http: { source: 'path' } },
+                    { arg: 'data', type: 'object', http: { source: 'body' }, required: true }
+                ],
+                returns: { arg: 'peerObject', type: 'object', root: true },
+                http: { verb: 'patch', path: '/:id/following' }
+            }
+        );
+
+        //Remote method for adding topics
+        PeerModel.remoteMethod(
+            'patchTopics',
+            {
+                description: 'Patch the topic relation',
+                accepts: [
+                    { arg: 'id', type: 'string', http: { source: 'path' } },
+                    { arg: 'data', type: 'object', http: { source: 'body' }, required: true }
+                ],
+                returns: { arg: 'peerObject', type: 'object', root: true },
+                http: { verb: 'patch', path: '/:id/topics' }
+            }
+        );
+
+        //Remote method for adding topics
+        PeerModel.remoteMethod(
+            'patchCollections',
+            {
+                description: 'Patch the collection relations',
+                accepts: [
+                    { arg: 'id', type: 'string', http: { source: 'path' } },
+                    { arg: 'data', type: 'object', http: { source: 'body' }, required: true }
+                ],
+                returns: { arg: 'collectionObject', type: 'object', root: true },
+                http: { verb: 'patch', path: '/:id/collections' }
+            }
+        );
 
         return PeerModel;
     }
