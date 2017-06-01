@@ -5,7 +5,17 @@
     "password": "0C6&7vvvv",
     "name": "neo4j",
     "connector": "neo4j-graph",
-    "hostname": "127.0.0.1"
+    "hostname": "127.0.0.1",
+    "debug": true
+  },
+  "neo4j-cypher": {
+    "port": 7474,
+    "username": "neo4j",
+    "password": "0C6&7vvvv",
+    "name": "neo4j",
+    "connector": "neo4j-cypher",
+    "hostname": "127.0.0.1",
+    "debug": true
   },
   "storage": {
     "name": "storage",

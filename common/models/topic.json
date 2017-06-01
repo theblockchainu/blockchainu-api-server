@@ -10,6 +10,10 @@
     "root"
   ],
   "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
     "name": {
       "type": "string",
       "required": true
@@ -28,7 +32,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "through": "hasTopic",
+      "foreignKey": "targetId",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

@@ -61,7 +61,38 @@
     },
     "views": {
       "type": "hasMany",
-      "model": "view"
+      "model": "view",
+      "through": "hasView",
+      "foreignKey": "sourceId",
+      "keyThrough": "targetId"
+    },
+    "topics": {
+      "type": "hasMany",
+      "model": "topic",
+      "through": "hasTopic",
+      "foreignKey": "sourceId",
+      "keyThrough": "targetId"
+    },
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "through": "hasContent",
+      "foreignKey": "sourceId",
+      "keyThrough": "targetId"
+    },
+    "participants": {
+      "type": "hasMany",
+      "model": "peer",
+      "through": "hasParticipant",
+      "foreignKey": "sourceId",
+      "keyThrough": "targetId"
+    },
+    "reviews": {
+      "type": "hasMany",
+      "model": "review",
+      "through": "hasReview",
+      "foreignKey": "sourceId",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -60,11 +60,11 @@ module.exports = function (Collection) {
     });
 
 
-    Collection.afterRemote('prototype.__create__views', function (ctx, viewInstance, next) {
+    /*Collection.afterRemote('prototype.__create__views', function (ctx, viewInstance, next) {
         console.log("Creating relation between view node and collection node");
-        /*
+        /!*
          NEW: Collection -[wasViewed]-> View
-         */
+         *!/
         Collection.dataSource.connector.execute(
             "MATCH (c:collection {id: '" + viewInstance.collectionId + "'}),(v:view {id: '" + viewInstance.id + "'}) MERGE (c)-[r:wasViewed]->(v) RETURN r",
             function (err, results) {
@@ -76,11 +76,8 @@ module.exports = function (Collection) {
                 }
             }
         );
-    });
+    });*/
 
-    Collection.afterRemote('prototype.__create__contents', function (ctx, contentInstance, next) {
-
-    });
 
     Collection.addNewContents = function (data, id, cb) {
         console.log("Creating new content instance");
@@ -417,7 +414,7 @@ module.exports = function (Collection) {
 
     // TODO: Define remote methods for participants, contents, topics and billing
 
-    Collection.remoteMethod(
+    /*Collection.remoteMethod(
         'addNewContents',
         {
             description: 'Add a new content instance to this collection',
@@ -441,9 +438,9 @@ module.exports = function (Collection) {
             returns: { arg: 'contentObject', type: 'object', root: true },
             http: { verb: 'patch', path: '/:id/contents' }
         }
-    );
+    );*/
 
-    Collection.remoteMethod(
+    /*Collection.remoteMethod(
         'addNewTopics',
         {
             description: 'Add a new topic instance to this collection',
@@ -467,9 +464,9 @@ module.exports = function (Collection) {
             returns: { arg: 'contentObject', type: 'object', root: true },
             http: { verb: 'patch', path: '/:id/topics' }
         }
-    );
+    );*/
 
-    Collection.remoteMethod(
+    /*Collection.remoteMethod(
         'addNewParticipants',
         {
             description: 'Add a new peer_invite instance to this collection',
@@ -530,7 +527,7 @@ module.exports = function (Collection) {
             returns: { arg: 'contentObject', type: 'object', root: true },
             http: { verb: 'delete', path: '/:id/review' }
         }
-    );
+    );*/
 
 
 };
