@@ -38,8 +38,8 @@
     "collections": {
       "type": "hasMany",
       "model": "collection",
-      "through": "hasContent",
       "foreignKey": "targetId",
+      "through": "hasContent",
       "keyThrough": "sourceId"
     }
   },

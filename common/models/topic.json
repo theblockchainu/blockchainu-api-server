@@ -36,8 +36,8 @@
     "collections": {
       "type": "hasMany",
       "model": "collection",
-      "through": "hasTopic",
       "foreignKey": "targetId",
+      "through": "hasTopic",
       "keyThrough": "sourceId"
     }
   },

@@ -12,18 +12,18 @@
   ],
   "properties": {
     "id": {
-      "type": "number",
+      "type": "string",
       "required": true
     },
     "username": {
-      "type": "String"
+      "type": "string"
     },
     "password": {
-      "type": "String",
+      "type": "string",
       "required": true
     },
     "email": {
-      "type": "String"
+      "type": "string"
     },
     "phone": {
       "type": "number"

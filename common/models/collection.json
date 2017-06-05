@@ -62,36 +62,36 @@
     "views": {
       "type": "hasMany",
       "model": "view",
-      "through": "hasView",
       "foreignKey": "sourceId",
+      "through": "hasView",
       "keyThrough": "targetId"
     },
     "topics": {
       "type": "hasMany",
       "model": "topic",
-      "through": "hasTopic",
       "foreignKey": "sourceId",
+      "through": "hasTopic",
       "keyThrough": "targetId"
     },
     "contents": {
       "type": "hasMany",
       "model": "content",
-      "through": "hasContent",
       "foreignKey": "sourceId",
+      "through": "hasContent",
       "keyThrough": "targetId"
     },
     "participants": {
       "type": "hasMany",
       "model": "peer",
-      "through": "hasParticipant",
       "foreignKey": "sourceId",
+      "through": "hasParticipant",
       "keyThrough": "targetId"
     },
     "reviews": {
       "type": "hasMany",
       "model": "review",
-      "through": "hasReview",
       "foreignKey": "sourceId",
+      "through": "hasReview",
       "keyThrough": "targetId"
     }
   },

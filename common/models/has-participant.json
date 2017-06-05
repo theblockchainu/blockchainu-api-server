@@ -5,7 +5,7 @@
   "options": {
     "validateUpsert": true
   },
-  "neo4j" : {
+  "neo4j": {
     "sourceModel": "collection",
     "targetModel": "peer"
   },
