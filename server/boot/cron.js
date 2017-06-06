@@ -46,6 +46,16 @@ module.exports = function setupCron(server) {
                 })
             });
         });
+
+        // Index all collections
+        server.models.collection.find(function (err, collectionInstances) {
+            makebulk(collectionInstances, 'collection', function(response){
+                console.log("Bulk content prepared: " + JSON.stringify(response));
+                indexall(response, 'collection', function(response){
+                    console.log(response);
+                })
+            });
+        });
     }, function() {
         // Callback function when job ends.
     },
