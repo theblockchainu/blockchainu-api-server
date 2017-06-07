@@ -12,7 +12,7 @@
     "port": 7474,
     "username": "neo4j",
     "password": "0C6&7vvvv",
-    "name": "neo4j",
+    "name": "neo4j-cypher",
     "connector": "neo4j-cypher",
     "hostname": "127.0.0.1",
     "debug": true

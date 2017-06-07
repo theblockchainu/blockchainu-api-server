@@ -61,10 +61,40 @@
         "disableInclude": true
       }
     },
-    "hasProfile": {
-      "type": "hasOne",
+    "topics": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "peer_has_topic",
+      "keyThrough": "targetId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_member",
+      "keyThrough": "sourceId"
+    },
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_participant",
+      "keyThrough": "sourceId"
+    },
+    "following": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "peer_has_following",
+      "keyThrough": "targetId"
+    },
+    "profile": {
+      "type": "hasMany",
       "model": "profile",
-      "foreignKey": "userId"
+      "foreignKey": "sourceId",
+      "through": "peer_has_profile",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

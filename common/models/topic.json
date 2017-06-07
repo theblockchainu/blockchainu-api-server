@@ -39,6 +39,13 @@
       "foreignKey": "targetId",
       "through": "hasTopic",
       "keyThrough": "sourceId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_topic",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

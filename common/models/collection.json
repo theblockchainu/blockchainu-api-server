@@ -80,18 +80,18 @@
       "through": "hasContent",
       "keyThrough": "targetId"
     },
-    "participants": {
-      "type": "hasMany",
-      "model": "peer",
-      "foreignKey": "sourceId",
-      "through": "hasParticipant",
-      "keyThrough": "targetId"
-    },
     "reviews": {
       "type": "hasMany",
       "model": "review",
       "foreignKey": "sourceId",
       "through": "hasReview",
+      "keyThrough": "targetId"
+    },
+    "participants": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "collection_has_participant",
       "keyThrough": "targetId"
     }
   },

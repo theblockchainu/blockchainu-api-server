@@ -1,0 +1,40 @@
+{
+  "name": "community",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "bio_text": {
+      "type": "string"
+    },
+    "bio_image": {
+      "type": "string"
+    },
+    "bio_video": {
+      "type": "string"
+    },
+    "pirvacy": {
+      "type": "string"
+    },
+    "hasBilling": {
+      "type": "boolean"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "members": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "community_has_member",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

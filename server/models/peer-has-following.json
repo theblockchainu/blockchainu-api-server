@@ -1,12 +1,12 @@
 {
-  "name": "hasParticipant",
+  "name": "peer_has_following",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "collection",
+    "sourceModel": "peer",
     "targetModel": "peer"
   },
   "properties": {
@@ -23,12 +23,12 @@
   },
   "validations": [],
   "relations": {
-    "collection": {
+    "peerSource": {
       "type": "belongsTo",
-      "model": "collection",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
-    "peer": {
+    "peerTarget": {
       "type": "belongsTo",
       "model": "peer",
       "foreignKey": "targetId"
