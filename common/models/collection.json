@@ -93,6 +93,13 @@
       "foreignKey": "sourceId",
       "through": "hasReview",
       "keyThrough": "targetId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_collection",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

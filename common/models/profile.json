@@ -61,7 +61,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_profile",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }
