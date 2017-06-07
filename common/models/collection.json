@@ -80,13 +80,6 @@
       "through": "hasContent",
       "keyThrough": "targetId"
     },
-    "participants": {
-      "type": "hasMany",
-      "model": "peer",
-      "foreignKey": "sourceId",
-      "through": "hasParticipant",
-      "keyThrough": "targetId"
-    },
     "reviews": {
       "type": "hasMany",
       "model": "review",
@@ -94,12 +87,12 @@
       "through": "hasReview",
       "keyThrough": "targetId"
     },
-    "peer": {
+    "participants": {
       "type": "hasMany",
       "model": "peer",
-      "foreignKey": "targetId",
-      "through": "peer_has_collection",
-      "keyThrough": "sourceId"
+      "foreignKey": "sourceId",
+      "through": "collection_has_participant",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

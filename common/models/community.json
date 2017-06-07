@@ -27,12 +27,12 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "members": {
       "type": "hasMany",
       "model": "peer",
-      "foreignKey": "targetId",
-      "through": "peer_has_community",
-      "keyThrough": "sourceId"
+      "foreignKey": "sourceId",
+      "through": "community_has_member",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

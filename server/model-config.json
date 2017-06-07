@@ -93,10 +93,6 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "hasParticipant": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
   "hasReview": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -113,19 +109,19 @@
     "dataSource": "neo4j",
     "public": true
   },
-  "peer_has_community": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "peer_has_collection": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "peer_has_peer": {
+  "peer_has_following": {
     "dataSource": "neo4j-cypher",
     "public": false
   },
   "peer_has_profile": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_participant": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_member": {
     "dataSource": "neo4j-cypher",
     "public": false
   }
