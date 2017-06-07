@@ -56,6 +56,16 @@ module.exports = function setupCron(server) {
                 })
             });
         });
+
+        // Index all topics
+        server.models.topic.find(function (err, topicInstances) {
+            makebulk(topicInstances, 'topic', function(response){
+                console.log("Bulk content prepared: " + JSON.stringify(response));
+                indexall(response, 'topic', function(response){
+                    console.log(response);
+                })
+            });
+        });
     }, function() {
         // Callback function when job ends.
     },
