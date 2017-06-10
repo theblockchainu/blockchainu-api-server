@@ -64,3 +64,9 @@ Vagrantfile
 #vscode
 .vscode/
 Vagrantfile
+
+#Webstorm IDE files
+.idea/
+
+#Licode files
+licode/
