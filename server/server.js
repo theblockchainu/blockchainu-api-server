@@ -24,7 +24,7 @@ try {
 }
 
 // Passport configurators..
-var loopbackPassport = require('loopback-component-passport');
+var loopbackPassport = require('loopback-component-passport-neo4j');
 var PassportConfigurator = loopbackPassport.PassportConfigurator;
 var passportConfigurator = new PassportConfigurator(app);
 
