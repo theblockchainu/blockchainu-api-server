@@ -39,7 +39,7 @@
       "type": "hasMany",
       "model": "collection",
       "foreignKey": "targetId",
-      "through": "hasContent",
+      "through": "collection_has_content",
       "keyThrough": "sourceId"
     }
   },

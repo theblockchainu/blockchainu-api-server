@@ -63,28 +63,28 @@
       "type": "hasMany",
       "model": "view",
       "foreignKey": "sourceId",
-      "through": "hasView",
+      "through": "collection_has_view",
       "keyThrough": "targetId"
     },
     "topics": {
       "type": "hasMany",
       "model": "topic",
       "foreignKey": "sourceId",
-      "through": "hasTopic",
+      "through": "collection_has_topic",
       "keyThrough": "targetId"
     },
     "contents": {
       "type": "hasMany",
       "model": "content",
       "foreignKey": "sourceId",
-      "through": "hasContent",
+      "through": "collection_has_content",
       "keyThrough": "targetId"
     },
     "reviews": {
       "type": "hasMany",
       "model": "review",
       "foreignKey": "sourceId",
-      "through": "hasReview",
+      "through": "collection_has_review",
       "keyThrough": "targetId"
     },
     "participants": {
