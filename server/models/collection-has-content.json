@@ -1,0 +1,39 @@
+{
+  "name": "collection_has_content",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "collection",
+    "targetModel": "content"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collection": {
+      "type": "belongsTo",
+      "model": "collection",
+      "foreignKey": "sourceId"
+    },
+    "content": {
+      "type": "belongsTo",
+      "model": "content",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

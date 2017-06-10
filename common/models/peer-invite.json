@@ -19,7 +19,7 @@
     "peerId": {
       "type": "string"
     },
-    "status": { 
+    "status": {
       "type": "string"
     },
     "created": {

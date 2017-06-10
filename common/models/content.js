@@ -17,6 +17,7 @@ module.exports = function (Content) {
         if (ctx.isNewInstance) {
             var calInstance = ctx.hookState.content_calendar;
             calInstance.content_id = ctx.instance.id;
+            calInstance.unsetAttribute('id');
             ctx.instance.calendar.create(calInstance, function (err, result) {
                 if (err) {
                     console.log(err);
