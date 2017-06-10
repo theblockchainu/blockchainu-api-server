@@ -16,7 +16,10 @@
     "email": {
       "type": "string"
     },
-    "status": {
+    "peerId": {
+      "type": "string"
+    },
+    "status": { 
       "type": "string"
     },
     "created": {

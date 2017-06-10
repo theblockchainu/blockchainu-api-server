@@ -12,7 +12,7 @@
     },
     "peerId": {
       "type": "string",
-      "required": true
+      "required": false
     },
     "title": {
       "type": "string",
@@ -92,6 +92,13 @@
       "model": "peer",
       "foreignKey": "sourceId",
       "through": "collection_has_participant",
+      "keyThrough": "targetId"
+    },
+    "invites": {
+      "type": "hasMany",
+      "model": "peer_invite",
+      "foreignKey": "sourceId",
+      "through": "collection_has_invite",
       "keyThrough": "targetId"
     }
   },

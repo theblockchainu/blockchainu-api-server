@@ -85,22 +85,6 @@
     "dataSource": "neo4j",
     "public": true
   },
-  "hasTopic": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "hasContent": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "hasReview": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "hasView": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
   "peer_has_topic": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -122,6 +106,34 @@
     "public": false
   },
   "community_has_member": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_content": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_review": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_topic": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_view": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_calendar": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_invite": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_invited": {
     "dataSource": "neo4j-cypher",
     "public": false
   }
