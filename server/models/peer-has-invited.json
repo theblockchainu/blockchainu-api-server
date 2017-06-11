@@ -1,13 +1,13 @@
 {
-  "name": "community_has_member",
+  "name": "peer_has_invited",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "community",
-    "targetModel": "peer"
+    "sourceModel": "peer",
+    "targetModel": "peer_invite"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "community": {
-      "type": "belongsTo",
-      "model": "community",
-      "foreignKey": "sourceId"
-    },
     "peer": {
       "type": "belongsTo",
       "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "peer_invite": {
+      "type": "belongsTo",
+      "model": "peer_invite",
       "foreignKey": "targetId"
     }
   },

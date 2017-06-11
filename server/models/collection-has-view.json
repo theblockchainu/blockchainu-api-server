@@ -1,5 +1,5 @@
 {
-  "name": "hasContent",
+  "name": "collection_has_view",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "collection",
-    "targetModel": "content"
+    "targetModel": "view"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "collection",
       "foreignKey": "sourceId"
     },
-    "content": {
+    "view": {
       "type": "belongsTo",
-      "model": "content",
+      "model": "view",
       "foreignKey": "targetId"
     }
   },

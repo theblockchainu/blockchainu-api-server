@@ -59,7 +59,7 @@ typings/
 
 #vagrant
 .vagrant/
-Vagrantfile*
+Vagrantfile
 
 #vscode
 .vscode/

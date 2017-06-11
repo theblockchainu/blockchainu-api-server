@@ -1,5 +1,5 @@
 'use strict';
 
-module.exports = function(Peerinvite) {
-
+module.exports = function (Peerinvite) {
+    
 };

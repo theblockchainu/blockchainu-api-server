@@ -1,5 +1,5 @@
 {
-  "name": "hasReview",
+  "name": "collection_has_content",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "collection",
-    "targetModel": "review"
+    "targetModel": "content"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "collection",
       "foreignKey": "sourceId"
     },
-    "review": {
+    "content": {
       "type": "belongsTo",
-      "model": "review",
+      "model": "content",
       "foreignKey": "targetId"
     }
   },

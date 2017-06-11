@@ -26,20 +26,25 @@
     },
     "modified": {
       "type": "date"
+    },
+    "content_calendar": {
+      "type": "content_calendar"
     }
   },
   "validations": [],
   "relations": {
     "calendar": {
-      "type": "hasOne",
+      "type": "hasMany",
       "model": "content_calendar",
-      "foreignKey": "content_id"
+      "foreignKey": "sourceId",
+      "through": "content_has_calendar",
+      "keyThrough": "targetId"
     },
     "collections": {
       "type": "hasMany",
       "model": "collection",
       "foreignKey": "targetId",
-      "through": "hasContent",
+      "through": "collection_has_content",
       "keyThrough": "sourceId"
     }
   },

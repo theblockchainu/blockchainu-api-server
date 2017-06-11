@@ -1,36 +1,32 @@
 'use strict';
 
-module.exports = function(Content) {
+module.exports = function (Content) {
 
-    Content.afterRemote('create', function(ctx,contentInstance,next){
-        if(ctx.req.body.calendar !== null && ctx.req.body.calendar.length > 0) {
-            var calendar = JSON.parse(ctx.req.body.calendar);
-            calendar.content_id = contentInstance.id;
-            Content.app.models.content_calendar.create(calendar, function(err, contentCalendarInstance){
-                if(err){
-                    contentInstance.destroy();
-                    next(err);
-                }
+    //if (ctx.req.body.calendar !== null && ctx.req.body.calendar.length > 0) 
 
-                /*
-                 NEW: Content -[hasCalendar]-> ContentCalendar
-                 */
-                Content.dataSource.connector.execute(
-                    "MATCH (c:content {id: '"+ contentInstance.id +"'}),(n:content_calendar {id: '"+ contentCalendarInstance.id +"'}) MERGE (c)-[r:hasCalendar]->(n) RETURN n",
-                    function (err, results) {
-                        if(err) {
-                            next(err);
-                        }
-                        else {
-                            next();
-                        }
-                    }
-                );
-
-            });
+    Content.observe('before save', function filterCalendar(ctx, next) {
+        if (ctx.instance.calendar) {
+            ctx.hookState.content_calendar = ctx.instance.content_calendar;
+            ctx.instance.unsetAttribute('content_calendar');
+            return next();
         }
-        else {
+        next();
+    });
+
+    Content.observe('after save', function createCalendar(ctx, next) {
+        if (ctx.isNewInstance) {
+            var calInstance = ctx.hookState.content_calendar;
+            calInstance.content_id = ctx.instance.id;
+            calInstance.unsetAttribute('id');
+            ctx.instance.calendar.create(calInstance, function (err, result) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(result);
+                }
+            });
             next();
         }
     });
+
 };

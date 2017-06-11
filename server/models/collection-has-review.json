@@ -1,13 +1,13 @@
 {
-  "name": "community_has_member",
+  "name": "collection_has_review",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "community",
-    "targetModel": "peer"
+    "sourceModel": "collection",
+    "targetModel": "review"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "community": {
+    "collection": {
       "type": "belongsTo",
-      "model": "community",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "peer": {
+    "review": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "review",
       "foreignKey": "targetId"
     }
   },

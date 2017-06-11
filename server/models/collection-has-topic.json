@@ -1,5 +1,5 @@
 {
-  "name": "hasTopic",
+  "name": "collection_has_topic",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
