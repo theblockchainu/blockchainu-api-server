@@ -20,7 +20,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "review_has_reviewer",
+      "keyThrough": "targetId"
+    }
+  },
   "acls": [],
   "methods": {}
 }
