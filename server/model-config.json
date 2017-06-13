@@ -136,5 +136,9 @@
   "peer_has_invited": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "review_has_reviewer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
