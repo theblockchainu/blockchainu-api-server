@@ -95,6 +95,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_profile",
       "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "comment_givenby_peer",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

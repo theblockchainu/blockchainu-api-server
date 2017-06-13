@@ -1,0 +1,39 @@
+{
+  "name": "comment_has_reply",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "comment",
+    "targetModel": "reply"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "comment": {
+      "type": "belongsTo",
+      "model": "comment",
+      "foreignKey": "sourceId"
+    },
+    "reply": {
+      "type": "belongsTo",
+      "model": "reply",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

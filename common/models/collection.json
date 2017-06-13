@@ -93,6 +93,27 @@
       "foreignKey": "sourceId",
       "through": "collection_has_participant",
       "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "collection_has_comment",
+      "keyThrough": "targetId"
+    },
+    "upvotes": {
+      "type": "hasMany",
+      "model": "upvote",
+      "foreignKey": "sourceId",
+      "through": "collection_has_upvote",
+      "keyThrough": "targetId"
+    },
+    "downvotes": {
+      "type": "hasMany",
+      "model": "downvote",
+      "foreignKey": "sourceId",
+      "through": "collection_has_downvote",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
