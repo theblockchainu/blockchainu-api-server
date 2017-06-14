@@ -42,17 +42,4 @@ module.exports = function (Collection) {
 
     });
 
-    Collection.afterRemote('prototype.__create__reviews', function (ctx, newInstance, next) {
-        if (ctx.req.user) {
-            var userId = ctx.req.user.id;
-            //console.log(ctx);
-            Collection.app.models.peer.findById(userId, function (err, instance) {
-                newInstance.peer.add(instance, function (err, addedinstance) {
-                    console.log("");
-                });
-            });
-        } else
-            console.log("User Not Signed in!");
-        next();
-    });
 };
