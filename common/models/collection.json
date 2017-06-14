@@ -5,6 +5,11 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "AddPeerRelation": {
+      "relationName": "reviews"
+    }
+  },
   "properties": {
     "id": {
       "type": "string",
