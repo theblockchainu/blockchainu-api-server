@@ -1,21 +1,15 @@
 {
-  "name": "review",
+  "name": "message",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "description": {
+    "content": {
       "type": "string"
     },
-    "like": {
-      "type": "boolean"
-    },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
+    "posted_on": {
       "type": "date"
     }
   },
@@ -25,7 +19,7 @@
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "sourceId",
-      "through": "review_has_reviewer",
+      "through": "message_has_owner",
       "keyThrough": "targetId"
     }
   },
