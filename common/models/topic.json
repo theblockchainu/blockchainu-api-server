@@ -37,7 +37,7 @@
       "type": "hasMany",
       "model": "collection",
       "foreignKey": "targetId",
-      "through": "hasTopic",
+      "through": "collection_has_topic",
       "keyThrough": "sourceId"
     },
     "peer": {

@@ -1,0 +1,39 @@
+{
+  "name": "peer_has_invited",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "peer",
+    "targetModel": "peer_invite"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "peer_invite": {
+      "type": "belongsTo",
+      "model": "peer_invite",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

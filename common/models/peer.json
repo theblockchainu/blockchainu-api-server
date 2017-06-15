@@ -96,11 +96,11 @@
       "through": "peer_has_profile",
       "keyThrough": "targetId"
     },
-    "comments": {
+    "invites": {
       "type": "hasMany",
-      "model": "comment",
+      "model": "peer_invite",
       "foreignKey": "sourceId",
-      "through": "comment_givenby_peer",
+      "through": "peer_has_invited",
       "keyThrough": "targetId"
     }
   },

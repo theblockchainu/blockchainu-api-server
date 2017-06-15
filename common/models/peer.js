@@ -13,6 +13,7 @@ var path = require('path');
 var qs = require('querystring');
 var SALT_WORK_FACTOR = 10;
 var crypto = require('crypto');
+var uuid = require("uuid");
 var MAX_PASSWORD_LENGTH = 72;
 var debug = require('debug')('loopback:peer');
 
@@ -383,7 +384,7 @@ module.exports = function (Peer) {
                     console.log("Created new user entry");
 
                 profileModel.dataSource.connector.execute(
-                    "match (p:peer {username: '" + user.username + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:hasProfile]->(pro) return r",
+                    "match (p:peer {username: '" + user.username + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
                     function (err, results) {
                         if (!err) {
                             cb(err, user, results);
@@ -466,7 +467,6 @@ module.exports = function (Peer) {
         if (!Array.isArray(userIds) || !userIds.length)
             return process.nextTick(cb);
 
-
         console.log(userIds);
         /*Peer.dataSource.connector.execute(
             "match (:peer {id:'"+ctx.where.id+"'})-[:hasToken]->(token:UserToken) DETACH DELETE token",
@@ -522,45 +522,6 @@ module.exports = function (Peer) {
         PeerModel.afterRemote('create', function (ctx, user, next) {
             next();
         });
-        /*PeerModel.remoteMethod(
-            'login',
-            {
-                description: 'Login a user with username/email and password.',
-                accepts: [
-                    {arg: 'credentials', type: 'object', required: true, http: {source: 'body'}},
-                    {arg: 'include', type: ['string'], http: {source: 'query'},
-                        description: 'Related objects to include in the response. ' +
-                        'See the description of return value for more details.'}
-                ],
-                returns: {
-                    arg: 'accessToken', type: 'object', root: true,
-                    description:
-                        g.f('The response body contains properties of the {{AccessToken}} created on login.\n' +
-                            'Depending on the value of `include` parameter, the body may contain ' +
-                            'additional properties:\n\n' +
-                            '  - `user` - `U+007BUserU+007D` - Data of the currently logged in user. ' +
-                            '{{(`include=user`)}}\n\n')
-                },
-                http: {verb: 'post'}
-            }
-        );
-
-        PeerModel.remoteMethod(
-            'logout',
-            {
-                description: 'Logout a user with access token.',
-                accepts: [
-                    {arg: 'access_token', type: 'string', http: function(ctx) {
-                        var req = ctx.req;
-                        return req.query.access_token;
-                    }, description: 'Do not supply this argument, it is automatically extracted ' +
-                    'from request headers.'
-                    }
-                ],
-                http: {verb: 'all'}
-            }
-        );*/
-
 
         PeerModel.remoteMethod(
             'confirm',

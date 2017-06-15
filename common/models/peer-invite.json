@@ -16,6 +16,9 @@
     "email": {
       "type": "string"
     },
+    "peerId": {
+      "type": "string"
+    },
     "status": {
       "type": "string"
     },
