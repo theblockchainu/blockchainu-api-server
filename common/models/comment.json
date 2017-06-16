@@ -6,6 +6,11 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "AddPeerRelation": {
+      "relationName": ["replies"]
+    }
+  },
   "properties": {
     "description": {
       "type": "string",

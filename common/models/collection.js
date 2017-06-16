@@ -21,47 +21,6 @@ module.exports = function (Collection) {
         );
     });*/
 
-    Collection.afterRemote('prototype.__create__comments', function (ctx, newInstance, next) {
-
-        if (ctx.req.user) {
-            var userId = ctx.req.user.id;
-            Collection.app.models.peer.findById(userId, function (err, instance) {
-                newInstance.peer.add(instance, function (err, addedinstance) {
-                    console.log("Relation created between comment and peer.");
-                });
-            });
-        } else
-            console.log("User Not Signed in!");
-        next();
-    });
-
-    Collection.afterRemote('prototype.__create__upvotes', function (ctx, newInstance, next) {
-
-        if (ctx.req.user) {
-            var userId = ctx.req.user.id;
-            Collection.app.models.peer.findById(userId, function (err, instance) {
-                newInstance.peer.add(instance, function (err, addedinstance) {
-                    console.log("Relation created between upvote and peer.");
-                });
-            });
-        } else
-            console.log("User Not Signed in!");
-        next();
-    });
-
-    Collection.afterRemote('prototype.__create__downvotes', function (ctx, newInstance, next) {
-
-        if (ctx.req.user) {
-            var userId = ctx.req.user.id;
-            Collection.app.models.peer.findById(userId, function (err, instance) {
-                newInstance.peer.add(instance, function (err, addedinstance) {
-                    console.log("Relation created between downvotes and peer.");
-                });
-            });
-        } else
-            console.log("User Not Signed in!");
-        next();
-    });
 
     Collection.afterRemote('prototype.patchAttributes', function (ctx, collectionInstance, next) {
 
