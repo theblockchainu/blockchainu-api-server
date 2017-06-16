@@ -107,6 +107,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_invited",
       "keyThrough": "targetId"
+    },
+    "joinedrooms": {
+      "type": "hasMany",
+      "model": "room",
+      "foreignKey": "sourceId",
+      "through": "peer_has_joinedroom",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

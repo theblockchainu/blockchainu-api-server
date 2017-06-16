@@ -1,18 +1,17 @@
 {
-  "name": "review_has_reviewer",
+  "name": "message_has_owner",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "review",
+    "sourceModel": "message",
     "targetModel": "peer"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "id": true
+      "type": "string"
     },
     "sourceId": {
       "type": "string"
@@ -23,9 +22,9 @@
   },
   "validations": [],
   "relations": {
-    "review": {
+    "message": {
       "type": "belongsTo",
-      "model": "review",
+      "model": "message",
       "foreignKey": "sourceId"
     },
     "peer": {
