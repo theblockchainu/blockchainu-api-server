@@ -7,8 +7,13 @@
     "caseSensitiveEmail": true
   },
   "mixins": {
-    "PatchHasOne": {
-      "modelTo": "profile"
+    "HasOne": {
+      "relations": [
+        {
+          "model": "profile",
+          "hasManyRelation": "profiles"
+        }
+      ]
     }
   },
   "hidden": [
@@ -94,7 +99,7 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
-    "profile": {
+    "profiles": {
       "type": "hasMany",
       "model": "profile",
       "foreignKey": "sourceId",
