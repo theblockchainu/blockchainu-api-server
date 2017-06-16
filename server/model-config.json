@@ -115,7 +115,7 @@
   },
   "peer_has_profile": {
     "dataSource": "neo4j-cypher",
-    "public": false
+    "public": true
   },
   "collection_has_participant": {
     "dataSource": "neo4j-cypher",
@@ -188,5 +188,25 @@
   "downvote_has_voter": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "message": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "room": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_joinedroom": {
+    "dataSource": "neo4j-cypher",
+    "public": true
+  },
+  "room_has_message": {
+    "dataSource": "neo4j-cypher",
+    "public": true
+  },
+  "message_has_owner": {
+    "dataSource": "neo4j-cypher",
+    "public": true
   }
 }

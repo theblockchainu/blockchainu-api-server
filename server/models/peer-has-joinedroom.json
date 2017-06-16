@@ -1,13 +1,13 @@
 {
-  "name": "review_has_reviewer",
+  "name": "peer_has_joinedroom",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "review",
-    "targetModel": "peer"
+    "sourceModel": "peer",
+    "targetModel": "room"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "review": {
-      "type": "belongsTo",
-      "model": "review",
-      "foreignKey": "sourceId"
-    },
     "peer": {
       "type": "belongsTo",
       "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "room": {
+      "type": "belongsTo",
+      "model": "room",
       "foreignKey": "targetId"
     }
   },
