@@ -85,6 +85,22 @@
     "dataSource": "neo4j",
     "public": true
   },
+  "comment": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "reply": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "upvote": {
+    "dataSource": "neo4j",
+    "public": false
+  },
+  "downvote": {
+    "dataSource": "neo4j",
+    "public": false
+  },
   "community": {
     "dataSource": "neo4j",
     "public": true
@@ -138,6 +154,38 @@
     "public": false
   },
   "review_has_reviewer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "comment_has_reply": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_downvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "comment_has_commentor": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "reply_has_replier": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "upvote_has_voter": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "downvote_has_voter": {
     "dataSource": "neo4j-cypher",
     "public": false
   },

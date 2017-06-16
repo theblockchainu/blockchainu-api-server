@@ -1,0 +1,45 @@
+{
+  "name": "comment",
+  "plural": "comments",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "AddPeerRelation": {
+      "relationName": ["replies"]
+    }
+  },
+  "properties": {
+    "description": {
+      "type": "string",
+      "required": true
+    },
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "replies": {
+      "type": "hasMany",
+      "model": "reply",
+      "foreignKey": "sourceId",
+      "through": "comment_has_reply",
+      "keyThrough": "targetId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "comment_has_commentor",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
