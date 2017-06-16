@@ -101,10 +101,6 @@
     "dataSource": "neo4j",
     "public": false
   },
-  "hasTopic": {
-    "dataSource": "neo4j",
-    "public": false
-  },
   "community": {
     "dataSource": "neo4j",
     "public": true
