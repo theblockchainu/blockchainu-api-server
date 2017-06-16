@@ -6,6 +6,16 @@
     "validateUpsert": true,
     "caseSensitiveEmail": true
   },
+  "mixins": {
+    "HasOne": {
+      "relations": [
+        {
+          "model": "profile",
+          "hasManyRelation": "profiles"
+        }
+      ]
+    }
+  },
   "hidden": [
     "password",
     "verificationToken"
@@ -89,7 +99,7 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
-    "profile": {
+    "profiles": {
       "type": "hasMany",
       "model": "profile",
       "foreignKey": "sourceId",
