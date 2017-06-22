@@ -3,9 +3,8 @@ module.exports = function (Model, options) {
     options.relations.forEach(function (element) {
         var modelName = element.model;
         var relation = element.hasManyRelation;
-        var methodName = 'patch' + relation;
 
-        Model.post = function (id, data, cb) {
+        Model.postOne = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo.count(function (err, count) {
@@ -28,7 +27,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.patch = function (id, data, cb) {
+        Model.patchOne = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo(function (err, instances) {
@@ -50,7 +49,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.get = function (id, cb) {
+        Model.getOne = function (id, cb) {
             Model.findById(id, function (err, modelInstance) {
                 if (err) {
                     cb(err);
@@ -64,7 +63,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.delete = function (id, cb) {
+        Model.deleteOne = function (id, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo(function (err, instances) {
@@ -87,7 +86,7 @@ module.exports = function (Model, options) {
         };
 
         Model.remoteMethod(
-            'post',
+            'postOne',
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -100,7 +99,7 @@ module.exports = function (Model, options) {
         );
 
         Model.remoteMethod(
-            'patch',
+            'patchOne',
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -113,7 +112,7 @@ module.exports = function (Model, options) {
         );
 
         Model.remoteMethod(
-            'get',
+            'getOne',
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -124,7 +123,7 @@ module.exports = function (Model, options) {
             }
         );
         Model.remoteMethod(
-            'delete',
+            'deleteOne',
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true }
