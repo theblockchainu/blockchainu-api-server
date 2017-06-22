@@ -105,6 +105,14 @@
     "dataSource": "neo4j",
     "public": true
   },
+  "message": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "room": {
+    "dataSource": "neo4j",
+    "public": true
+  },
   "peer_has_topic": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -189,24 +197,24 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "message": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "room": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "peer_has_joinedroom": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "room_has_message": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "message_has_owner": {
     "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "contact": {
+    "dataSource": "neo4j",
     "public": true
+  },
+  "peer_has_contact": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -1,37 +1,36 @@
 {
-  "name": "comment_givenby_peer",
+  "name": "contact",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
-  },
-  "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "comment"
   },
   "properties": {
     "id": {
       "type": "string",
       "id": true
     },
-    "sourceId": {
+    "peerId": {
       "type": "string"
     },
-    "targetId": {
+    "externalId": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "provider": {
       "type": "string"
     }
   },
   "validations": [],
   "relations": {
     "peer": {
-      "type": "belongsTo",
+      "type": "hasMany",
       "model": "peer",
-      "foreignKey": "sourceId"
-    },
-    "comment": {
-      "type": "belongsTo",
-      "model": "comment",
-      "foreignKey": "targetId"
+      "foreignKey": "targetId",
+      "through": "peer_has_contact",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -1,5 +1,5 @@
 {
-  "name": "comment_givenby_peer",
+  "name": "peer_has_contact",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "comment"
+    "targetModel": "contact"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "comment": {
+    "contact": {
       "type": "belongsTo",
-      "model": "comment",
+      "model": "contact",
       "foreignKey": "targetId"
     }
   },

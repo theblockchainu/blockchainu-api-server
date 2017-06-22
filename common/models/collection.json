@@ -7,7 +7,12 @@
   },
   "mixins": {
     "AddPeerRelation": {
-      "relationName": ["reviews", "comments", "upvotes", "downvotes"]
+      "relationName": [
+        "reviews",
+        "comments",
+        "upvotes",
+        "downvotes"
+      ]
     }
   },
   "properties": {
