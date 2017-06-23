@@ -63,7 +63,7 @@ Vagrantfile
 
 #vscode
 .vscode/
-Vagrantfile
+.vs/
 
 #Webstorm IDE files
 .idea/

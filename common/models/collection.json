@@ -13,6 +13,15 @@
         "upvotes",
         "downvotes"
       ]
+    },
+    "HasOne": {
+      "relations": [
+        {
+          "model": "calendar",
+          "hasManyRelation": "calendars",
+          "autoCreate": true
+        }
+      ]
     }
   },
   "properties": {
@@ -20,39 +29,53 @@
       "type": "string",
       "id": true
     },
-    "peerId": {
-      "type": "string",
-      "required": false
-    },
     "title": {
-      "type": "string",
-      "required": true
-    },
-    "bio_text": {
       "type": "string"
     },
-    "bio_image": {
+    "stage": {
       "type": "string"
     },
-    "bio_video": {
+    "language": {
+      "type": [
+        "string"
+      ]
+    },
+    "headline": {
       "type": "string"
     },
-    "type": {
+    "description": {
       "type": "string"
     },
-    "start_date": {
-      "type": "date"
+    "prerequisites": {
+      "type": "string"
     },
-    "end_date": {
-      "type": "date"
+    "maxSpots": {
+      "type": "string"
     },
-    "max_participants": {
+    "videoUrl": {
+      "type": "string"
+    },
+    "imageUrls": {
+      "type": [
+        "string"
+      ]
+    },
+    "repeatFrequency": {
+      "type": "string"
+    },
+    "price": {
       "type": "number"
     },
-    "prize_money_amount": {
-      "type": "number"
+    "currency": {
+      "type": "string"
     },
-    "prize_money_currency": {
+    "CancellationPolicy": {
+      "type": "string"
+    },
+    "aboutHost": {
+      "type": "string"
+    },
+    "notes": {
       "type": "string"
     },
     "created": {
@@ -104,32 +127,18 @@
       "through": "collection_has_participant",
       "keyThrough": "targetId"
     },
-    "comments": {
-      "type": "hasMany",
-      "model": "comment",
-      "foreignKey": "sourceId",
-      "through": "collection_has_comment",
-      "keyThrough": "targetId"
-    },
-    "upvotes": {
-      "type": "hasMany",
-      "model": "upvote",
-      "foreignKey": "sourceId",
-      "through": "collection_has_upvote",
-      "keyThrough": "targetId"
-    },
-    "downvotes": {
-      "type": "hasMany",
-      "model": "downvote",
-      "foreignKey": "sourceId",
-      "through": "collection_has_downvote",
-      "keyThrough": "targetId"
-    },
     "invites": {
       "type": "hasMany",
       "model": "peer_invite",
       "foreignKey": "sourceId",
       "through": "collection_has_invite",
+      "keyThrough": "targetId"
+    },
+    "calendars": {
+      "type": "hasMany",
+      "model": "calendar",
+      "foreignKey": "sourceId",
+      "through": "collection_has_calendar",
       "keyThrough": "targetId"
     }
   },

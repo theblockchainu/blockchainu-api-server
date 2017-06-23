@@ -11,7 +11,8 @@
       "relations": [
         {
           "model": "profile",
-          "hasManyRelation": "myprofiles"
+          "hasManyRelation": "profiles",
+          "autoCreate": true
         }
       ]
     },
@@ -66,7 +67,10 @@
     "identities": {
       "type": "hasMany",
       "model": "userIdentity",
-      "foreignKey": "userId"
+      "foreignKey": "userId",
+      "options": {
+        "disableInclude": true
+      }
     },
     "credentials": {
       "type": "hasMany",
@@ -104,18 +108,11 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
-    "myprofiles": {
+    "profiles": {
       "type": "hasMany",
       "model": "profile",
       "foreignKey": "sourceId",
       "through": "peer_has_profile",
-      "keyThrough": "targetId"
-    },
-    "contact": {
-      "type": "hasMany",
-      "model": "contact",
-      "foreignKey": "sourceId",
-      "through": "peer_has_contact",
       "keyThrough": "targetId"
     },
     "invites": {
