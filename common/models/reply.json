@@ -1,0 +1,33 @@
+{
+  "name": "reply",
+  "plural": "replies",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "description": {
+      "type": "string",
+      "required": true
+    },
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "reply_has_replier",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

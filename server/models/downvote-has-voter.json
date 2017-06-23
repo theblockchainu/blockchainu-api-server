@@ -1,0 +1,39 @@
+{
+  "name": "downvote_has_voter",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "downvote",
+    "targetModel": "peer"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "downvote": {
+      "type": "belongsTo",
+      "model": "downvote",
+      "foreignKey": "sourceId"
+    },
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

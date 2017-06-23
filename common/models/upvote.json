@@ -1,0 +1,28 @@
+{
+  "name": "upvote",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "created": {
+      "type": "date"
+    },
+    "modified": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "upvote_has_voter",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

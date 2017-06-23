@@ -129,8 +129,9 @@ module.exports = function (Model, options) {
         Model.remoteMethod(
             'patchOne_' + relation,
             {
+                description: 'Update the single instance of child node for this parent node',
                 accepts: [
-                    { arg: 'id', type: 'string', required: true },
+                    { arg: 'id', type: 'string', required: true, description: 'id of the parent node' },
                     { arg: 'data', type: modelName, required: true, http: { source: 'body' } }
                 ],
                 // mixing ':id' into the rest url allows $owner to be determined and used for access control
