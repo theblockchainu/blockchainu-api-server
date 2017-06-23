@@ -34,46 +34,64 @@ module.exports = function (Model, options) {
 
         Model['postOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
-                var relatedTo = modelInstance[relation];
-                relatedTo.count(function (err, count) {
-                    if (err) {
-                        cb(err);
-                    } else {
-                        if (count == 0) {
-                            relatedTo.create(data, function (err, createdInstance) {
-                                if (err) {
-                                    cb(err)
+                if (err) {
+                    cb(err);
+                } else {
+                    if (modelInstance) {
+                        var relatedTo = modelInstance[relation];
+                        relatedTo.count(function (err, count) {
+                            if (err) {
+                                cb(err);
+                            } else {
+                                if (count == 0) {
+                                    relatedTo.create(data, function (err, createdInstance) {
+                                        if (err) {
+                                            cb(err)
+                                        } else {
+                                            cb(null, createdInstance);
+                                        }
+                                    });
                                 } else {
-                                    cb(null, createdInstance);
+                                    cb(null, "Profile Already Exists");
                                 }
-                            });
-                        } else {
-                            cb(null, "Profile Already Exists");
-                        }
+                            }
+                        });
+                    } else {
+                        cb(null, "Not Found");
                     }
-                });
+                }
             });
         };
 
         Model['patchOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
-                var relatedTo = modelInstance[relation];
-                relatedTo(function (err, instances) {
-                    if (err) {
-                        cb(err);
-                    } else {
-                        var objId = instances[0].id;
-                        var originalModel = Model.app.models[modelName];
-                        originalModel.upsertWithWhere({ "id": objId }, data, function (err, updatedInstance) {
+                if (err) {
+                    cb(err);
+                } else {
+                    if (modelInstance) {
+                        var relatedTo = modelInstance[relation];
+                        relatedTo(function (err, instances) {
                             if (err) {
-                                cb(err)
-                            }
-                            else {
-                                cb(null, updatedInstance)
+                                cb(err);
+                            } else {
+                                var objId = instances[0].id;
+                                var originalModel = Model.app.models[modelName];
+                                originalModel.upsertWithWhere({ "id": objId }, data, function (err, updatedInstance) {
+                                    if (err) {
+                                        cb(err)
+                                    }
+                                    else {
+                                        cb(null, updatedInstance)
+                                    }
+                                });
                             }
                         });
+                    } else {
+                        cb(null, "Not Found");
                     }
-                });
+
+                }
+
             });
         };
 
@@ -82,34 +100,48 @@ module.exports = function (Model, options) {
                 if (err) {
                     cb(err);
                 } else {
-                    var relatedData = modelInstance[relation];
-                    relatedData(function (err, instances) {
-                        var instanceObj = instances[0];
-                        cb(null, instanceObj);
-                    });
+                    if (modelInstance) {
+                        var relatedData = modelInstance[relation];
+                        relatedData(function (err, instances) {
+                            var instanceObj = instances[0];
+                            cb(null, instanceObj);
+                        });
+                    } else {
+                        cb(null, "Not Found");
+                    }
                 }
             });
         };
 
         Model['deleteOne_' + relation] = function (id, cb) {
             Model.findById(id, function (err, modelInstance) {
-                var relatedTo = modelInstance[relation];
-                relatedTo(function (err, instances) {
-                    if (err) {
-                        cb(err);
-                    } else {
-                        var objId = instances[0].id;
-                        var originalModel = Model.app.models[modelName];
-                        originalModel.destroyById(objId, function (err, result) {
+                if (err) {
+                    cb(err);
+                } else {
+                    if (modelInstance) {
+                        var relatedTo = modelInstance[relation];
+                        relatedTo(function (err, instances) {
                             if (err) {
-                                cb(err)
-                            }
-                            else {
-                                cb(null, result);
+                                cb(err);
+                            } else {
+                                var objId = instances[0].id;
+                                var originalModel = Model.app.models[modelName];
+                                originalModel.destroyById(objId, function (err, result) {
+                                    if (err) {
+                                        cb(err)
+                                    }
+                                    else {
+                                        cb(null, result);
+                                    }
+                                });
                             }
                         });
+                    } else {
+                        cb(null, "Not Found");
                     }
-                });
+
+                }
+
             });
         };
 

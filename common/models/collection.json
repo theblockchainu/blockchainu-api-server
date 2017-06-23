@@ -8,7 +8,10 @@
   "mixins": {
     "AddPeerRelation": {
       "relationName": [
-        "reviews"
+        "reviews",
+        "comments",
+        "upvotes",
+        "downvotes"
       ]
     },
     "HasOne": {
