@@ -77,10 +77,6 @@
     "dataSource": "neo4j",
     "public": true
   },
-  "content_calendar": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "review": {
     "dataSource": "neo4j",
     "public": true
@@ -129,10 +125,6 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "content_has_calendar": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
   "peer_has_invited": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -160,5 +152,21 @@
   "message_has_owner": {
     "dataSource": "neo4j-cypher",
     "public": true
+  },
+  "calendar": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "schedule": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_calendar": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_schedule": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

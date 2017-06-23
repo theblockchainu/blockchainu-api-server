@@ -1,0 +1,39 @@
+{
+  "name": "content_has_schedule",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "content",
+    "targetModel": "schedule"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "content": {
+      "type": "belongsTo",
+      "model": "content",
+      "foreignKey": "sourceId"
+    },
+    "schedule": {
+      "type": "belongsTo",
+      "model": "schedule",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -4,7 +4,35 @@ module.exports = function (Model, options) {
         var modelName = element.model;
         var relation = element.hasManyRelation;
 
-        Model.postOne = function (id, data, cb) {
+        Model.observe('after save', function (ctx, next) {
+            var data = {};
+            if (element.autoCreate) {
+                var currentId = ctx.instance.id;
+                Model.findById(currentId, function (err, modelInstance) {
+                    var relatedTo = modelInstance[relation];
+                    relatedTo.count(function (err, count) {
+                        if (err) {
+                            cb(err);
+                        } else {
+                            if (count == 0) {
+                                relatedTo.create(data, function (err, createdInstance) {
+                                    if (err) {
+                                        cb(err)
+                                    } else {
+                                        console.log(createdInstance);
+                                    }
+                                });
+                            } else {
+                                cb(null, "Profile Already Exists");
+                            }
+                        }
+                    });
+                });
+            }
+            next();
+        });
+
+        Model['postOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo.count(function (err, count) {
@@ -27,7 +55,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.patchOne = function (id, data, cb) {
+        Model['patchOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo(function (err, instances) {
@@ -49,7 +77,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.getOne = function (id, cb) {
+        Model['getOne_' + relation] = function (id, cb) {
             Model.findById(id, function (err, modelInstance) {
                 if (err) {
                     cb(err);
@@ -63,7 +91,7 @@ module.exports = function (Model, options) {
             });
         };
 
-        Model.deleteOne = function (id, cb) {
+        Model['deleteOne_' + relation] = function (id, cb) {
             Model.findById(id, function (err, modelInstance) {
                 var relatedTo = modelInstance[relation];
                 relatedTo(function (err, instances) {
@@ -86,7 +114,7 @@ module.exports = function (Model, options) {
         };
 
         Model.remoteMethod(
-            'postOne',
+            'postOne_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -99,7 +127,7 @@ module.exports = function (Model, options) {
         );
 
         Model.remoteMethod(
-            'patchOne',
+            'patchOne_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -112,7 +140,7 @@ module.exports = function (Model, options) {
         );
 
         Model.remoteMethod(
-            'getOne',
+            'getOne_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -123,7 +151,7 @@ module.exports = function (Model, options) {
             }
         );
         Model.remoteMethod(
-            'deleteOne',
+            'deleteOne_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true }

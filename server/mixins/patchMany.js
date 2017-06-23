@@ -4,7 +4,7 @@ module.exports = function (Model, options) {
         var modelName = element.model;
         var relation = element.hasManyRelation;
 
-        Model.linkMany = function (id, data, cb) {
+        Model['linkMany_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 if (err) {
                     cb(err);
@@ -29,7 +29,7 @@ module.exports = function (Model, options) {
                 }
             });
         };
-        Model.unlinkMany = function (id, data, cb) {
+        Model['unlinkMany_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 if (err) {
                     cb(err);
@@ -57,7 +57,7 @@ module.exports = function (Model, options) {
 
 
         Model.remoteMethod(
-            'linkMany',
+            'linkMany_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
@@ -69,7 +69,7 @@ module.exports = function (Model, options) {
             }
         );
         Model.remoteMethod(
-            'unlinkMany',
+            'unlinkMany_' + relation,
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },

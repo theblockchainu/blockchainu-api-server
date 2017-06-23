@@ -11,7 +11,8 @@
       "relations": [
         {
           "model": "profile",
-          "hasManyRelation": "profiles"
+          "hasManyRelation": "profiles",
+          "autoCreate": true
         }
       ]
     },
