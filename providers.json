@@ -20,11 +20,11 @@
     "callbackURL": "/auth/facebook/callback",
     "authPath": "/auth/facebook",
     "callbackPath": "/auth/facebook/callback",
-    "successRedirect": "/auth/account",
+    "successRedirect": "http://dev.peerbuds.com/#/",
     "failureRedirect": "/login",
     "scope": ["email", "user_friends", "user_likes"],
     "failureFlash": true,
-    "json": true
+    "json": false
   },
   "google-login": {
     "provider": "google",

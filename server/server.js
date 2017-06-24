@@ -67,7 +67,7 @@ app.set('view engine', 'jade');
 var originsWhitelist = [
     'null',
     'localhost:9090',      //frontend url for development
-    'http://www.peedbuds.com'
+    'http://www.dev.peedbuds.com'
 ];
 var corsOptions = {
     origin: function(origin, callback){
@@ -149,7 +149,7 @@ app.get('/local', function (req, res, next) {
 app.get('/signup', function (req, res, next) {
     res.render('pages/signup', {
         user: req.user,
-        url: req.url,
+        url: req.url
     });
 });
 
@@ -160,6 +160,7 @@ app.post('/signup', function (req, res, next) {
     newUser.email = req.body.email.toLowerCase();
     newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
+    var returnTo = req.query.returnTo;
 
     var hashedPassword = '';
     var query;
@@ -241,11 +242,11 @@ app.post('/signup', function (req, res, next) {
                         signed: req.signedCookies ? true : false,
                         maxAge: 1000 * accessToken[0].token.properties.ttl,
                     });
-                    //return res.redirect('/auth/account');
-                    return res.json({
+                    return res.redirect(returnTo);
+                    /*return res.json({
                         'access_token': accessToken[0].token.properties.id,
                         userId: user.id
-                    });
+                    });*/
                 });
             } else {
                 console.log("no access token");
@@ -254,18 +255,6 @@ app.post('/signup', function (req, res, next) {
             }
         });
     };
-
-    var createProfileNode = function (user) {
-        var profile=app.models.profile;
-        console.log('Creating Profile Node');
-        user.createProfile(profile,user,function(err, user, profileNode){
-            if(!err){
-                console.log('created!');
-            }else{
-                console.log("ERROR");
-            }
-        });
-    }
 
     User.findOrCreate({ where: query }, newUser, function (err, user, created) {
 
@@ -278,11 +267,8 @@ app.post('/signup', function (req, res, next) {
 
             setPassword(newUser.password);
 
-
-
             if (created) {
                 console.log("created new instance");
-                createProfileNode(user);
                 loopbackLogin(user);
             }
             // Found an existing account with this email ID and username
@@ -295,7 +281,6 @@ app.post('/signup', function (req, res, next) {
                     "MATCH (p:peer {username: '" + user.username + "'}) SET p.password = '" + hashedPassword + "'",
                     function (err, results) {
                         if (!err) {
-                            createProfileNode(user);
                             loopbackLogin(user);
                         }
                         else {

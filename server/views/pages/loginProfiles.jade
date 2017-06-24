@@ -3,8 +3,8 @@ extends ../layouts/layout
 block content
     h2 Third Party Profile(s)
     p.small
-        if user.profiles.length !== 0
-            each val in user.profiles
+        if user.socialprofiles.length !== 0
+            each val in user.socialprofiles
                 h4= val.provider + ':'
                 p.small= JSON.stringify(val)
         else
