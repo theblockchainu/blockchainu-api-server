@@ -161,7 +161,7 @@ app.post('/signup', function (req, res, next) {
     newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
 
-    var returnTo = req.headers.referer + req.query.returnTo;
+    var returnTo = req.query.returnTo;
 
     var hashedPassword = '';
     var query;
