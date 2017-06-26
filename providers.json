@@ -20,7 +20,8 @@
     "callbackURL": "/auth/facebook/callback",
     "authPath": "/auth/facebook",
     "callbackPath": "/auth/facebook/callback",
-    "successRedirect": "http://dev.peerbuds.com/#/",
+    "passReqToCallback": true,
+    "successRedirect": "/dashboard",
     "failureRedirect": "/login",
     "scope": ["email", "user_friends", "user_likes"],
     "failureFlash": true,
@@ -35,13 +36,14 @@
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
-    "successRedirect": "/auth/account",
+    "successRedirect": "/dashboard",
     "failureRedirect": "/login",
     "scope": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/contacts.readonly"],
     "failureFlash": true,
     "accessType": "offline",
     "approvalPrompt": "force",
-    "json": true
+    "passReqToCallback": true,
+    "json": false
   },
   "twitter-login": {
     "provider": "twitter",

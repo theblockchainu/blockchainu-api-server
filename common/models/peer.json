@@ -11,7 +11,7 @@
       "relations": [
         {
           "model": "profile",
-          "hasManyRelation": "myprofile",
+          "hasManyRelation": "profiles",
           "autoCreate": true
         }
       ]
@@ -108,7 +108,7 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
-    "myprofile": {
+    "profiles": {
       "type": "hasMany",
       "model": "profile",
       "foreignKey": "sourceId",
