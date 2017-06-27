@@ -67,10 +67,7 @@
     "identities": {
       "type": "hasMany",
       "model": "userIdentity",
-      "foreignKey": "userId",
-      "options": {
-        "disableInclude": true
-      }
+      "foreignKey": "userId"
     },
     "credentials": {
       "type": "hasMany",
