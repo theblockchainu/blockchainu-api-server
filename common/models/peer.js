@@ -294,17 +294,86 @@ module.exports = function (Peer) {
         return cb.promise;
     };
 
+    Peer.userCalendar = function (id, cb) {
+        var Calendar = Peer.app.models.Calendar;
+        var Schedule = Peer.app.models.Schedule;
+        var userCalendarData = [];
+        Peer.findById(id, (err, peerInstance) => {
+            if (err) {
+                cb(err);
+            } else {
+                peerInstance.collections((err, collectionInstances) => {
+                    if (err) {
+                        cb(err);
+                    } else {
+                        collectionInstances.forEach((collectionNode) => {
+                            collectionNode.calendars((err, caledarInstances) => {
+                                if (err) {
+                                    cb(err);
+                                } else {
+                                    var collectionDate = caledarInstances[0];
+                                    if (collectionDate.startDate && collectionDate.endDate) {
+                                        collectionNode.contents((err, contentInstances) => {
+                                            if (err) {
+                                                cb(err);
+                                            } else {
+                                                contentInstances.forEach((contentNode) => {
+                                                    contentNode.schedules((err, scheduleInstances) => {
+                                                        if (err) {
+                                                            cb(err);
+                                                        } else {
+                                                            var scheduleData = scheduleInstances[0];
+                                                            if (scheduleData.startDay && scheduleData.endDay) {
+                                                                var startDate = new Date(collectionDate.startDate);
+                                                                var endDate = new Date(collectionDate.endDate);
+                                                                startDate.setDate(startDate.getDate() + scheduleData.startDay);
+                                                                endDate.setDate(endDate.getDate() + scheduleData.endDay);
+                                                                if (scheduleData.startTime && scheduleData.endTime) {
+                                                                    var startTime = new Date(scheduleData.startTime);
+                                                                    var endTime = new Date(scheduleData.endTime);
+                                                                    startDate.setTime(startTime.getTime());
+                                                                    endDate.setTime(endTime.getTime());
+                                                                    var calendarData = {
+                                                                        "startDate": startDate,
+                                                                        "endDate": endDate
+                                                                    }
+                                                                    console.log(calendarData);
+                                                                    userCalendarData.push(calendarData);
+                                                                } else {
+                                                                    console.log("Time Unavailable !");
+                                                                }
+                                                            } else {
+                                                                console.log("Schedule Days Unavailable");
+                                                            }
+                                                        }
+                                                    });
+                                                }, this);
+                                            }
+                                        });
+                                    } else {
+                                        console.log("Collection Calendar Not Set");
+                                    }
+                                }
+                            });
+                        }, this);
+                    }
+                });
+            }
+        });
+        cb(null, userCalendarData);
+    };
+
 
     /*Peer.observe('before delete', function(ctx, next) {
         var AccessToken = ctx.Model.relations.accessTokens.modelTo;
         var pkName = ctx.Model.definition.idName() || 'id';
         ctx.Model.find({where: ctx.where, fields: [pkName]}, function(err, list) {
             if (err) return next(err);
-
+    
             var ids = list.map(function(u) { return u[pkName]; });
             ctx.where = {};
             ctx.where[pkName] = {inq: ids};
-
+    
             AccessToken.destroyAll({userId: {inq: ids}}, next);
         });
     });*/
@@ -547,6 +616,16 @@ module.exports = function (Peer) {
             }
         );
 
+        PeerModel.remoteMethod(
+            'userCalendar',
+            {
+                accepts: [
+                    { arg: 'id', type: 'string', required: true },
+                ],
+                returns: { arg: 'calendarObject', type: 'object', root: true },
+                http: { path: '/:id/userCalendar', verb: 'get' }
+            }
+        );
         PeerModel.afterRemote('confirm', function (ctx, inst, next) {
             if (ctx.args.redirect !== undefined) {
                 if (!ctx.res) {
