@@ -6,6 +6,25 @@
     "validateUpsert": true,
     "caseSensitiveEmail": true
   },
+  "mixins": {
+    "HasOne": {
+      "relations": [
+        {
+          "model": "profile",
+          "hasManyRelation": "profiles",
+          "autoCreate": true
+        }
+      ]
+    },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        }
+      ]
+    }
+  },
   "hidden": [
     "password",
     "verificationToken"
@@ -48,10 +67,7 @@
     "identities": {
       "type": "hasMany",
       "model": "userIdentity",
-      "foreignKey": "userId",
-      "options": {
-        "disableInclude": true
-      }
+      "foreignKey": "userId"
     },
     "credentials": {
       "type": "hasMany",
@@ -89,7 +105,14 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
-    "profile": {
+    "contact": {
+      "type": "hasMany",
+      "model": "contact",
+      "foreignKey": "sourceId",
+      "through": "peer_has_contact",
+      "keyThrough": "targetId"
+    },
+    "profiles": {
       "type": "hasMany",
       "model": "profile",
       "foreignKey": "sourceId",

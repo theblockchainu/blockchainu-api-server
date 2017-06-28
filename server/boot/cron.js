@@ -66,6 +66,17 @@ module.exports = function setupCron(server) {
                 })
             });
         });
+
+        // Index all contacts
+        server.models.contact.find(function (err, contactInstances) {
+            makebulk(contactInstances, 'contact', function(response){
+                console.log("Bulk content prepared: " + JSON.stringify(response));
+                indexall(response, 'contact', function(response){
+                    console.log(response);
+                })
+            });
+        });
+
     }, function() {
         // Callback function when job ends.
     },

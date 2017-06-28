@@ -1,5 +1,5 @@
 {
-  "name": "content_calendar",
+  "name": "contact",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -10,27 +10,29 @@
       "type": "string",
       "id": true
     },
-    "content_id": {
+    "peerId": {
       "type": "string"
     },
-    "start_date": {
-      "type": "date"
-    },
-    "end_date": {
-      "type": "date"
-    },
-    "location": {
+    "externalId": {
       "type": "string"
     },
-    "location_lat": {
+    "name": {
       "type": "string"
     },
-    "location_lng": {
+    "provider": {
       "type": "string"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_contact",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

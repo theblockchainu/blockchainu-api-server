@@ -1,13 +1,13 @@
 {
-  "name": "comment_givenby_peer",
+  "name": "collection_has_calendar",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "comment"
+    "sourceModel": "collection",
+    "targetModel": "calendar"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "collection": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "comment": {
+    "calendar": {
       "type": "belongsTo",
-      "model": "comment",
+      "model": "calendar",
       "foreignKey": "targetId"
     }
   },

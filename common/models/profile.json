@@ -62,6 +62,9 @@
     },
     "profile_video": {
       "type": "string"
+    },
+    "onboardingStage": {
+      "type": "number"
     }
   },
   "validations": [],

@@ -7,7 +7,29 @@
   },
   "mixins": {
     "AddPeerRelation": {
-      "relationName": ["reviews", "comments", "upvotes", "downvotes"]
+      "relationName": [
+        "reviews",
+        "comments",
+        "upvotes",
+        "downvotes"
+      ]
+    },
+    "HasOne": {
+      "relations": [
+        {
+          "model": "calendar",
+          "hasManyRelation": "calendars",
+          "autoCreate": true
+        }
+      ]
+    },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        }
+      ]
     }
   },
   "properties": {
@@ -15,39 +37,68 @@
       "type": "string",
       "id": true
     },
-    "peerId": {
-      "type": "string",
-      "required": false
-    },
-    "title": {
-      "type": "string",
-      "required": true
-    },
-    "bio_text": {
-      "type": "string"
-    },
-    "bio_image": {
-      "type": "string"
-    },
-    "bio_video": {
-      "type": "string"
-    },
     "type": {
       "type": "string"
     },
-    "start_date": {
-      "type": "date"
+    "title": {
+      "type": "string"
     },
-    "end_date": {
-      "type": "date"
+    "stage": {
+      "type": "string"
     },
-    "max_participants": {
+    "language": {
+      "type": [
+        "string"
+      ]
+    },
+    "headline": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "difficultyLevel": {
+      "type": "string"
+    },
+    "prerequisites": {
+      "type": "string"
+    },
+    "maxSpots": {
+      "type": "string"
+    },
+    "videoUrl": {
+      "type": "string"
+    },
+    "imageUrls": {
+      "type": [
+        "string"
+      ]
+    },
+    "repeatFrequency": {
       "type": "number"
     },
-    "prize_money_amount": {
+    "repeatPeriod": {
+      "type": "string"
+    },
+    "repeatUntil": {
+      "type": "string"
+    },
+    "price": {
       "type": "number"
     },
-    "prize_money_currency": {
+    "currency": {
+      "type": "string"
+    },
+    "cancellationPolicy": {
+      "type": "string"
+    },
+    "ageLimit": {
+      "type": "string"
+    },
+    "aboutHost": {
+      "type": "string"
+    },
+    "notes": {
       "type": "string"
     },
     "created": {
@@ -99,32 +150,18 @@
       "through": "collection_has_participant",
       "keyThrough": "targetId"
     },
-    "comments": {
-      "type": "hasMany",
-      "model": "comment",
-      "foreignKey": "sourceId",
-      "through": "collection_has_comment",
-      "keyThrough": "targetId"
-    },
-    "upvotes": {
-      "type": "hasMany",
-      "model": "upvote",
-      "foreignKey": "sourceId",
-      "through": "collection_has_upvote",
-      "keyThrough": "targetId"
-    },
-    "downvotes": {
-      "type": "hasMany",
-      "model": "downvote",
-      "foreignKey": "sourceId",
-      "through": "collection_has_downvote",
-      "keyThrough": "targetId"
-    },
     "invites": {
       "type": "hasMany",
       "model": "peer_invite",
       "foreignKey": "sourceId",
       "through": "collection_has_invite",
+      "keyThrough": "targetId"
+    },
+    "calendars": {
+      "type": "hasMany",
+      "model": "calendar",
+      "foreignKey": "sourceId",
+      "through": "collection_has_calendar",
       "keyThrough": "targetId"
     }
   },
