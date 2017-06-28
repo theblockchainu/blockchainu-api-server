@@ -53,7 +53,7 @@ GoogleExtension.prototype.getContacts = function (accessToken, cb) {
                 var bodyJSON = bignumJSON.parse(body);
                 console.log(bodyJSON);
                 if (!bodyJSON.error) {
-                    if(bodyJSON.length > 0)
+                    if(bodyJSON.size > 0)
                         deferred.resolve(bodyJSON.connections);
                     else deferred.resolve([]);
                 } else {

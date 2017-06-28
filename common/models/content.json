@@ -29,7 +29,31 @@
     "type": {
       "type": "string"
     },
-    "url": {
+    "description": {
+      "type": "string"
+    },
+    "supplementUrls": {
+      "type": ["string"]
+    },
+    "addressString": {
+      "type": "string"
+    },
+    "addressLat": {
+      "type": "string"
+    },
+    "addressLng": {
+      "type": "string"
+    },
+    "requireRSVP": {
+      "type": "boolean"
+    },
+    "itemsProvided": {
+      "type": ["string"]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "imageUrl": {
       "type": "string"
     },
     "created": {
