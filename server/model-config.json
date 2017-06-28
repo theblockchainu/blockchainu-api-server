@@ -232,5 +232,9 @@
   "peer_has_contact": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "currency": {
+    "dataSource": "neo4j",
+    "public": true
   }
 }
