@@ -101,7 +101,11 @@
     "dataSource": "neo4j",
     "public": true
   },
-  "message": {
+  "country": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+   "message": {
     "dataSource": "neo4j",
     "public": true
   },
@@ -219,11 +223,19 @@
   },
   "content_has_schedule": {
     "dataSource": "neo4j-cypher",
-    "public": false
+    "public": true
+  },
+  "language": {
+    "dataSource": "neo4j",
+    "public": true
   },
   "peer_has_contact": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "currency": {
+    "dataSource": "neo4j",
+    "public": true
   },
   "content_has_comment": {
     "dataSource": "neo4j-cypher",

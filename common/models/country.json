@@ -1,0 +1,39 @@
+{
+  "name": "country",
+  "plural": "countries",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "array"
+    },
+    "callingCode": {
+      "type": "array"
+    },
+    "capital": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "subregion": {
+      "type": "string"
+    },
+    "latlng": {
+      "type": "array"
+    },
+    "area": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
