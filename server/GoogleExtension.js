@@ -42,7 +42,7 @@ GoogleExtension.prototype.getContacts = function (accessToken, cb) {
     var deferred = Q.defer();
     var method = 'connections';
     console.log(accessToken);
-    var url = this.graph_api_url.concat('people/me').concat('/'.concat(method)).concat('?personFields=names&access_token='.concat(accessToken));
+    var url = this.graph_api_url.concat('people/me').concat('/'.concat(method)).concat('?personFields=names,photos&access_token='.concat(accessToken));
     request(url, function (e, res, body) {
         if (e) {
             deferred.reject({
@@ -53,7 +53,7 @@ GoogleExtension.prototype.getContacts = function (accessToken, cb) {
                 var bodyJSON = bignumJSON.parse(body);
                 console.log(bodyJSON);
                 if (!bodyJSON.error) {
-                    if(bodyJSON.size > 0)
+                    if(bodyJSON.hasOwnProperty('connections'))
                         deferred.resolve(bodyJSON.connections);
                     else deferred.resolve([]);
                 } else {

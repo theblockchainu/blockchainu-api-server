@@ -12,6 +12,9 @@
     "like": {
       "type": "boolean"
     },
+    "score": {
+      "type": "number"
+    },
     "created": {
       "type": "date"
     },

@@ -21,6 +21,12 @@
     },
     "provider": {
       "type": "string"
+    },
+    "imageUrl": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
     }
   },
   "validations": [],

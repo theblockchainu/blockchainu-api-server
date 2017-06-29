@@ -12,6 +12,11 @@
           "autoCreate": true
         }
       ]
+    },
+    "AddPeerRelation": {
+      "relationName": [
+        "comments"
+      ]
     }
   },
   "options": {
@@ -77,6 +82,13 @@
       "model": "schedule",
       "foreignKey": "sourceId",
       "through": "content_has_schedule",
+      "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "content_has_comment",
       "keyThrough": "targetId"
     }
   },

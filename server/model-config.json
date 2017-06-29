@@ -224,5 +224,9 @@
   "peer_has_contact": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
