@@ -29,7 +29,7 @@
     "loopback": "^3.0.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^4.0.0",
-    "loopback-component-passport-neo4j": "0.0.6",
+    "loopback-component-passport-neo4j": "0.0.7",
     "loopback-component-storage": "^3.2.0",
     "loopback-connector-es": "1.4.0",
     "loopback-connector-neo4j-cypher": "0.0.5",
