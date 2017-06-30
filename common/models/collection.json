@@ -11,7 +11,8 @@
         "reviews",
         "comments",
         "upvotes",
-        "downvotes"
+        "downvotes",
+        "bookmarks"
       ]
     },
     "HasOne": {
@@ -167,6 +168,13 @@
       "model": "comment",
       "foreignKey": "sourceId",
       "through": "collection_has_comment",
+      "keyThrough": "targetId"
+    },
+    "bookmarks": {
+      "type": "hasMany",
+      "model": "bookmark",
+      "foreignKey": "sourceId",
+      "through": "collection_has_bookmark",
       "keyThrough": "targetId"
     }
   },

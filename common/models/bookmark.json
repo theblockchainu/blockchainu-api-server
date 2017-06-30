@@ -1,15 +1,18 @@
 {
-  "name": "calendar",
+  "name": "bookmark",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "startDate": {
+    "id": {
+      "type": "string"
+    },
+    "created": {
       "type": "date"
     },
-    "endDate": {
+    "modified": {
       "type": "date"
     }
   },
@@ -19,8 +22,15 @@
       "type": "hasMany",
       "model": "collection",
       "foreignKey": "targetId",
-      "through": "collection_has_calendar",
+      "through": "collection_has_bookmark",
       "keyThrough": "sourceId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "bookmark_has_bookmarker",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

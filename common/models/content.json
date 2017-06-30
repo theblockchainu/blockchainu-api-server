@@ -3,6 +3,9 @@
   "plural": "contents",
   "base": "PersistedModel",
   "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
   "mixins": {
     "HasOne": {
       "relations": [
@@ -18,9 +21,6 @@
         "comments"
       ]
     }
-  },
-  "options": {
-    "validateUpsert": true
   },
   "properties": {
     "id": {
@@ -38,7 +38,9 @@
       "type": "string"
     },
     "supplementUrls": {
-      "type": ["string"]
+      "type": [
+        "string"
+      ]
     },
     "addressString": {
       "type": "string"
@@ -53,7 +55,9 @@
       "type": "boolean"
     },
     "itemsProvided": {
-      "type": ["string"]
+      "type": [
+        "string"
+      ]
     },
     "notes": {
       "type": "string"
