@@ -70,11 +70,11 @@ var originsWhitelist = [
     'http://www.peedbuds.com'
 ];
 var corsOptions = {
-    origin: function(origin, callback){
+    origin: function (origin, callback) {
         var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
         callback(null, isWhitelisted);
     },
-    credentials:true
+    credentials: true
 };
 app.use(cors(corsOptions));
 
@@ -258,12 +258,12 @@ app.post('/signup', function (req, res, next) {
     };
 
     var createProfileNode = function (user) {
-        var profile=app.models.profile;
+        var profile = app.models.profile;
         console.log('Creating Profile Node');
-        user.createProfile(profile,user,function(err, user, profileNode){
-            if(!err){
+        user.createProfile(profile, user, function (err, user, profileNode) {
+            if (!err) {
                 console.log('created!');
-            }else{
+            } else {
                 console.log("ERROR");
             }
         });
@@ -285,6 +285,8 @@ app.post('/signup', function (req, res, next) {
             if (created) {
                 console.log("created new instance");
                 createProfileNode(user);
+
+
                 loopbackLogin(user);
             }
             // Found an existing account with this email ID and username
@@ -292,6 +294,10 @@ app.post('/signup', function (req, res, next) {
             // Update the username field of that account with new username
             else {
 
+                var stripeTransaction = app.models.transaction;
+                stripeTransaction.createCustomer(user, function (err, data) {
+                    console.log("Stripe Customer : " + JSON.stringify(data));
+                });
                 console.log("found existing instance");
                 User.dataSource.connector.execute(
                     "MATCH (p:peer {username: '" + user.username + "'}) SET p.password = '" + hashedPassword + "'",
@@ -355,12 +361,12 @@ if (require.main === module) {
             var AccessToken = app.models.UserToken;
             //get credentials sent by the client
             var token = AccessToken.find({
-                where:{
+                where: {
                     and: [{ userId: value.userId }, { access_token: value.access_token }]
                 }
-            }, function(err, tokenDetail){
+            }, function (err, tokenDetail) {
                 if (err) throw err;
-                if(tokenDetail.length){
+                if (tokenDetail.length) {
                     callback(null, true);
                 } else {
                     callback(null, false);
@@ -369,15 +375,15 @@ if (require.main === module) {
         } //authenticate function..
     });
 
-    app.io.on('connection', function(socket) {
+    app.io.on('connection', function (socket) {
         console.log('a user connected');
 
-        socket.on('subscribe', function(room) {
+        socket.on('subscribe', function (room) {
             console.log('joining room', room);
             socket.join(room);
         });
-        socket.on('disconnect', function(){
-           console.log('user disconnected');
+        socket.on('disconnect', function () {
+            console.log('user disconnected');
         });
     });
 }

@@ -256,5 +256,9 @@
   "transaction": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "peer_has_transaction": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
