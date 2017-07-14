@@ -16,6 +16,7 @@ var crypto = require('crypto');
 var uuid = require("uuid");
 var MAX_PASSWORD_LENGTH = 72;
 var debug = require('debug')('loopback:peer');
+var moment = require('moment');
 
 try {
     // Try the native module first
@@ -298,69 +299,52 @@ module.exports = function (Peer) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
-        Peer.findById(id, (err, peerInstance) => {
+        Peer.findById(id, {"include": {collections: [{contents: "schedules"},"calendars"]}}, (err, peerInstance) => {
             if (err) {
                 cb(err);
             } else {
-                peerInstance.collections((err, collectionInstances) => {
-                    if (err) {
-                        cb(err);
-                    } else {
-                        collectionInstances.forEach((collectionNode) => {
-                            collectionNode.calendars((err, caledarInstances) => {
-                                if (err) {
-                                    cb(err);
+                peerInstance = peerInstance.toJSON();
+                var collections = peerInstance.collections;
+                collections.forEach((collectionItem) => {
+                    var collectionDate = collectionItem.calendars[0];
+                    if (collectionDate.startDate && collectionDate.endDate) {
+                        var contents = collectionItem.contents;
+                        contents.forEach((contentItem) => {
+                            var schedules = contentItem.schedules;
+                            var scheduleData = schedules[0];
+                            console.log(scheduleData);
+                            if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
+                                var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
+                                if (scheduleData.startTime && scheduleData.endTime) {
+                                    startDate.hours(scheduleData.startTime.split(':')[0]);
+                                    startDate.minutes(scheduleData.startTime.split(':')[1]);
+                                    startDate.seconds(scheduleData.startTime.split(':')[2]);
+                                    endDate.hours(scheduleData.endTime.split(':')[0]);
+                                    endDate.minutes(scheduleData.endTime.split(':')[1]);
+                                    endDate.seconds(scheduleData.endTime.split(':')[2]);
+                                    var calendarData = {
+                                        "startDate": startDate,
+                                        "endDate": endDate
+                                    };
+                                    console.log(calendarData);
+                                    userCalendarData.push(calendarData);
                                 } else {
-                                    var collectionDate = caledarInstances[0];
-                                    if (collectionDate.startDate && collectionDate.endDate) {
-                                        collectionNode.contents((err, contentInstances) => {
-                                            if (err) {
-                                                cb(err);
-                                            } else {
-                                                contentInstances.forEach((contentNode) => {
-                                                    contentNode.schedules((err, scheduleInstances) => {
-                                                        if (err) {
-                                                            cb(err);
-                                                        } else {
-                                                            var scheduleData = scheduleInstances[0];
-                                                            if (scheduleData.startDay && scheduleData.endDay) {
-                                                                var startDate = new Date(collectionDate.startDate);
-                                                                var endDate = new Date(collectionDate.endDate);
-                                                                startDate.setDate(startDate.getDate() + scheduleData.startDay);
-                                                                endDate.setDate(endDate.getDate() + scheduleData.endDay);
-                                                                if (scheduleData.startTime && scheduleData.endTime) {
-                                                                    var startTime = new Date(scheduleData.startTime);
-                                                                    var endTime = new Date(scheduleData.endTime);
-                                                                    startDate.setTime(startTime.getTime());
-                                                                    endDate.setTime(endTime.getTime());
-                                                                    var calendarData = {
-                                                                        "startDate": startDate,
-                                                                        "endDate": endDate
-                                                                    }
-                                                                    console.log(calendarData);
-                                                                    userCalendarData.push(calendarData);
-                                                                } else {
-                                                                    console.log("Time Unavailable !");
-                                                                }
-                                                            } else {
-                                                                console.log("Schedule Days Unavailable");
-                                                            }
-                                                        }
-                                                    });
-                                                }, this);
-                                            }
-                                        });
-                                    } else {
-                                        console.log("Collection Calendar Not Set");
-                                    }
+                                    console.log("Time Unavailable !");
                                 }
-                            });
-                        }, this);
+                            } else {
+                                console.log("Schedule Days Unavailable");
+                            }
+                        });
+
+                    } else {
+                        console.log("Collection Calendar Not Set");
                     }
                 });
+
+                cb(null, userCalendarData);
             }
         });
-        cb(null, userCalendarData);
     };
 
 
@@ -636,6 +620,17 @@ module.exports = function (Peer) {
             }
             next();
         });
+
+        PeerModel.remoteMethod(
+            'userCalendar',
+            {
+                accepts: [
+                    { arg: 'id', type: 'string', required: true },
+                ],
+                returns: { arg: 'calendarObject', type: 'object', root: true },
+                http: { path: '/:id/eventCalendar', verb: 'get' }
+            }
+        );
 
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')

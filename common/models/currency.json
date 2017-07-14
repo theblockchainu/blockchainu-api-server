@@ -1,0 +1,36 @@
+{
+  "name": "currency",
+  "plural": "currencies",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "symbol": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "symbol_native": {
+      "type": "string"
+    },
+    "decimal_digits": {
+      "type": "number"
+    },
+    "rounding": {
+      "type": "number"
+    },
+    "code": {
+      "type": "string"
+    },
+    "name_plural": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

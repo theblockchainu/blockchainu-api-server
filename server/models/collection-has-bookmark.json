@@ -1,5 +1,5 @@
 {
-  "name": "collection_has_calendar",
+  "name": "collection_has_bookmark",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "collection",
-    "targetModel": "calendar"
+    "targetModel": "bookmark"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "collection",
       "foreignKey": "sourceId"
     },
-    "calendar": {
+    "bookmark": {
       "type": "belongsTo",
-      "model": "calendar",
+      "model": "bookmark",
       "foreignKey": "targetId"
     }
   },

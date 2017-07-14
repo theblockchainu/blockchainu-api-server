@@ -1,13 +1,13 @@
 {
-  "name": "collection_has_calendar",
+  "name": "bookmark_has_bookmarker",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "collection",
-    "targetModel": "calendar"
+    "sourceModel": "bookmark",
+    "targetModel": "peer"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "collection": {
+    "bookmark": {
       "type": "belongsTo",
-      "model": "collection",
+      "model": "bookmark",
       "foreignKey": "sourceId"
     },
-    "calendar": {
+    "peer": {
       "type": "belongsTo",
-      "model": "calendar",
+      "model": "peer",
       "foreignKey": "targetId"
     }
   },

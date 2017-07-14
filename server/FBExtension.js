@@ -71,7 +71,7 @@ FBExtension.prototype.permissionsGiven = function (uid, accessToken, cb) {
 FBExtension.prototype.friendsUsingApp = function (uid, accessToken, cb) {
     var deferred = Q.defer();
     var method = 'friends';
-    var url = this.graph_api_url.concat(uid).concat('/'.concat(method)).concat('?access_token='.concat(accessToken));
+    var url = this.graph_api_url.concat(uid).concat('/'.concat(method)).concat('?fields=cover,email,name&access_token='.concat(accessToken));
     request(url, function (e, res, body) {
         if (e) {
             deferred.reject({

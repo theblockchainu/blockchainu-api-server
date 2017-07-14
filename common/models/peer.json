@@ -105,6 +105,13 @@
       "through": "peer_has_following",
       "keyThrough": "targetId"
     },
+    "contact": {
+      "type": "hasMany",
+      "model": "contact",
+      "foreignKey": "sourceId",
+      "through": "peer_has_contact",
+      "keyThrough": "targetId"
+    },
     "profiles": {
       "type": "hasMany",
       "model": "profile",

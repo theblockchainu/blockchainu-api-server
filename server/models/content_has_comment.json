@@ -1,13 +1,13 @@
 {
-  "name": "collection_has_calendar",
+  "name": "content_has_comment",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "collection",
-    "targetModel": "calendar"
+    "sourceModel": "content",
+    "targetModel": "comment"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "collection": {
+    "content": {
       "type": "belongsTo",
-      "model": "collection",
+      "model": "content",
       "foreignKey": "sourceId"
     },
-    "calendar": {
+    "comment": {
       "type": "belongsTo",
-      "model": "calendar",
+      "model": "comment",
       "foreignKey": "targetId"
     }
   },
