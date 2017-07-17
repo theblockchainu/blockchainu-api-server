@@ -252,5 +252,13 @@
   "bookmark_has_bookmarker": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "location": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "content_has_location": {
+    "dataSource": "neo4j-cypher",
+    "public": true
   }
 }

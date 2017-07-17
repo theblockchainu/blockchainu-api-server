@@ -1,0 +1,41 @@
+{
+  "name": "location",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "location_name": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "street_address": {
+      "type": "string"
+    },
+    "apt_suite": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "map_lat": {
+      "type": "string"
+    },
+    "map_lng": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
