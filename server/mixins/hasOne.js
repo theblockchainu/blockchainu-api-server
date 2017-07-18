@@ -4,7 +4,7 @@ module.exports = function (Model, options) {
         var modelName = element.model;
         var relation = element.hasManyRelation;
 
-        Model.observe('after save', function (ctx, next) {
+        Model.observe('after save', function (ctx, next, cb) {
             var data = {};
             if (element.autoCreate) {
                 var currentId = ctx.instance.id;
