@@ -132,6 +132,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_joinedroom",
       "keyThrough": "targetId"
+    },
+    "transactions": {
+      "type": "hasMany",
+      "model": "transaction",
+      "foreignKey": "sourceId",
+      "through": "peer_has_transaction",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
