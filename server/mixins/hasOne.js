@@ -12,18 +12,18 @@ module.exports = function (Model, options) {
                     var relatedTo = modelInstance[relation];
                     relatedTo.count(function (err, count) {
                         if (err) {
-                            cb(err);
+                            console.log(err);
                         } else {
                             if (count == 0) {
                                 relatedTo.create(data, function (err, createdInstance) {
                                     if (err) {
-                                        cb(err)
+                                        console.log(err)
                                     } else {
                                         console.log(createdInstance);
                                     }
                                 });
                             } else {
-                                cb(null, "Profile Already Exists");
+                                console.log("Profile Already Exists");
                             }
                         }
                     });
@@ -31,7 +31,6 @@ module.exports = function (Model, options) {
             }
             next();
         });
-
         Model['postOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
                 if (err) {
