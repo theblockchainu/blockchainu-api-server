@@ -13,23 +13,27 @@ module.exports = function (Model, options) {
                     relatedTo.count(function (err, count) {
                         if (err) {
                             console.log(err);
+                            next(err);
                         } else {
                             if (count == 0) {
                                 relatedTo.create(data, function (err, createdInstance) {
                                     if (err) {
-                                        console.log(err)
+                                        console.log(err);
+                                        next(err);
                                     } else {
                                         console.log(createdInstance);
+                                        next();
                                     }
                                 });
                             } else {
                                 console.log("Profile Already Exists");
+                                next("Profile Already Exists");
                             }
                         }
                     });
                 });
-            }
-            next();
+            } else
+                next();
         });
         Model['postOne_' + relation] = function (id, data, cb) {
             Model.findById(id, function (err, modelInstance) {
@@ -68,21 +72,27 @@ module.exports = function (Model, options) {
                     cb(err);
                 } else {
                     if (modelInstance) {
+                        console.log(modelInstance);
                         var relatedTo = modelInstance[relation];
                         relatedTo(function (err, instances) {
                             if (err) {
                                 cb(err);
                             } else {
-                                var objId = instances[0].id;
-                                var originalModel = Model.app.models[modelName];
-                                originalModel.upsertWithWhere({ "id": objId }, data, function (err, updatedInstance) {
-                                    if (err) {
-                                        cb(err)
-                                    }
-                                    else {
-                                        cb(null, updatedInstance)
-                                    }
-                                });
+                                if (instances[0]) {
+                                    var objId = instances[0].id;
+                                    var originalModel = Model.app.models[modelName];
+                                    originalModel.upsertWithWhere({ "id": objId }, data, function (err, updatedInstance) {
+                                        if (err) {
+                                            cb(err)
+                                        }
+                                        else {
+                                            cb(null, updatedInstance)
+                                        }
+                                    });
+                                } else {
+                                    cb("not Added");
+                                }
+
                             }
                         });
                     } else {
