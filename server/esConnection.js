@@ -14,9 +14,41 @@ var client = new elasticsearch.Client( {
         "accessKey": "AKIAJEQ5JJ2KPRFGDMYA",
         "secretKey": "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"
     },
-    apiVersion: "_default",
+    apiVersion: "5.1",
     log: "trace",
-    requestTimeout: 30000
+    requestTimeout: 30000,
+    mappings: [
+        {
+            "name": "topic",
+            "properties": {
+                "name": {
+                    "type": "completion"
+                }
+            }
+        }
+    ]
+    /*settings : {
+        "number_of_shards": 1,
+        "analysis" : {
+            "filter" : {
+                "autocomplete_filter": {
+                    "type" : "edge_ngram",
+                    "min_gram" : 1,
+                    "max_gram" : 20
+                }
+            },
+            "analyzer" : {
+                "autocomplete": {
+                    "type" : "custom",
+                    "tokenizer": "standard",
+                    "filter" : [
+                        "lowercase",
+                        "autocomplete_filter"
+                    ]
+                }
+            }
+        }
+    }*/
 });
 
 module.exports = client;

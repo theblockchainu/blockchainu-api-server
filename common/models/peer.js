@@ -421,17 +421,16 @@ module.exports = function (Peer) {
         return cb.promise;
     };
 
-    Peer.prototype.createProfile = function (profileModel, user, cb) {
+    Peer.prototype.createProfile = function (profileModel, profileObject, user, cb) {
         if (cb === undefined && typeof options === 'function') {
             // createAccessToken(ttl, cb)
             cb = options;
             options = undefined;
         }
         cb = cb || utils.createPromiseCallback();
-        console.log(user.Id);
-        var emptyProfile = { "userId": user.id };
+        //console.log(user.Id);
 
-        profileModel.create(emptyProfile, function (err, profileNode) {
+        profileModel.create(profileObject, function (err, profileNode) {
             if (!err && profileNode) {
                 if (profileNode.isNewInstance)
                     console.log("Created new user entry");

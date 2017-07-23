@@ -157,9 +157,14 @@ app.post('/signup', function (req, res, next) {
     var User = app.models.peer;
 
     var newUser = {};
+    var profileObject = {};
     newUser.email = req.body.email.toLowerCase();
     newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
+    profileObject.first_name = req.body.firstname;
+    profileObject.last_name = req.body.lastname;
+    profileObject.dob = req.body.dob;
+    profileObject.promoOptIn = req.body.promoOptIn;
 
     var returnTo = req.headers.referer + req.query.returnTo;
 
@@ -260,14 +265,14 @@ app.post('/signup', function (req, res, next) {
     var createProfileNode = function (user) {
         var profile=app.models.profile;
         console.log('Creating Profile Node');
-        user.createProfile(profile,user,function(err, user, profileNode){
+        user.createProfile(profile, profileObject, user, function(err, user, profileNode){
             if(!err){
                 console.log('created!');
             }else{
                 console.log("ERROR");
             }
         });
-    }
+    };
 
     User.findOrCreate({ where: query }, newUser, function (err, user, created) {
 

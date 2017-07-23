@@ -30,6 +30,9 @@
         "string"
       ]
     },
+    "dob":{
+      "type": "date"
+    },
     "location": {
       "type": "string"
     },
@@ -65,6 +68,10 @@
     },
     "onboardingStage": {
       "type": "number"
+    },
+    "promoOptIn" : {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],
