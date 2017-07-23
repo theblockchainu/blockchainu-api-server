@@ -1,21 +1,19 @@
 {
-  "name": "schedule",
+  "name": "transaction",
+  "plural": "transactions",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "startDay": {
-      "type": "number"
+    "id": {
+      "type": "string"
     },
-    "endDay": {
-      "type": "number"
-    },
-    "startTime": {
+    "created": {
       "type": "date"
     },
-    "endTime": {
+    "modified": {
       "type": "date"
     }
   },

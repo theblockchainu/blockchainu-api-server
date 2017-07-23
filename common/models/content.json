@@ -13,6 +13,11 @@
           "model": "schedule",
           "hasManyRelation": "schedules",
           "autoCreate": true
+        },
+        {
+          "model": "location",
+          "hasManyRelation": "locations",
+          "autoCreate": true
         }
       ]
     },
@@ -42,15 +47,6 @@
         "string"
       ]
     },
-    "addressString": {
-      "type": "string"
-    },
-    "addressLat": {
-      "type": "string"
-    },
-    "addressLng": {
-      "type": "string"
-    },
     "requireRSVP": {
       "type": "boolean"
     },
@@ -63,6 +59,9 @@
       "type": "string"
     },
     "imageUrl": {
+      "type": "string"
+    },
+    "prerequisites": {
       "type": "string"
     },
     "created": {
@@ -93,6 +92,13 @@
       "model": "comment",
       "foreignKey": "sourceId",
       "through": "content_has_comment",
+      "keyThrough": "targetId"
+    },
+    "locations": {
+      "type": "hasMany",
+      "model": "location",
+      "foreignKey": "sourceId",
+      "through": "content_has_location",
       "keyThrough": "targetId"
     }
   },

@@ -70,11 +70,11 @@ var originsWhitelist = [
     'http://www.peedbuds.com'
 ];
 var corsOptions = {
-    origin: function(origin, callback){
+    origin: function (origin, callback) {
         var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
         callback(null, isWhitelisted);
     },
-    credentials:true
+    credentials: true
 };
 app.use(cors(corsOptions));
 
@@ -263,12 +263,12 @@ app.post('/signup', function (req, res, next) {
     };
 
     var createProfileNode = function (user) {
-        var profile=app.models.profile;
+        var profile = app.models.profile;
         console.log('Creating Profile Node');
         user.createProfile(profile, profileObject, user, function(err, user, profileNode){
             if(!err){
                 console.log('created!');
-            }else{
+            } else {
                 console.log("ERROR");
             }
         });
@@ -297,6 +297,10 @@ app.post('/signup', function (req, res, next) {
             // Update the username field of that account with new username
             else {
 
+                var stripeTransaction = app.models.transaction;
+                stripeTransaction.createCustomer(user, function (err, data) {
+                    console.log("Stripe Customer : " + JSON.stringify(data));
+                });
                 console.log("found existing instance");
                 User.dataSource.connector.execute(
                     "MATCH (p:peer {username: '" + user.username + "'}) SET p.password = '" + hashedPassword + "'",
