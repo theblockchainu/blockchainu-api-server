@@ -268,5 +268,13 @@
   "peer_has_transaction": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "stripeacc": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_stripeacc": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -139,6 +139,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_transaction",
       "keyThrough": "targetId"
+    },
+    "stripeaccs": {
+      "type": "hasMany",
+      "model": "stripeacc",
+      "foreignKey": "sourceId",
+      "through": "peer_has_stripeacc",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
