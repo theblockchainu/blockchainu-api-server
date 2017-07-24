@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_transaction",
+  "name": "peer_has_stripeacc",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "transaction"
+    "targetModel": "stripeacc"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "transaction": {
+    "stripeacc": {
       "type": "belongsTo",
-      "model": "transaction",
+      "model": "stripeacc",
       "foreignKey": "targetId"
     }
   },

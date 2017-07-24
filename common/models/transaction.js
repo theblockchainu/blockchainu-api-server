@@ -287,22 +287,16 @@ module.exports = function (Transaction) {
     // Charge related functions here
 
     // Charge the user's card/bank account
-    Transaction.createCharge = function (req, data, cb) {
+    Transaction.createCharge = function (req, reqObj, cb) {
 
         var loggedinPeer = req.user;
         //if user is logged in
         if (loggedinPeer) {
 
-            var charge = stripe.charges.create({
-                amount: data.amount,
-                currency: data.currency,
-                description: data.description,
-                customer: data.customer,
-                source: data.source
-            }, function (err, charge) {
+            var charge = stripe.charges.create(reqObj, function (err, charge) {
 
                 if (!err) {
-
+                    var currTime = new Date().toISOString();
                     charge.charge_id = charge.id;
                     delete charge.id;
                     charge.source = JSON.stringify(charge.source);
@@ -310,8 +304,8 @@ module.exports = function (Transaction) {
                     charge.metadata = JSON.stringify(charge.metadata);
                     charge.refunds = JSON.stringify(charge.refunds);
                     charge.outcome = JSON.stringify(charge.outcome);
-                    charge.created = data.created;
-                    charge.modified = data.modified;
+                    charge.created = currTime;
+                    charge.modified = currTime;
                     console.log(JSON.stringify(charge));
 
                     loggedinPeer.transactions.create(charge, function (err, chargeInstance) {
@@ -323,7 +317,8 @@ module.exports = function (Transaction) {
                             cb(null, charge);
                         }
                     });
-                }
+                } else
+                    cb(err);
             });
         } else {
             var err = new Error('Invalid access');
@@ -458,7 +453,10 @@ module.exports = function (Transaction) {
     Transaction.remoteMethod('createCharge', {
         description: 'Add Charge',
         accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
-        { arg: 'data', type: 'object', http: { source: 'body' }, required: true }],
+        {
+            arg: 'data', type: 'object', http: { source: 'body' },
+            description: "data should match as mentioned by stripe charges api", required: true
+        }],
         returns: { arg: 'contentObject', type: 'object', root: true },
         http: { verb: 'post', path: '/create-charge' }
     }
