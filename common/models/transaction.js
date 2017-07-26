@@ -328,6 +328,32 @@ module.exports = function (Transaction) {
         }
     };
 
+    Transaction.transferFund = function (req, data, cb) {
+
+        var loggedinPeer = req.user;
+        //if user is logged in
+        if (loggedinPeer) {
+
+            stripe.transfers.create(data, function (err, transfer) {
+                if (err)
+                    cb(err);
+                else {
+                    loggedinPeer.transactions.create(transfer, function (err, transferInstance) {
+                        if (err) {
+                            transferInstance.destroy();
+                            cb(err);
+                        } else {
+                            cb(null, transfer);
+                        }
+                    });
+                }
+            });
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            cb(err);
+        }
+    }
 
     // Customer Remote methods
     Transaction.remoteMethod('getCustomer', {
@@ -460,6 +486,19 @@ module.exports = function (Transaction) {
         }],
         returns: { arg: 'contentObject', type: 'object', root: true },
         http: { verb: 'post', path: '/create-charge' }
+    }
+    );
+
+    // Transfer Fund - Remote methods
+    Transaction.remoteMethod('transferFund', {
+        description: 'Transfer Funds',
+        accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+        {
+            arg: 'data', type: 'object', http: { source: 'body' },
+            description: "data should match as mentioned by stripe transfer api", required: true
+        }],
+        returns: { arg: 'contentObject', type: 'object', root: true },
+        http: { verb: 'post', path: '/transfer-fund' }
     }
     );
 };
