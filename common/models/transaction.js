@@ -1,6 +1,7 @@
 'use strict';
-var stripe = require('stripe')('sk_test_mjuDwEmXkxA1ewmsqgDdPCWT');
 var app = require('../../server/server');
+var stripeKey = app.get('stripeKey');
+var stripe = require('stripe')(stripeKey);
 
 module.exports = function (Transaction) {
 
@@ -24,7 +25,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.createCustomer = function (data, cb) {
 
@@ -50,7 +51,7 @@ module.exports = function (Transaction) {
                 });
             }
         });
-    }
+    };
 
     Transaction.editCustomer = function (req, customerId, data, cb) {
 
@@ -70,7 +71,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     //Sources and Cards related functions here
 
@@ -89,7 +90,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     function createCardOrBankAcc(customer, data, cb) {
 
@@ -144,7 +145,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.listAllCards = function (req, customerId, cb) {
         var loggedinPeer = req.user;
@@ -164,7 +165,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.editCard = function (req, customerId, cardId, data, cb) {
 
@@ -183,7 +184,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.deleteCard = function (req, customerId, cardId, cb) {
 
@@ -201,7 +202,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     // Bank Account related functions goes here
 
@@ -223,7 +224,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.listBankAccounts = function (req, customerId, cb) {
         var loggedinPeer = req.user;
@@ -243,7 +244,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.editBankAccount = function (req, customerId, accId, data, cb) {
 
@@ -262,7 +263,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     Transaction.deleteBankAccount = function (req, customerId, accId, cb) {
 
@@ -280,7 +281,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
 
 
@@ -325,7 +326,7 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
 
     // Customer Remote methods

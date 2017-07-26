@@ -27,7 +27,7 @@ module.exports = function (Model, options) {
                                 });
                             } else {
                                 console.log("Profile Already Exists");
-                                next("Profile Already Exists");
+                                next();
                             }
                         }
                     });

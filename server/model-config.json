@@ -13,6 +13,9 @@
       "./mixins"
     ]
   },
+  "Email": {
+    "dataSource": "mailgun"
+  },
   "peer": {
     "dataSource": "neo4j",
     "public": true
