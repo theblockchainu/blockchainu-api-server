@@ -165,9 +165,7 @@ app.post('/signup', function (req, res, next) {
     profileObject.last_name = req.body.lastname;
     profileObject.dob = req.body.dob;
     profileObject.promoOptIn = req.body.promoOptIn;
-
-    var returnTo = req.headers.referer + req.query.returnTo;
-
+    var returnTo = req.headers.origin + '/' + req.query.returnTo;
     var hashedPassword = '';
     var query;
     if (newUser.email && newUser.username) {
@@ -265,8 +263,8 @@ app.post('/signup', function (req, res, next) {
     var createProfileNode = function (user) {
         var profile = app.models.profile;
         console.log('Creating Profile Node');
-        user.createProfile(profile, profileObject, user, function(err, user, profileNode){
-            if(!err){
+        user.createProfile(profile, profileObject, user, function (err, user, profileNode) {
+            if (!err) {
                 console.log('created!');
             } else {
                 console.log("ERROR");
@@ -364,12 +362,12 @@ if (require.main === module) {
             var AccessToken = app.models.UserToken;
             //get credentials sent by the client
             var token = AccessToken.find({
-                where:{
+                where: {
                     and: [{ userId: value.userId }, { access_token: value.access_token }]
                 }
-            }, function(err, tokenDetail){
+            }, function (err, tokenDetail) {
                 if (err) throw err;
-                if(tokenDetail.length){
+                if (tokenDetail.length) {
                     callback(null, true);
                 } else {
                     callback(null, false);
@@ -378,15 +376,15 @@ if (require.main === module) {
         } //authenticate function..
     });
 
-    app.io.on('connection', function(socket) {
+    app.io.on('connection', function (socket) {
         console.log('a user connected');
 
-        socket.on('subscribe', function(room) {
+        socket.on('subscribe', function (room) {
             console.log('joining room', room);
             socket.join(room);
         });
-        socket.on('disconnect', function(){
-           console.log('user disconnected');
+        socket.on('disconnect', function () {
+            console.log('user disconnected');
         });
     });
 }
