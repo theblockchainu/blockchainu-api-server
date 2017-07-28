@@ -4,7 +4,8 @@
   "idInjection": true,
   "options": {
     "validateUpsert": true,
-    "caseSensitiveEmail": true
+    "caseSensitiveEmail": true,
+    "emailVerificationRequired": true
   },
   "mixins": {
     "HasOne": {
@@ -48,9 +49,17 @@
       "type": "number"
     },
     "emailVerified": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "verificationToken": {
+      "type": "string"
+    },
+    "accountVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "verificationIdUrl": {
       "type": "string"
     }
   },

@@ -24,12 +24,12 @@ module.exports = function (Collection) {
                             subject: 'Workshop submitted for Review',
                             html: html_body
                         })
-                            .then(function (response) {
-                                console.log('email sent! - ' + response);
-                            })
-                            .catch(function (err) {
-                                console.log('email error! - ' + err);
-                            });
+                        .then(function (response) {
+                            console.log('email sent! - ' + response);
+                        })
+                        .catch(function (err) {
+                            console.log('email error! - ' + err);
+                        });
                     }
                 });
             }

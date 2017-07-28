@@ -285,8 +285,6 @@ app.post('/signup', function (req, res, next) {
 
             setPassword(newUser.password);
 
-
-
             if (created) {
                 console.log("created new instance");
                 createProfileNode(user);
