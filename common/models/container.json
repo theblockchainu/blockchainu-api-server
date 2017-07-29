@@ -1,6 +1,13 @@
 {
   "name": "container",
   "base": "Model",
+  "mixins": {
+    "TimeStamp" : {
+      "createdAt" : "createdAt",
+      "updatedAt" : "updatedAt",
+      "required" : false
+    }
+  },
   "properties": {},
   "validations": [],
   "relations": {},

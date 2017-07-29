@@ -159,7 +159,7 @@ app.post('/signup', function (req, res, next) {
     var newUser = {};
     var profileObject = {};
     newUser.email = req.body.email.toLowerCase();
-    newUser.username = req.body.username.trim();
+    //newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
     profileObject.first_name = req.body.firstname;
     profileObject.last_name = req.body.lastname;
@@ -221,7 +221,7 @@ app.post('/signup', function (req, res, next) {
 
     var loopbackLogin = function (user) {
         console.log("inside loopbackLogin");
-        User.login({ username: newUser.username, password: newUser.password }, function (err, accessToken) {
+        User.login({ email: newUser.email, password: newUser.password }, function (err, accessToken) {
             if (err) {
                 console.log("User model login error: " + err);
                 req.flash('error', err);

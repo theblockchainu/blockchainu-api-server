@@ -24,6 +24,11 @@
           "hasManyRelation": "topics"
         }
       ]
+    },
+    "TimeStamp" : {
+      "createdAt" : "createdAt",
+      "updatedAt" : "updatedAt",
+      "required" : false
     }
   },
   "hidden": [

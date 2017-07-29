@@ -5,6 +5,13 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp" : {
+      "createdAt" : "createdAt",
+      "updatedAt" : "updatedAt",
+      "required" : false
+    }
+  },
   "properties": {
     "title": {
       "type": "string"
@@ -18,7 +25,7 @@
     "bio_video": {
       "type": "string"
     },
-    "pirvacy": {
+    "privacy": {
       "type": "string"
     },
     "hasBilling": {

@@ -25,6 +25,11 @@
       "relationName": [
         "comments"
       ]
+    },
+    "TimeStamp" : {
+      "createdAt" : "createdAt",
+      "updatedAt" : "updatedAt",
+      "required" : false
     }
   },
   "properties": {
@@ -63,12 +68,6 @@
     },
     "prerequisites": {
       "type": "string"
-    },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
-      "type": "date"
     }
   },
   "validations": [],
