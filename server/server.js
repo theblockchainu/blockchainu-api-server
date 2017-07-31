@@ -299,7 +299,7 @@ app.post('/signup', function (req, res, next) {
                 });
                 console.log("found existing instance");
                 User.dataSource.connector.execute(
-                    "MATCH (p:peer {username: '" + user.username + "'}) SET p.password = '" + hashedPassword + "'",
+                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
                     function (err, results) {
                         if (!err) {
                             createProfileNode(user);

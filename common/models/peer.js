@@ -475,7 +475,7 @@ module.exports = function (Peer) {
                 cb(err);
             } else {
                 Peer.dataSource.connector.execute(
-                    "match (p:peer {username: '" + peer.username + "'}) create (p)-[r:hasToken]->(token:UserToken {id: '" + guid + "', ttl: '" + ttl + "', created: timestamp()}) return token",
+                    "match (p:peer {email: '" + peer.email + "'}) create (p)-[r:hasToken]->(token:UserToken {id: '" + guid + "', ttl: '" + ttl + "'}) return token",
                     cb
                 );
             }
@@ -499,7 +499,7 @@ module.exports = function (Peer) {
                     console.log("Created new user entry");
 
                 profileModel.dataSource.connector.execute(
-                    "match (p:peer {username: '" + user.username + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
+                    "match (p:peer {email: '" + user.email + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
                     function (err, results) {
                         if (!err) {
                             cb(err, user, results);
