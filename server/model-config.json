@@ -280,5 +280,9 @@
   "peer_has_stripeacc": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "peer_has_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

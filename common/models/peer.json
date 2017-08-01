@@ -25,11 +25,12 @@
         }
       ]
     },
-    "TimeStamp" : {
-      "createdAt" : "createdAt",
-      "updatedAt" : "updatedAt",
-      "required" : false
-    }
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "hidden": [
     "password",
@@ -105,12 +106,26 @@
       "through": "community_has_member",
       "keyThrough": "sourceId"
     },
+    "ownedCommunities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "sourceId",
+      "through": "peer_has_community",
+      "keyThrough": "targetId"
+    },
     "collections": {
       "type": "hasMany",
       "model": "collection",
-      "foreignKey": "targetId",
+      "foreignKey": "sourceId",
       "through": "collection_has_participant",
-      "keyThrough": "sourceId"
+      "keyThrough": "targetId"
+    },
+    "ownedCollections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "peer_has_collection",
+      "keyThrough": "targetId"
     },
     "following": {
       "type": "hasMany",

@@ -12,11 +12,12 @@
         "replies"
       ]
     },
-    "TimeStamp" : {
-      "createdAt" : "createdAt",
-      "updatedAt" : "updatedAt",
-      "required" : false
-    }
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "properties": {
     "description": {

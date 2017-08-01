@@ -6,11 +6,12 @@
     "validateUpsert": true
   },
   "mixins": {
-    "TimeStamp" : {
-      "createdAt" : "createdAt",
-      "updatedAt" : "updatedAt",
-      "required" : false
-    }
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "properties": {
     "location_name": {

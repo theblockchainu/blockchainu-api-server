@@ -2,11 +2,12 @@
   "name": "container",
   "base": "Model",
   "mixins": {
-    "TimeStamp" : {
-      "createdAt" : "createdAt",
-      "updatedAt" : "updatedAt",
-      "required" : false
-    }
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "properties": {},
   "validations": [],

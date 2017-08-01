@@ -6,8 +6,8 @@
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "collection",
-    "targetModel": "peer"
+    "sourceModel": "peer",
+    "targetModel": "collection"
   },
   "properties": {
     "id": {
@@ -26,12 +26,12 @@
     "collection": {
       "type": "belongsTo",
       "model": "collection",
-      "foreignKey": "sourceId"
+      "foreignKey": "targetId"
     },
     "peer": {
       "type": "belongsTo",
       "model": "peer",
-      "foreignKey": "targetId"
+      "foreignKey": "sourceId"
     }
   },
   "acls": [],

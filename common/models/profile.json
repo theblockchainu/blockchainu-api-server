@@ -6,11 +6,12 @@
     "validateUpsert": true
   },
   "mixins": {
-    "TimeStamp" : {
-      "createdAt" : "createdAt",
-      "updatedAt" : "updatedAt",
-      "required" : false
-    }
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "properties": {
     "id": {
@@ -37,7 +38,7 @@
         "string"
       ]
     },
-    "dob":{
+    "dob": {
       "type": "date"
     },
     "location": {
@@ -76,7 +77,7 @@
     "onboardingStage": {
       "type": "number"
     },
-    "promoOptIn" : {
+    "promoOptIn": {
       "type": "boolean",
       "default": false
     }
