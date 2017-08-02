@@ -39,7 +39,7 @@
       ]
     },
     "dob": {
-      "type": "date"
+      "type": "string"
     },
     "location": {
       "type": "string"

@@ -67,6 +67,7 @@ app.set('view engine', 'jade');
 var originsWhitelist = [
     'null',
     'localhost:9090',      //frontend url for development
+    'localhost:8080',      //frontend url for development
     'http://www.peedbuds.com'
 ];
 var corsOptions = {

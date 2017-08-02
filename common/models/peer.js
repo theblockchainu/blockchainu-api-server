@@ -362,14 +362,17 @@ module.exports = function (Peer) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
-        Peer.findById(id, {"include": {collections: [{contents: "schedules"},"calendars"]}}, (err, peerInstance) => {
+        Peer.findById(id, {"include": [{collections: [{contents: "schedules"},"calendars"]},{ownedCollections: [{contents: "schedules"},"calendars"]}]}, (err, peerInstance) => {
             if (err) {
                 cb(err);
             } else {
+
                 peerInstance = peerInstance.toJSON();
                 var collections = peerInstance.collections;
+                var ownedCollections = peerInstance.ownedCollections;
+                var collectionDate;
                 collections.forEach((collectionItem) => {
-                    var collectionDate = collectionItem.calendars[0];
+                    collectionDate = collectionItem.calendars[0];
                     if (collectionDate.startDate && collectionDate.endDate) {
                         var contents = collectionItem.contents;
                         contents.forEach((contentItem) => {
@@ -380,15 +383,55 @@ module.exports = function (Peer) {
                                 var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
                                 var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
                                 if (scheduleData.startTime && scheduleData.endTime) {
-                                    startDate.hours(scheduleData.startTime.split(':')[0]);
-                                    startDate.minutes(scheduleData.startTime.split(':')[1]);
-                                    startDate.seconds(scheduleData.startTime.split(':')[2]);
-                                    endDate.hours(scheduleData.endTime.split(':')[0]);
-                                    endDate.minutes(scheduleData.endTime.split(':')[1]);
-                                    endDate.seconds(scheduleData.endTime.split(':')[2]);
+                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                    startDate.seconds('00');
+                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                    endDate.seconds('00');
                                     var calendarData = {
                                         "startDate": startDate,
                                         "endDate": endDate
+                                    };
+                                    console.log(calendarData);
+                                    userCalendarData.push(calendarData);
+                                } else {
+                                    console.log("Time Unavailable !");
+                                }
+                            } else {
+                                console.log("Schedule Days Unavailable");
+                            }
+                        });
+
+                    } else {
+                        console.log("Collection Calendar Not Set");
+                    }
+                });
+
+                ownedCollections.forEach((collectionItem) => {
+                    collectionDate = collectionItem.calendars[0];
+                    if (collectionDate.startDate && collectionDate.endDate) {
+                        var contents = collectionItem.contents;
+                        contents.forEach((contentItem) => {
+                            var schedules = contentItem.schedules;
+                            var scheduleData = schedules[0];
+                            console.log(scheduleData);
+                            if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
+                                var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
+                                if (scheduleData.startTime && scheduleData.endTime) {
+                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                    startDate.seconds('00');
+                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                    endDate.seconds('00');
+                                    var calendarData = {
+                                        "eventType": collectionItem.type + "|" + contentItem.type,
+                                        "eventName": collectionItem.title + "|" + contentItem.title,
+                                        "eventId": collectionItem.id + "|" + contentItem.id,
+                                        "startDateTime": startDate,
+                                        "endDateTime": endDate
                                     };
                                     console.log(calendarData);
                                     userCalendarData.push(calendarData);
@@ -672,16 +715,6 @@ module.exports = function (Peer) {
             }
         );
 
-        PeerModel.remoteMethod(
-            'userCalendar',
-            {
-                accepts: [
-                    { arg: 'id', type: 'string', required: true },
-                ],
-                returns: { arg: 'calendarObject', type: 'object', root: true },
-                http: { path: '/:id/userCalendar', verb: 'get' }
-            }
-        );
         PeerModel.afterRemote('confirm', function (ctx, inst, next) {
             if (ctx.args.redirect !== undefined) {
                 if (!ctx.res) {
