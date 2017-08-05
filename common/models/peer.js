@@ -188,12 +188,13 @@ module.exports = function (Peer) {
      * @param uid
      * @param {String} token The validation token
      * @param {String} redirect URL to redirect the user to once confirmed
+     * @param req
+     * @param res
      * @param fn
      * @callback {Function} callback
      * @promise
      */
-    Peer.confirm = function (uid, token, redirect, fn) {
-        fn = fn || utils.createPromiseCallback();
+    Peer.confirm = function (uid, token, redirect, req, res, fn) {
         this.findById(uid, function (err, user) {
             if (err) {
                 fn(err);
@@ -205,7 +206,16 @@ module.exports = function (Peer) {
                         if (err) {
                             fn(err);
                         } else {
-                            fn();
+                            if (redirect !== undefined) {
+                                if (!res) {
+                                    fn(new Error(g.f('The transport does not support HTTP redirects.')));
+                                }
+                                //console.log(req.headers.origin + '/' + redirect);
+                                res.redirect(req.headers.origin + '/' + redirect);
+                            }
+                            else {
+                                fn(new Error(g.f('Redirect is not defined.')));
+                            }
                         }
                     });
                 } else {
@@ -222,7 +232,6 @@ module.exports = function (Peer) {
                 }
             }
         });
-        return fn.promise;
     };
 
 
@@ -268,7 +277,7 @@ module.exports = function (Peer) {
                         if (err) {
                             fn(err);
                         } else {
-                            fn(null, verificationToken);
+                            fn();
                         }
                     });
                 } else {
@@ -688,9 +697,11 @@ module.exports = function (Peer) {
                 accepts: [
                     { arg: 'uid', type: 'string', required: true },
                     { arg: 'token', type: 'string', required: true },
-                    { arg: 'redirect', type: 'string' }
+                    { arg: 'redirect', type: 'string' },
+                    { arg: 'req', type: 'object', http: { source: 'req' }},
+                    { arg: 'res', type: 'object', http: { source: 'res' }}
                 ],
-                http: { verb: 'get', path: '/confirmEmail' }
+                http: { verb: 'post', path: '/confirmEmail' }
             }
         );
 
@@ -699,8 +710,7 @@ module.exports = function (Peer) {
             {
                 description: 'Send a Verification email to user email ID with OTP and link',
                 accepts: { arg: 'uid', type: 'string', required: true },
-                returns: { arg: 'verificationToken', type: 'string'},
-                http: { verb: 'get', path: '/sendVerifyEmail' }
+                http: { verb: 'post', path: '/sendVerifyEmail' }
             }
         );
 
@@ -714,17 +724,6 @@ module.exports = function (Peer) {
                 http: { verb: 'post', path: '/reset' }
             }
         );
-
-        PeerModel.afterRemote('confirm', function (ctx, inst, next) {
-            if (ctx.args.redirect !== undefined) {
-                if (!ctx.res) {
-                    return next(new Error(g.f('The transport does not support HTTP redirects.')));
-                }
-                ctx.res.location(ctx.args.redirect);
-                ctx.res.status(302);
-            }
-            next();
-        });
 
         PeerModel.remoteMethod(
             'userCalendar',

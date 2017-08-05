@@ -14,19 +14,9 @@ var client = new elasticsearch.Client( {
         "accessKey": "AKIAJNBGI45QDD7GUIFQ",
         "secretKey": "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"
     },
-    apiVersion: "5.1",
+    apiVersion: "5.x",
     log: "trace",
-    requestTimeout: 30000,
-    mappings: [
-        {
-            "name": "topic",
-            "properties": {
-                "name": {
-                    "type": "completion"
-                }
-            }
-        }
-    ]
+    requestTimeout: 30000
     /*settings : {
         "number_of_shards": 1,
         "analysis" : {

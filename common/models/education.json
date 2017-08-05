@@ -1,0 +1,46 @@
+{
+  "name": "education",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "degree": {
+      "type": "string"
+    },
+    "school": {
+      "type": "string"
+    },
+    "startYear": {
+      "type": "string"
+    },
+    "endYear": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "profile": {
+      "type": "hasMany",
+      "model": "profile",
+      "foreignKey": "targetId",
+      "through": "profile_has_education",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

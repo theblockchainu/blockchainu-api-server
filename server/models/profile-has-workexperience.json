@@ -1,0 +1,38 @@
+{
+  "name": "profile_has_workexperience",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "profile",
+    "targetModel": "workexperience"
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "profile": {
+      "type": "belongsTo",
+      "model": "profile",
+      "foreignKey": "sourceId"
+    },
+    "workexperience": {
+      "type": "belongsTo",
+      "model": "workexperience",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

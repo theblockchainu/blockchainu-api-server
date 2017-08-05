@@ -117,7 +117,11 @@
     "dataSource": "neo4j",
     "public": true
   },
-  "peer_has_topic": {
+  "peer_has_topiclearning": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_topicteaching": {
     "dataSource": "neo4j-cypher",
     "public": false
   },
@@ -282,6 +286,26 @@
     "public": false
   },
   "peer_has_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "workexperience": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "education": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "profile_has_workexperience": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "profile_has_education": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_topicteaching": {
     "dataSource": "neo4j-cypher",
     "public": false
   }

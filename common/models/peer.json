@@ -21,7 +21,11 @@
       "relations": [
         {
           "model": "topic",
-          "hasManyRelation": "topics"
+          "hasManyRelation": "topicsLearning"
+        },
+        {
+          "model": "topic",
+          "hasManyRelation": "topicsTeaching"
         }
       ]
     },
@@ -53,6 +57,10 @@
     },
     "phone": {
       "type": "number"
+    },
+    "phoneVerified": {
+      "type": "boolean",
+      "default": false
     },
     "emailVerified": {
       "type": "boolean",
@@ -92,11 +100,18 @@
         "disableInclude": true
       }
     },
-    "topics": {
+    "topicsLearning": {
       "type": "hasMany",
       "model": "topic",
       "foreignKey": "sourceId",
-      "through": "peer_has_topic",
+      "through": "peer_has_topiclearning",
+      "keyThrough": "targetId"
+    },
+    "topicsTeaching": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "peer_has_topicteaching",
       "keyThrough": "targetId"
     },
     "communities": {

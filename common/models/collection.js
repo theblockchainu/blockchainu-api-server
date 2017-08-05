@@ -73,6 +73,60 @@ module.exports = function (Collection) {
     };
 
 
+    /*Collection.beforeRemote('prototype.save', function(ctx, collectionInstance, next){
+        if(!ctx.isNewInstance) {
+            console.log('inside collection update hook');
+            var collectionInstance = ctx.currentInstance;
+            if (collectionInstance.status === 'draft') {
+                next();
+            }
+            else {
+                // User is trying to update a non draft collection
+                // We need to check if this collection is active and if it has any participants.
+                if (collectionInstance.status === 'active') {
+                    collectionInstance.__get__participants(function (err, participantInstances) {
+                        if (err) {
+                            next(err);
+                        }
+                        else if (participantInstances !== null) {
+                            // This collection has existing participants on it. It cannot be edited without branching out.
+                            //next(new Error(g.f("Cannot edit active collection with participants on it.")));
+
+                            // Create a new collection by copying all the data of this collection
+                            var newCollection = collectionInstance;
+                            console.log(JSON.stringify(ctx));
+                            var updatedContentKeys = Object.keys(ctx.data);
+                            updatedContentKeys.forEach(function (updatedContentKey) {
+                                newCollection[updatedContentKey] = ctx.data[updatedContentKey];
+                            });
+
+                            Collection.create(newCollection, function (err, newCollectionInstance) {
+                                if (err) {
+                                    next(err);
+                                }
+                                else {
+                                    delete ctx.data;
+                                    ctx.data = {};
+                                    ctx.result = newCollectionInstance;
+                                    next();
+                                }
+                            });
+                        }
+                        else {
+                            // This collection has no participants on it. We can edit it but put it back in draft status.
+                            ctx.data.status = 'draft';
+                            next();
+                        }
+                    });
+                }
+            }
+        }
+        else {
+            next();
+        }
+    });*/
+
+
     Collection.remoteMethod(
         'submitForReview',
         {

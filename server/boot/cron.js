@@ -5,11 +5,13 @@ var bulk = [];
 
 module.exports = function setupCron(server) {
 
-    var makebulk = function(modelInstances, modelName, callback){
+    var makebulk = function(modelInstances, modelName, typeDifferentiator, callback){
         bulk = [];
         for (var current in modelInstances){
+            var typeValue = typeDifferentiator === 'none'? modelName: modelInstances[current][typeDifferentiator];
             bulk.push(
-                { index: {_index: 'testdata', _type: modelName, _id: modelInstances[current].id } },
+                // {action: {metadata}}
+                { index: {_index: modelName, _type: typeValue, _id: modelInstances[current].id } },
                 modelInstances[current]
             );
         }
@@ -19,8 +21,6 @@ module.exports = function setupCron(server) {
     var indexall = function(madebulk, modelName, callback) {
         client.bulk({
             maxRetries: 5,
-            index: 'testdata',
-            type: modelName,
             body: madebulk
         },function(err,resp,status) {
             if (err) {
@@ -33,26 +33,25 @@ module.exports = function setupCron(server) {
     };
 
     // Setup cron to index data on ES
-    var indexingJob = new CronJob('00 00 * * * *', function() {
+    var indexingJob = new CronJob('*/10 * * * * *', function() {
 
         console.log("Running indexing cron job every hour.");
 
         // Index all peers
-        server.models.peer.find(function (err, peerInstances) {
-            makebulk(peerInstances, 'peer', function(response){
+        server.models.peer.find({include: 'profiles'}, function (err, peerInstances) {
+            makebulk(peerInstances, 'peer', 'none', function(response){
                 console.log("Indexing Peers: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'peer', function(response){
                         console.log(response);
                     });
                 }
-
             });
         });
 
         // Index all collections
         server.models.collection.find(function (err, collectionInstances) {
-            makebulk(collectionInstances, 'collection', function(response){
+            makebulk(collectionInstances, 'collection', 'type', function(response){
                 console.log("Indexing Collections: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'collection', function(response){
@@ -64,7 +63,7 @@ module.exports = function setupCron(server) {
 
         // Index all contents
         server.models.content.find(function (err, contentInstance) {
-            makebulk(contentInstance, 'content', function(response){
+            makebulk(contentInstance, 'content', 'type', function(response){
                 console.log("Indexing Contents: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'content', function(response){
@@ -76,7 +75,7 @@ module.exports = function setupCron(server) {
 
         // Index all topics
         server.models.topic.find(function (err, topicInstances) {
-            makebulk(topicInstances, 'topic', function(response){
+            makebulk(topicInstances, 'topic', 'none', function(response){
                 console.log("Indexing Topics: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'topic', function(response){
@@ -88,7 +87,7 @@ module.exports = function setupCron(server) {
 
         // Index all contacts
         server.models.contact.find(function (err, contactInstances) {
-            makebulk(contactInstances, 'contact', function(response){
+            makebulk(contactInstances, 'contact', 'provider', function(response){
                 console.log("Indexing Contacts: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'contact', function(response){
