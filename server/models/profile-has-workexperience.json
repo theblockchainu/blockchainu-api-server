@@ -1,18 +1,17 @@
 {
-  "name": "content_has_location",
+  "name": "profile_has_workexperience",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "content",
-    "targetModel": "location"
+    "sourceModel": "profile",
+    "targetModel": "workexperience"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "id": true
+      "type": "string"
     },
     "sourceId": {
       "type": "string"
@@ -23,14 +22,14 @@
   },
   "validations": [],
   "relations": {
-    "content": {
+    "profile": {
       "type": "belongsTo",
-      "model": "content",
+      "model": "profile",
       "foreignKey": "sourceId"
     },
-    "location": {
+    "workexperience": {
       "type": "belongsTo",
-      "model": "location",
+      "model": "workexperience",
       "foreignKey": "targetId"
     }
   },

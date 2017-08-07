@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_topic",
+  "name": "peer_has_collection",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "topic"
+    "targetModel": "collection"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "topic": {
+    "collection": {
       "type": "belongsTo",
-      "model": "topic",
+      "model": "collection",
       "foreignKey": "targetId"
     }
   },

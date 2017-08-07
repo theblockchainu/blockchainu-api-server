@@ -11,18 +11,18 @@
       "relationName": [
         "replies"
       ]
-    }
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "properties": {
     "description": {
       "type": "string",
       "required": true
-    },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
-      "type": "date"
     }
   },
   "validations": [],

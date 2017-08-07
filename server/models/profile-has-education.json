@@ -1,13 +1,13 @@
 {
-  "name": "content_has_location",
+  "name": "profile_has_education",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "content",
-    "targetModel": "location"
+    "sourceModel": "profile",
+    "targetModel": "education"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "content": {
+    "profile": {
       "type": "belongsTo",
-      "model": "content",
+      "model": "profile",
       "foreignKey": "sourceId"
     },
-    "location": {
+    "education": {
       "type": "belongsTo",
-      "model": "location",
+      "model": "education",
       "foreignKey": "targetId"
     }
   },

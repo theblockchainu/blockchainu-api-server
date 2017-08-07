@@ -5,12 +5,18 @@
   "options": {
     "validateUpsert": true
   },
-  "properties": {
-    "created": {
-      "type": "date"
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
     },
-    "modified": {
-      "type": "date"
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
     }
   },
   "validations": [],

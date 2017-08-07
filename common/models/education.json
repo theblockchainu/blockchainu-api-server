@@ -1,6 +1,5 @@
 {
-  "name": "billing",
-  "plural": "billings",
+  "name": "education",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -15,29 +14,33 @@
     "GlobalUtils": {}
   },
   "properties": {
-    "alias": {
+    "id": {
       "type": "string",
-      "required": true
+      "id": true
     },
-    "type": {
-      "type": "string",
-      "required": true
-    },
-    "currency": {
+    "degree": {
       "type": "string"
     },
-    "amount": {
-      "type": "number"
+    "school": {
+      "type": "string"
     },
-    "rate": {
-      "type": "number"
+    "startYear": {
+      "type": "string"
     },
-    "frequency": {
+    "endYear": {
       "type": "string"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "profile": {
+      "type": "hasMany",
+      "model": "profile",
+      "foreignKey": "targetId",
+      "through": "profile_has_education",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

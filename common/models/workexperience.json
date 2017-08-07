@@ -1,6 +1,5 @@
 {
-  "name": "billing",
-  "plural": "billings",
+  "name": "workexperience",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -15,29 +14,33 @@
     "GlobalUtils": {}
   },
   "properties": {
-    "alias": {
+    "id": {
       "type": "string",
-      "required": true
+      "id": true
     },
-    "type": {
-      "type": "string",
-      "required": true
-    },
-    "currency": {
+    "position": {
       "type": "string"
     },
-    "amount": {
-      "type": "number"
-    },
-    "rate": {
-      "type": "number"
-    },
-    "frequency": {
+    "company": {
       "type": "string"
+    },
+    "startDate": {
+      "type": "date"
+    },
+    "endDate": {
+      "type": "date"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "profile": {
+      "type": "hasMany",
+      "model": "profile",
+      "foreignKey": "targetId",
+      "through": "profile_has_workexperience",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

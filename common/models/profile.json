@@ -5,6 +5,14 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
   "properties": {
     "id": {
       "type": "string",
@@ -25,15 +33,30 @@
     "joining_date": {
       "type": "date"
     },
-    "languages": {
+    "preferred_language": {
+      "type": "string"
+    },
+    "other_languages": {
       "type": [
         "string"
       ]
     },
-    "dob":{
-      "type": "date"
+    "currency": {
+      "type": "string"
     },
-    "location": {
+    "timezone": {
+      "type": "string"
+    },
+    "dob": {
+      "type": "string"
+    },
+    "location_string": {
+      "type": "string"
+    },
+    "location_lat": {
+      "type": "string"
+    },
+    "location_lng": {
       "type": "string"
     },
     "experience_type": {
@@ -69,9 +92,22 @@
     "onboardingStage": {
       "type": "number"
     },
-    "promoOptIn" : {
+    "promoOptIn": {
       "type": "boolean",
       "default": false
+    },
+    "phones": {
+      "type": [
+        "string"
+      ]
+    },
+    "vat_number": {
+      "type": "string"
+    },
+    "emergency_contact": {
+      "type": [
+        "string"
+      ]
     }
   },
   "validations": [],
@@ -82,6 +118,20 @@
       "foreignKey": "targetId",
       "through": "peer_has_profile",
       "keyThrough": "sourceId"
+    },
+    "work": {
+      "type": "hasMany",
+      "model": "workexperience",
+      "foreignKey": "sourceId",
+      "through": "profile_has_workexperience",
+      "keyThrough": "targetId"
+    },
+    "education": {
+      "type": "hasMany",
+      "model": "education",
+      "foreignKey": "sourceId",
+      "through": "profile_has_education",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

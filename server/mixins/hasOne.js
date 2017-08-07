@@ -27,7 +27,7 @@ module.exports = function (Model, options) {
                                 });
                             } else {
                                 console.log("Profile Already Exists");
-                                next("Profile Already Exists");
+                                next();
                             }
                         }
                     });
@@ -55,12 +55,14 @@ module.exports = function (Model, options) {
                                         }
                                     });
                                 } else {
-                                    cb(null, "Profile Already Exists");
+                                    console.log("Profile Already Exists");
+                                    cb();
                                 }
                             }
                         });
                     } else {
-                        cb(null, "Not Found");
+                        console.log("Not Found");
+                        cb();
                     }
                 }
             });
@@ -90,13 +92,15 @@ module.exports = function (Model, options) {
                                         }
                                     });
                                 } else {
-                                    cb("not Added");
+                                    console.log("not Added");
+                                    cb();
                                 }
 
                             }
                         });
                     } else {
-                        cb(null, "Not Found");
+                        console.log("Not Found");
+                        cb();
                     }
 
                 }
@@ -116,7 +120,8 @@ module.exports = function (Model, options) {
                             cb(null, instanceObj);
                         });
                     } else {
-                        cb(null, "Not Found");
+                        console.log("Not Found");
+                        cb();
                     }
                 }
             });
@@ -146,7 +151,8 @@ module.exports = function (Model, options) {
                             }
                         });
                     } else {
-                        cb(null, "Not Found");
+                        console.log("Not Found");
+                        cb();
                     }
 
                 }

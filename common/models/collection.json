@@ -31,6 +31,16 @@
           "hasManyRelation": "topics"
         }
       ]
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {
+      "relationName": [
+        "participants"
+      ]
     }
   },
   "properties": {
@@ -67,25 +77,18 @@
     "maxSpots": {
       "type": "string"
     },
-    "videoUrl": {
-      "type": "string"
+    "videoUrls": {
+      "type": [
+        "string"
+      ]
     },
     "imageUrls": {
       "type": [
         "string"
       ]
     },
-    "repeatFrequency": {
-      "type": "number"
-    },
-    "repeatPeriod": {
-      "type": "string"
-    },
     "totalHours": {
       "type": "number"
-    },
-    "repeatUntil": {
-      "type": "string"
     },
     "price": {
       "type": "number"
@@ -105,11 +108,35 @@
     "notes": {
       "type": "string"
     },
-    "created": {
-      "type": "date"
+    "isApproved": {
+      "type": "boolean",
+      "default": false
     },
-    "modified": {
-      "type": "date"
+    "approvedBy": {
+      "type": "string"
+    },
+    "isCanceled": {
+      "type": "boolean",
+      "default": false
+    },
+    "canceledBy": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "default": "draft"
+    },
+    "repeatPattern": {
+      "type": "string"
+    },
+    "repeatFrequency": {
+      "type": "string"
+    },
+    "repeatEndPattern": {
+      "type": "string"
+    },
+    "repeatUntil": {
+      "type": "string"
     }
   },
   "validations": [],
@@ -145,9 +172,16 @@
     "participants": {
       "type": "hasMany",
       "model": "peer",
-      "foreignKey": "sourceId",
+      "foreignKey": "targetId",
       "through": "collection_has_participant",
-      "keyThrough": "targetId"
+      "keyThrough": "sourceId"
+    },
+    "owners": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_collection",
+      "keyThrough": "sourceId"
     },
     "invites": {
       "type": "hasMany",

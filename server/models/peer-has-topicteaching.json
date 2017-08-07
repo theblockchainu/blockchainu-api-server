@@ -1,13 +1,13 @@
 {
-  "name": "content_has_location",
+  "name": "peer_has_topicteaching",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "content",
-    "targetModel": "location"
+    "sourceModel": "peer",
+    "targetModel": "topic"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "content": {
+    "peer": {
       "type": "belongsTo",
-      "model": "content",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
-    "location": {
+    "topic": {
       "type": "belongsTo",
-      "model": "location",
+      "model": "topic",
       "foreignKey": "targetId"
     }
   },

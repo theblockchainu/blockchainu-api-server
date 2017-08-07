@@ -11,22 +11,12 @@ var client = new elasticsearch.Client( {
     connectionClass: require('http-aws-es'),
     amazonES: {
         "region": "us-east-1",
-        "accessKey": "AKIAJEQ5JJ2KPRFGDMYA",
-        "secretKey": "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"
+        "accessKey": "AKIAJNBGI45QDD7GUIFQ",
+        "secretKey": "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"
     },
-    apiVersion: "5.1",
+    apiVersion: "5.x",
     log: "trace",
-    requestTimeout: 30000,
-    mappings: [
-        {
-            "name": "topic",
-            "properties": {
-                "name": {
-                    "type": "completion"
-                }
-            }
-        }
-    ]
+    requestTimeout: 30000
     /*settings : {
         "number_of_shards": 1,
         "analysis" : {

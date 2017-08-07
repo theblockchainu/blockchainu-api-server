@@ -13,10 +13,7 @@ block content
                         a(href='/auth/logout') Log Out
 
             //- form#newuser(role='form', action='/api/users', method='post')
-            form(role='form', action='/signup?returnTo=/auth/account', method='post')
-                .form-group
-                    label(for='username') Username
-                    input.form-control(type='text', name='username', placeholder='Enter your name')
+            form(role='form', action='/signup?returnTo=auth/account', method='post')
                 .form-group
                     label(for='email') Your Email address
                     input.form-control(type='email', name='email', placeholder='Enter your email address')

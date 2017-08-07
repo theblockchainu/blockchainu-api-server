@@ -100,7 +100,7 @@ module.exports = function(Usertoken) {
 
                         var now = Date.now();
                         //console.log("current timestamp is: " + now);
-                        var created = token.created.getTime();
+                        var created = token.createdAt.getTime();
                         //console.log("created timestamp is: " + created);
                         var elapsedSeconds = (now - created) / 1000;
                         var secondsToLive = token.ttl;

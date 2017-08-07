@@ -6,6 +6,14 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
   "hidden": [
     "root"
   ],
@@ -23,12 +31,6 @@
     },
     "root": {
       "type": "boolean"
-    },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
-      "type": "date"
     }
   },
   "validations": [],
@@ -40,11 +42,18 @@
       "through": "collection_has_topic",
       "keyThrough": "sourceId"
     },
-    "peers": {
+    "peersLearning": {
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "targetId",
-      "through": "peer_has_topic",
+      "through": "peer_has_topiclearning",
+      "keyThrough": "sourceId"
+    },
+    "peersTeaching": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_topicteaching",
       "keyThrough": "sourceId"
     }
   },

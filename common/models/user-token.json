@@ -5,6 +5,14 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
   "properties": {
     "id": {
       "type": "string",
@@ -15,9 +23,6 @@
       "description": "time to live in seconds (2 weeks by default)",
       "ttl": true,
       "default": 1209600
-    },
-    "created": {
-      "type": "string"
     }
   },
   "validations": [],

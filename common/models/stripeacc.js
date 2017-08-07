@@ -1,7 +1,7 @@
 'use strict';
 var app = require('../../server/server');
 var request = require('request');
-var client_secret = "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT"; //need to take it from config file
+var client_secret = app.get('stripeKey'); //need to take it from config file
 
 module.exports = function (StripeAcc) {
 

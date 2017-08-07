@@ -4,7 +4,8 @@
   "idInjection": true,
   "options": {
     "validateUpsert": true,
-    "caseSensitiveEmail": true
+    "caseSensitiveEmail": true,
+    "emailVerificationRequired": true
   },
   "mixins": {
     "HasOne": {
@@ -20,10 +21,20 @@
       "relations": [
         {
           "model": "topic",
-          "hasManyRelation": "topics"
+          "hasManyRelation": "topicsLearning"
+        },
+        {
+          "model": "topic",
+          "hasManyRelation": "topicsTeaching"
         }
       ]
-    }
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
   },
   "hidden": [
     "password",
@@ -47,10 +58,22 @@
     "phone": {
       "type": "number"
     },
+    "phoneVerified": {
+      "type": "boolean",
+      "default": false
+    },
     "emailVerified": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "verificationToken": {
+      "type": "string"
+    },
+    "accountVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "verificationIdUrl": {
       "type": "string"
     }
   },
@@ -77,11 +100,18 @@
         "disableInclude": true
       }
     },
-    "topics": {
+    "topicsLearning": {
       "type": "hasMany",
       "model": "topic",
       "foreignKey": "sourceId",
-      "through": "peer_has_topic",
+      "through": "peer_has_topiclearning",
+      "keyThrough": "targetId"
+    },
+    "topicsTeaching": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "peer_has_topicteaching",
       "keyThrough": "targetId"
     },
     "communities": {
@@ -91,12 +121,26 @@
       "through": "community_has_member",
       "keyThrough": "sourceId"
     },
+    "ownedCommunities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "sourceId",
+      "through": "peer_has_community",
+      "keyThrough": "targetId"
+    },
     "collections": {
       "type": "hasMany",
       "model": "collection",
-      "foreignKey": "targetId",
+      "foreignKey": "sourceId",
       "through": "collection_has_participant",
-      "keyThrough": "sourceId"
+      "keyThrough": "targetId"
+    },
+    "ownedCollections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "peer_has_collection",
+      "keyThrough": "targetId"
     },
     "following": {
       "type": "hasMany",

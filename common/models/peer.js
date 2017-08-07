@@ -17,6 +17,7 @@ var uuid = require("uuid");
 var MAX_PASSWORD_LENGTH = 72;
 var debug = require('debug')('loopback:peer');
 var moment = require('moment');
+var passcode = require("passcode");
 
 try {
     // Try the native module first
@@ -104,10 +105,15 @@ module.exports = function (Peer) {
                     else if (isMatch) {
                         if (self.settings.emailVerificationRequired && !peer.emailVerified) {
                             // Fail to log in if email verification is not done yet
-                            err = new Error(g.f('login failed as the email has not been verified'));
+                            /*err = new Error(g.f('login failed as the email has not been verified'));
                             err.statusCode = 401;
                             err.code = 'LOGIN_FAILED_EMAIL_NOT_VERIFIED';
-                            fn(err);
+                            fn(err);*/
+                            if (peer.createAccessToken.length === 2) {
+                                peer.createAccessToken(peer, credentials.ttl, tokenHandler);
+                            } else {
+                                peer.createAccessToken(peer, credentials.ttl, credentials, tokenHandler);
+                            }
                         } else {
                             if (peer.createAccessToken.length === 2) {
                                 peer.createAccessToken(peer, credentials.ttl, tokenHandler);
@@ -182,12 +188,13 @@ module.exports = function (Peer) {
      * @param uid
      * @param {String} token The validation token
      * @param {String} redirect URL to redirect the user to once confirmed
+     * @param req
+     * @param res
      * @param fn
      * @callback {Function} callback
      * @promise
      */
-    Peer.confirm = function (uid, token, redirect, fn) {
-        fn = fn || utils.createPromiseCallback();
+    Peer.confirm = function (uid, token, redirect, req, res, fn) {
         this.findById(uid, function (err, user) {
             if (err) {
                 fn(err);
@@ -199,7 +206,16 @@ module.exports = function (Peer) {
                         if (err) {
                             fn(err);
                         } else {
-                            fn();
+                            if (redirect !== undefined) {
+                                if (!res) {
+                                    fn(new Error(g.f('The transport does not support HTTP redirects.')));
+                                }
+                                //console.log(req.headers.origin + '/' + redirect);
+                                res.redirect(req.headers.origin + '/' + redirect);
+                            }
+                            else {
+                                fn(new Error(g.f('Redirect is not defined.')));
+                            }
                         }
                     });
                 } else {
@@ -212,6 +228,62 @@ module.exports = function (Peer) {
                         err.statusCode = 404;
                         err.code = 'USER_NOT_FOUND';
                     }
+                    fn(err);
+                }
+            }
+        });
+    };
+
+
+    /**
+     * Send verification email to user's Email ID
+     *
+     * @param uid
+     * @param fn
+     * @callback {Function} callback
+     * @promise
+     */
+    Peer.sendVerifyEmail = function (uid, fn) {
+        fn = fn || utils.createPromiseCallback();
+        this.findById(uid, function (err, user) {
+            if (err) {
+                fn(err);
+            } else {
+                if (user) {
+                    // Generate new verificationToken
+                    var verificationToken = passcode.hotp({
+                        secret: "0C6&7vvvv",
+                        counter: Date.now()
+                    });
+                    // Send token in email to user.
+                    var message = {heading: "Verify your email with Peerbuds using OTP: " + verificationToken};
+                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                    var html_body = renderer(message);
+                    loopback.Email.send({
+                        to: user.email,
+                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                        subject: 'Verify your email with Peerbuds',
+                        html: html_body
+                    })
+                        .then(function (response) {
+                            console.log('email sent! - ' + response);
+                        })
+                        .catch(function (err) {
+                            console.log('email error! - ' + err);
+                        });
+                    user.verificationToken = verificationToken;
+                    user.emailVerified = false;
+                    user.save(function (err) {
+                        if (err) {
+                            fn(err);
+                        } else {
+                            fn();
+                        }
+                    });
+                } else {
+                    err = new Error(g.f('User not found: %s', uid));
+                    err.statusCode = 404;
+                    err.code = 'USER_NOT_FOUND';
                     fn(err);
                 }
             }
@@ -299,14 +371,17 @@ module.exports = function (Peer) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
-        Peer.findById(id, {"include": {collections: [{contents: "schedules"},"calendars"]}}, (err, peerInstance) => {
+        Peer.findById(id, {"include": [{collections: [{contents: "schedules"},"calendars"]},{ownedCollections: [{contents: "schedules"},"calendars"]}]}, (err, peerInstance) => {
             if (err) {
                 cb(err);
             } else {
+
                 peerInstance = peerInstance.toJSON();
                 var collections = peerInstance.collections;
+                var ownedCollections = peerInstance.ownedCollections;
+                var collectionDate;
                 collections.forEach((collectionItem) => {
-                    var collectionDate = collectionItem.calendars[0];
+                    collectionDate = collectionItem.calendars[0];
                     if (collectionDate.startDate && collectionDate.endDate) {
                         var contents = collectionItem.contents;
                         contents.forEach((contentItem) => {
@@ -317,15 +392,55 @@ module.exports = function (Peer) {
                                 var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
                                 var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
                                 if (scheduleData.startTime && scheduleData.endTime) {
-                                    startDate.hours(scheduleData.startTime.split(':')[0]);
-                                    startDate.minutes(scheduleData.startTime.split(':')[1]);
-                                    startDate.seconds(scheduleData.startTime.split(':')[2]);
-                                    endDate.hours(scheduleData.endTime.split(':')[0]);
-                                    endDate.minutes(scheduleData.endTime.split(':')[1]);
-                                    endDate.seconds(scheduleData.endTime.split(':')[2]);
+                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                    startDate.seconds('00');
+                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                    endDate.seconds('00');
                                     var calendarData = {
                                         "startDate": startDate,
                                         "endDate": endDate
+                                    };
+                                    console.log(calendarData);
+                                    userCalendarData.push(calendarData);
+                                } else {
+                                    console.log("Time Unavailable !");
+                                }
+                            } else {
+                                console.log("Schedule Days Unavailable");
+                            }
+                        });
+
+                    } else {
+                        console.log("Collection Calendar Not Set");
+                    }
+                });
+
+                ownedCollections.forEach((collectionItem) => {
+                    collectionDate = collectionItem.calendars[0];
+                    if (collectionDate.startDate && collectionDate.endDate) {
+                        var contents = collectionItem.contents;
+                        contents.forEach((contentItem) => {
+                            var schedules = contentItem.schedules;
+                            var scheduleData = schedules[0];
+                            console.log(scheduleData);
+                            if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
+                                var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
+                                if (scheduleData.startTime && scheduleData.endTime) {
+                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                    startDate.seconds('00');
+                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                    endDate.seconds('00');
+                                    var calendarData = {
+                                        "eventType": collectionItem.type + "|" + contentItem.type,
+                                        "eventName": collectionItem.title + "|" + contentItem.title,
+                                        "eventId": collectionItem.id + "|" + contentItem.id,
+                                        "startDateTime": startDate,
+                                        "endDateTime": endDate
                                     };
                                     console.log(calendarData);
                                     userCalendarData.push(calendarData);
@@ -412,7 +527,7 @@ module.exports = function (Peer) {
                 cb(err);
             } else {
                 Peer.dataSource.connector.execute(
-                    "match (p:peer {username: '" + peer.username + "'}) create (p)-[r:hasToken]->(token:UserToken {id: '" + guid + "', ttl: '" + ttl + "', created: timestamp()}) return token",
+                    "match (p:peer {email: '" + peer.email + "'}) create (p)-[r:hasToken]->(token:UserToken {id: '" + guid + "', ttl: '" + ttl + "'}) return token",
                     cb
                 );
             }
@@ -436,7 +551,7 @@ module.exports = function (Peer) {
                     console.log("Created new user entry");
 
                 profileModel.dataSource.connector.execute(
-                    "match (p:peer {username: '" + user.username + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
+                    "match (p:peer {email: '" + user.email + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
                     function (err, results) {
                         if (!err) {
                             cb(err, user, results);
@@ -582,9 +697,20 @@ module.exports = function (Peer) {
                 accepts: [
                     { arg: 'uid', type: 'string', required: true },
                     { arg: 'token', type: 'string', required: true },
-                    { arg: 'redirect', type: 'string' }
+                    { arg: 'redirect', type: 'string' },
+                    { arg: 'req', type: 'object', http: { source: 'req' }},
+                    { arg: 'res', type: 'object', http: { source: 'res' }}
                 ],
-                http: { verb: 'get', path: '/confirm' }
+                http: { verb: 'post', path: '/confirmEmail' }
+            }
+        );
+
+        PeerModel.remoteMethod(
+            'sendVerifyEmail',
+            {
+                description: 'Send a Verification email to user email ID with OTP and link',
+                accepts: { arg: 'uid', type: 'string', required: true },
+                http: { verb: 'post', path: '/sendVerifyEmail' }
             }
         );
 
@@ -598,27 +724,6 @@ module.exports = function (Peer) {
                 http: { verb: 'post', path: '/reset' }
             }
         );
-
-        PeerModel.remoteMethod(
-            'userCalendar',
-            {
-                accepts: [
-                    { arg: 'id', type: 'string', required: true },
-                ],
-                returns: { arg: 'calendarObject', type: 'object', root: true },
-                http: { path: '/:id/userCalendar', verb: 'get' }
-            }
-        );
-        PeerModel.afterRemote('confirm', function (ctx, inst, next) {
-            if (ctx.args.redirect !== undefined) {
-                if (!ctx.res) {
-                    return next(new Error(g.f('The transport does not support HTTP redirects.')));
-                }
-                ctx.res.location(ctx.args.redirect);
-                ctx.res.status(302);
-            }
-            next();
-        });
 
         PeerModel.remoteMethod(
             'userCalendar',
