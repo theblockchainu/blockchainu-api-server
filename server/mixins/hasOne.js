@@ -6,7 +6,7 @@ module.exports = function (Model, options) {
 
         Model.observe('after save', function (ctx, next, cb) {
             var data = {};
-            if (element.autoCreate) {
+            if (element.autoCreate && !ctx.instance.disableHasOneCreate) {
                 var currentId = ctx.instance.id;
                 Model.findById(currentId, function (err, modelInstance) {
                     var relatedTo = modelInstance[relation];
@@ -15,7 +15,7 @@ module.exports = function (Model, options) {
                             console.log(err);
                             next(err);
                         } else {
-                            if (count == 0) {
+                            if (count === 0) {
                                 relatedTo.create(data, function (err, createdInstance) {
                                     if (err) {
                                         console.log(err);
@@ -46,7 +46,7 @@ module.exports = function (Model, options) {
                             if (err) {
                                 cb(err);
                             } else {
-                                if (count == 0) {
+                                if (count === 0) {
                                     relatedTo.create(data, function (err, createdInstance) {
                                         if (err) {
                                             cb(err)

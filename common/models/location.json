@@ -14,6 +14,10 @@
     "GlobalUtils": {}
   },
   "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
     "location_name": {
       "type": "string"
     },

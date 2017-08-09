@@ -33,7 +33,7 @@ module.exports = function setupCron(server) {
     };
 
     // Setup cron to index data on ES
-    var indexingJob = new CronJob('*/10 * * * * *', function() {
+    var indexingJob = new CronJob('00 00 * * * *', function() {
 
         console.log("Running indexing cron job every hour.");
 
