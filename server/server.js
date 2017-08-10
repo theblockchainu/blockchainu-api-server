@@ -61,6 +61,8 @@ try {
 // Setup the view engine (jade)
 var path = require('path');
 app.set('views', path.join(__dirname, 'views'));
+//app.engine('html', require('ejs').renderFile);
+//app.set('view engine', 'html');
 app.set('view engine', 'jade');
 
 // Middlewars to enable cors on the server
@@ -152,6 +154,10 @@ app.get('/signup', function (req, res, next) {
         user: req.user,
         url: req.url,
     });
+});
+
+app.get('/socket', function (req, res, next) {
+    res.render('pages/sockettest');
 });
 
 app.post('/signup', function (req, res, next) {
@@ -355,35 +361,25 @@ app.start = function () {
 if (require.main === module) {
     app.io = require('socket.io')(app.start());
 
-    require('socketio-auth')(app.io, {
-        authenticate: function (socket, value, callback) {
+    var socketEvents = require('./socket-events')(app.io);
 
-            var AccessToken = app.models.UserToken;
-            //get credentials sent by the client
-            var token = AccessToken.find({
-                where: {
-                    and: [{ userId: value.userId }, { access_token: value.access_token }]
-                }
-            }, function (err, tokenDetail) {
-                if (err) throw err;
-                if (tokenDetail.length) {
-                    callback(null, true);
-                } else {
-                    callback(null, false);
-                }
-            }); //find function..
-        } //authenticate function..
-    });
+    // require('socketio-auth')(app.io, {
+    //     authenticate: function (socket, value, callback) {
 
-    app.io.on('connection', function (socket) {
-        console.log('a user connected');
-
-        socket.on('subscribe', function (room) {
-            console.log('joining room', room);
-            socket.join(room);
-        });
-        socket.on('disconnect', function () {
-            console.log('user disconnected');
-        });
-    });
+    //         var AccessToken = app.models.UserToken;
+    //         //get credentials sent by the client
+    //         var token = AccessToken.find({
+    //             where:{
+    //                 and: [{ userId: value.userId }, { access_token: value.access_token }]
+    //             }
+    //         }, function(err, tokenDetail){
+    //             if (err) throw err;
+    //             if(tokenDetail.length){
+    //                 callback(null, true);
+    //             } else {
+    //                 callback(null, false);
+    //             }
+    //         }); //find function..
+    //     } //authenticate function..
+    // });
 }

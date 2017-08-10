@@ -22,5 +22,8 @@
     "handleErrors": false
   },
   "legacyExplorer": false,
-  "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT"
+  "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT",
+  "twilioSID":"ACc1c8552004aef409ea9ba6ceb3b3f4a3",
+  "twilioToken":"57e16fdbb46e57e799f88856e1992a7b",
+  "twilioPhone":"(424) 375-6775"
 }
