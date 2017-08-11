@@ -2,8 +2,16 @@
 var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
 var stripe = require('stripe')(stripeKey);
+var socket = require('socket.io-client')('http://localhost:3000');
 
 module.exports = function (Transaction) {
+
+    var thisUser = {
+        id: '100',
+        email: 'abc@abc.com',
+        fullName: 'abc'
+    };
+    socket.emit('add user', thisUser);
 
     //Customer related functions here
     Transaction.getCustomer = function (req, customerId, cb) {
@@ -338,6 +346,10 @@ module.exports = function (Transaction) {
                 if (err)
                     cb(err);
                 else {
+                    transfer.transfer_id = transfer.id;
+                    delete transfer.id;
+                    transfer.metadata = JSON.stringify(transfer.metadata);
+                    transfer.reversals = JSON.stringify(transfer.reversals);
                     loggedinPeer.transactions.create(transfer, function (err, transferInstance) {
                         if (err) {
                             transferInstance.destroy();

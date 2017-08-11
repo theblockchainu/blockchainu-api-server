@@ -22,5 +22,8 @@
     "handleErrors": false
   },
   "legacyExplorer": false,
-  "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT"
+  "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT",
+  "twilioSID":"",
+  "twilioToken":"",
+  "twilioPhone":""
 }

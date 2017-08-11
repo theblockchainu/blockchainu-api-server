@@ -66,6 +66,9 @@
       "type": "boolean",
       "default": false
     },
+    "phoneVerificationToken": {
+      "type": "string"
+    },
     "verificationToken": {
       "type": "string"
     },
@@ -189,6 +192,13 @@
       "model": "stripeacc",
       "foreignKey": "sourceId",
       "through": "peer_has_stripeacc",
+      "keyThrough": "targetId"
+    },
+    "notifications": {
+      "type": "hasMany",
+      "model": "notification",
+      "foreignKey": "sourceId",
+      "through": "peer_has_notification",
       "keyThrough": "targetId"
     }
   },

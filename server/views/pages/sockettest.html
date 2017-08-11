@@ -1,0 +1,63 @@
+<html>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io();
+    console.log(socket);
+    //socket.emit('message', 'sent from client side');
+
+    function addToSocket() {
+
+        var thisUser = {
+            id: document.getElementById("id").value,
+            email: document.getElementById("email").value,
+            fullName: document.getElementById("fullname").value
+        };
+
+        socket.emit('add user', thisUser);
+    }
+
+    function sendMessage(){
+        var messageNotification = {
+            to: {
+                id: document.getElementById("toid").value
+            },
+            description: document.getElementById("message").value
+        };
+
+        socket.emit('message', messageNotification);
+    }
+
+    socket.on('notification', function (data) {
+        alert(JSON.stringify(data));
+    });
+
+</script>
+
+<body>
+    <div style="border: 1px;">
+        Connect to Socket
+        <div class="form">
+            ID: <input id="id" type="text" />
+            Email: <input id="email" type="text" />
+            Fullname: <input id="fullname" type="text" />
+        </div>
+        <div class="form">
+            <button id="submit" value="Submit" onclick="addToSocket();">Submit</button>
+        </div>
+    </div>
+
+    <div style="border: 1px;">
+        Send message
+        <div class="form">
+            To: <input id="toid" type="text" />
+            Message: <input id="message" type="text" />
+        </div>
+        <div class="form">
+            <button id="msgsubmit" value="Submit" onclick="sendMessage();">Submit</button>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

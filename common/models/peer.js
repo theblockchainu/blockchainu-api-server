@@ -18,6 +18,11 @@ var MAX_PASSWORD_LENGTH = 72;
 var debug = require('debug')('loopback:peer');
 var moment = require('moment');
 var passcode = require("passcode");
+var twilio = require('twilio');
+var app = require('../../server/server');
+var twilioSid = app.get('twilioSID');
+var twilioToken = app.get('twilioToken');
+var twilioPhone = app.get('twilioPhone');
 
 try {
     // Try the native module first
@@ -256,7 +261,7 @@ module.exports = function (Peer) {
                         counter: Date.now()
                     });
                     // Send token in email to user.
-                    var message = {heading: "Verify your email with Peerbuds using OTP: " + verificationToken};
+                    var message = { heading: "Verify your email with Peerbuds using OTP: " + verificationToken };
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                     var html_body = renderer(message);
                     loopback.Email.send({
@@ -291,6 +296,105 @@ module.exports = function (Peer) {
         return fn.promise;
     };
 
+    Peer.confirmSmsOTP = function (req, token, fn) {
+
+        var loggedinPeer = req.user;
+        //if user is logged in
+        if (loggedinPeer) {
+            this.findById(loggedinPeer.id, function (err, user) {
+                if (err) {
+                    fn(err);
+                } else {
+                    if (user && user.phoneVerificationToken === token) {
+                        user.phoneVerificationToken = null;
+                        user.phoneVerified = true;
+                        user.save(function (err) {
+                            if (err) {
+                                fn(err);
+                            } else {
+                                fn(err, user);
+                            }
+                        });
+                    } else {
+                        if (user) {
+                            err = new Error(g.f('Invalid token: %s', token));
+                            err.statusCode = 400;
+                            err.code = 'INVALID_TOKEN';
+                        } else {
+                            err = new Error(g.f('User not found: %s', uid));
+                            err.statusCode = 404;
+                            err.code = 'USER_NOT_FOUND';
+                        }
+                        fn(err);
+                    }
+                }
+            });
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            fn(err);
+        }
+    };
+
+
+    /**
+     * Send verification sms to user's phone
+     *
+     * @param uid
+     * @param fn
+     * @callback {Function} callback
+     * @promise
+     */
+    Peer.sendVerifySms = function (req, phone, fn) {
+
+        fn = fn || utils.createPromiseCallback();
+        var loggedinPeer = req.user;
+        //if user is logged in
+        if (loggedinPeer) {
+
+            // Generate new hex token for sms
+            var phoneToken = crypto.randomBytes(Math.ceil(2))
+                .toString('hex') // convert to hexadecimal format
+                .slice(0, 4);   // return required number of characters
+
+            var client = new twilio(twilioSid, twilioSid);
+
+            var message = "Verify your phone with Peerbuds using OTP: " + phoneToken;
+
+            client.messages.create({
+                body: message,
+                to: phone,  // Text this number
+                from: twilioPhone // From a valid Twilio number
+            }, function (err, message) {
+                if (err)
+                    console.error(err);
+                else {
+                    console.log(message);
+                    var User = app.models.peer;
+                    User.findById(loggedinPeer.id, function (err, peerInstance) {
+                        if (err) {
+                            cb(err);
+                        } else {
+                            peerInstance.phoneVerificationToken = phoneToken;
+                            peerInstance.phoneVerified = false;
+                            User.upsert(peerInstance, function (err, modifiedPeerInstance) {
+                                if (err)
+                                    fn(err);
+                                else
+                                    fn(err, modifiedPeerInstance);
+                            });
+                        }
+                    });
+                }
+            });
+
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            fn(err);
+        }
+        return fn.promise;
+    };
 
     /**
      * Create a short lived access token for temporary login. Allows users
@@ -371,7 +475,7 @@ module.exports = function (Peer) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
-        Peer.findById(id, {"include": [{collections: [{contents: "schedules"},"calendars"]},{ownedCollections: [{contents: "schedules"},"calendars"]}]}, (err, peerInstance) => {
+        Peer.findById(id, { "include": [{ collections: [{ contents: "schedules" }, "calendars"] }, { ownedCollections: [{ contents: "schedules" }, "calendars"] }] }, (err, peerInstance) => {
             if (err) {
                 cb(err);
             } else {
@@ -468,11 +572,11 @@ module.exports = function (Peer) {
         var pkName = ctx.Model.definition.idName() || 'id';
         ctx.Model.find({where: ctx.where, fields: [pkName]}, function(err, list) {
             if (err) return next(err);
-    
+     
             var ids = list.map(function(u) { return u[pkName]; });
             ctx.where = {};
             ctx.where[pkName] = {inq: ids};
-    
+     
             AccessToken.destroyAll({userId: {inq: ids}}, next);
         });
     });*/
@@ -698,8 +802,8 @@ module.exports = function (Peer) {
                     { arg: 'uid', type: 'string', required: true },
                     { arg: 'token', type: 'string', required: true },
                     { arg: 'redirect', type: 'string' },
-                    { arg: 'req', type: 'object', http: { source: 'req' }},
-                    { arg: 'res', type: 'object', http: { source: 'res' }}
+                    { arg: 'req', type: 'object', http: { source: 'req' } },
+                    { arg: 'res', type: 'object', http: { source: 'res' } }
                 ],
                 http: { verb: 'post', path: '/confirmEmail' }
             }
@@ -711,6 +815,28 @@ module.exports = function (Peer) {
                 description: 'Send a Verification email to user email ID with OTP and link',
                 accepts: { arg: 'uid', type: 'string', required: true },
                 http: { verb: 'post', path: '/sendVerifyEmail' }
+            }
+        );
+
+        PeerModel.remoteMethod(
+            'confirmSmsOTP',
+            {
+                description: 'Confirm a user registration with sms verification token.',
+                accepts: [
+                    { arg: 'req', type: 'object', http: { source: 'req' } },
+                    { arg: 'token', type: 'string', required: true }
+                ],
+                http: { verb: 'post', path: '/confirmSmsOTP' }
+            }
+        );
+
+        PeerModel.remoteMethod(
+            'sendVerifySms',
+            {
+                description: 'Send a Verification SMS to user phone with OTP',
+                accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+                { arg: 'phone', type: 'string', required: true }],
+                http: { verb: 'post', path: '/sendVerifySms' }
             }
         );
 
