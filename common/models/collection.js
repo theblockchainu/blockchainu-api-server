@@ -37,7 +37,7 @@ module.exports = function (Collection) {
                                 break;
                             case 'experience':
                                 message = {heading: "Your experience has been submitted for review"};
-                                subject = 'Workshop submitted for review';
+                                subject = 'Experience submitted for review';
                                 break;
                             default:
                                 message = {heading: "Your collection has been submitted for review"};
@@ -73,11 +73,83 @@ module.exports = function (Collection) {
     };
 
 
+    Collection.approve = function (id, req, cb) {
+        // Find the collection by given ID
+        Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
+            // if collection exists and the user is logged in
+            if(!err && collectionInstance !== null && req.hasOwnProperty('user')) {
+                var userId = req.user.id;
+                var ownerId = collectionInstance.owners[0].id;
+                collectionInstance.status = 'active';
+                collectionInstance.isApproved = true;
+                collectionInstance.approvedBy = userId;
+                collectionInstance.save(function (err) {
+                    if(err) {
+                        err = new Error(g.f('Error updating collection.'));
+                        err.statusCode = 400;
+                        err.code = 'DB_ERROR';
+                        cb(err);
+                    }
+                });
+                Collection.app.models.peer.findById(ownerId, function (err, userInstance) {
+                    if (err) {
+                        err = new Error(g.f('No collection Owner with ID: %s', ownerId));
+                        err.statusCode = 400;
+                        err.code = 'NO_USER_FOUND';
+                        cb(err);
+                    } else {
+                        var message = '', subject = '';
+                        switch (collectionInstance.type) {
+                            case 'workshop':
+                                message = {heading: "Your workshop has been APPROVED!"};
+                                subject = 'Workshop Approved';
+                                break;
+                            case 'experience':
+                                message = {heading: "Your experience has been APPROVED"};
+                                subject = 'Experience Approved';
+                                break;
+                            default:
+                                message = {heading: "Your collection has been APPROVED"};
+                                subject = 'Collection Approved';
+                                break;
+                        }
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        var html_body = renderer(message);
+                        loopback.Email.send({
+                            to: userInstance.email,
+                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            subject: subject,
+                            html: html_body
+                        })
+                            .then(function (response) {
+                                console.log('email sent! - ' + response);
+                            })
+                            .catch(function (err) {
+                                console.log('email error! - ' + err);
+                            });
+
+                        cb(null, 'Collection approved. Email sent to owner.');
+                    }
+                });
+            }
+            else {
+                err = new Error(g.f('Invalid Collection with ID: %s', id));
+                err.statusCode = 400;
+                err.code = 'INVALID_COLLECTION';
+                cb(err);
+            }
+        });
+    };
+
+
     Collection.beforeRemote('prototype.patchAttributes', function(ctx, newInstance, next){
         var collectionInstance = ctx.instance;
         /*console.log("ctx keys: " + Object.keys(ctx));
         console.log("ctx args: " + JSON.stringify(ctx.args));*/
         if (collectionInstance.status === 'draft') {
+            next();
+        }
+        if(ctx.args.data.status === 'complete') {
             next();
         }
         else {
@@ -212,6 +284,9 @@ module.exports = function (Collection) {
         console.log("ctx args are: " + JSON.stringify(ctx.args));
         console.log("ctx method is: " + JSON.stringify(ctx.methodString));*/
         if (collectionInstance.status === 'draft') {
+            next();
+        }
+        if(ctx.args.data.status === 'complete') {
             next();
         }
         else {
@@ -397,6 +472,18 @@ module.exports = function (Collection) {
             ],
             returns: { arg: 'result', type: 'string'},
             http: { path: '/:id/submitForReview', verb: 'post' }
+        }
+    );
+
+    Collection.remoteMethod(
+        'approve',
+        {
+            accepts: [
+                { arg: 'id', type: 'string', required: true },
+                {arg: 'req', type: 'object', http: { source: 'req'}}
+            ],
+            returns: { arg: 'result', type: 'string'},
+            http: { path: '/:id/approve', verb: 'post' }
         }
     );
 

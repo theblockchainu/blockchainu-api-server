@@ -8,6 +8,11 @@
     "emailVerificationRequired": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "reviewsAboutYou"
+      ]
+    },
     "HasOne": {
       "relations": [
         {
@@ -189,6 +194,20 @@
       "model": "stripeacc",
       "foreignKey": "sourceId",
       "through": "peer_has_stripeacc",
+      "keyThrough": "targetId"
+    },
+    "reviewsByYou": {
+      "type": "hasMany",
+      "model": "review",
+      "foreignKey": "targetId",
+      "through": "review_has_reviewer",
+      "keyThrough": "sourceId"
+    },
+    "reviewsAboutYou": {
+      "type": "hasMany",
+      "model": "review",
+      "foreignKey": "sourceId",
+      "through": "peer_has_review",
       "keyThrough": "targetId"
     }
   },

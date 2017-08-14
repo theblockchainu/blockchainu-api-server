@@ -305,7 +305,7 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "peer_has_topicteaching": {
+  "peer_has_review": {
     "dataSource": "neo4j-cypher",
     "public": false
   }

@@ -22,6 +22,12 @@
     },
     "score": {
       "type": "number"
+    },
+    "collectionId": {
+      "type": "string"
+    },
+    "collectionCalendarId": {
+      "type": "string"
     }
   },
   "validations": [],
@@ -32,6 +38,20 @@
       "foreignKey": "sourceId",
       "through": "review_has_reviewer",
       "keyThrough": "targetId"
+    },
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_review",
+      "keyThrough": "sourceId"
+    },
+    "reviewedPeer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_review",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
