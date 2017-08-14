@@ -216,7 +216,7 @@ module.exports = function (Peer) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
                                 //console.log(req.headers.origin + '/' + redirect);
-                                res.redirect(req.headers.origin + '/' + redirect);
+                                res.json("result","success");
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
