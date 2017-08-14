@@ -216,7 +216,7 @@ module.exports = function (Peer) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
                                 //console.log(req.headers.origin + '/' + redirect);
-                                res.json("result","success");
+                                fn(null, {});
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
@@ -248,7 +248,7 @@ module.exports = function (Peer) {
      * @callback {Function} callback
      * @promise
      */
-    Peer.sendVerifyEmail = function (uid, fn) {
+    Peer.sendVerifyEmail = function (uid, email, fn) {
         fn = fn || utils.createPromiseCallback();
         this.findById(uid, function (err, user) {
             if (err) {
@@ -265,7 +265,7 @@ module.exports = function (Peer) {
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                     var html_body = renderer(message);
                     loopback.Email.send({
-                        to: user.email,
+                        to: email,
                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
                         subject: 'Verify your email with Peerbuds',
                         html: html_body
@@ -813,7 +813,8 @@ module.exports = function (Peer) {
             'sendVerifyEmail',
             {
                 description: 'Send a Verification email to user email ID with OTP and link',
-                accepts: { arg: 'uid', type: 'string', required: true },
+                accepts: [{ arg: 'uid', type: 'string', required: true },{ arg: 'email', type: 'string', required: true }],
+                returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/sendVerifyEmail' }
             }
         );
