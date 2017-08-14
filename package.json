@@ -52,6 +52,7 @@
     "socketio-auth": "^0.1.0",
     "stripe": "^4.23.1",
     "strong-error-handler": "^1.0.1",
+    "twilio": "^3.6.2",
     "uid2": "latest"
   },
   "devDependencies": {

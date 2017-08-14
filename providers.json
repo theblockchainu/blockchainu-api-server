@@ -2,7 +2,7 @@
   "local": {
     "provider": "local",
     "module": "passport-local",
-    "usernameField": "email",
+    "usernameField": "username",
     "passwordField": "password",
     "authPath": "/auth/local",
     "successRedirect": "auth/account",

@@ -71,6 +71,9 @@
       "type": "boolean",
       "default": false
     },
+    "phoneVerificationToken": {
+      "type": "string"
+    },
     "verificationToken": {
       "type": "string"
     },
@@ -208,6 +211,13 @@
       "model": "review",
       "foreignKey": "sourceId",
       "through": "peer_has_review",
+      "keyThrough": "targetId"
+    },
+    "notifications": {
+      "type": "hasMany",
+      "model": "notification",
+      "foreignKey": "sourceId",
+      "through": "peer_has_notification",
       "keyThrough": "targetId"
     }
   },
