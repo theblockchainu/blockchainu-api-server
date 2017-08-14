@@ -310,6 +310,9 @@
     "public": true
   },
   "peer_has_notification": {
+    "dataSource": "neo4j-cypher",
+    "public": true
+  },
   "peer_has_review": {
     "dataSource": "neo4j-cypher",
     "public": false
