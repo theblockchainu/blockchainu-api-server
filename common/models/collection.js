@@ -10,7 +10,7 @@ module.exports = function (Collection) {
         // Find the collection by given ID
         Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
-            if(!err && collectionInstance !== null && req.hasOwnProperty('user')) {
+            if(!err && collectionInstance !== null) {
                 var ownerEmail = collectionInstance.owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
