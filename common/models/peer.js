@@ -340,7 +340,8 @@ module.exports = function (Peer) {
     /**
      * Send verification sms to user's phone
      *
-     * @param uid
+     * @param req
+     * @param phone
      * @param fn
      * @callback {Function} callback
      * @promise
@@ -366,8 +367,10 @@ module.exports = function (Peer) {
                 to: phone,  // Text this number
                 from: twilioPhone // From a valid Twilio number
             }, function (err, message) {
-                if (err)
+                if (err) {
                     console.error(err);
+                    fn(err);
+                }
                 else {
                     console.log(message);
                     var User = app.models.peer;

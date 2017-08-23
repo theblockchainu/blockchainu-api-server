@@ -47,8 +47,14 @@
     "timezone": {
       "type": "string"
     },
-    "dob": {
+    "dobMonth": {
       "type": "string"
+    },
+    "dobYear": {
+      "type": "number"
+    },
+    "dobDay": {
+      "type": "number"
     },
     "location_string": {
       "type": "string"
