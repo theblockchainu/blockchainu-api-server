@@ -1,13 +1,13 @@
 {
-  "name": "peer_has_notification",
+  "name": "submission_has_topic",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "notification"
+    "sourceModel": "submission",
+    "targetModel": "topic"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "submission": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "submission",
       "foreignKey": "sourceId"
     },
-    "transaction": {
+    "topic": {
       "type": "belongsTo",
-      "model": "notification",
+      "model": "topic",
       "foreignKey": "targetId"
     }
   },

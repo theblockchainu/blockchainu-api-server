@@ -316,5 +316,21 @@
   "peer_has_review": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_submission": {
+    "dataSource": "neo4j-cypher",
+    "public": true
+  },
+  "submission": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "submission_has_peer": {
+    "dataSource": "neo4j-cypher",
+    "public": true
+  },
+  "submission_has_topic": {
+    "dataSource": "neo4j-cypher",
+    "public": true
   }
 }
