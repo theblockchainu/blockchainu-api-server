@@ -168,8 +168,8 @@ app.post('/signup', function (req, res, next) {
     newUser.email = req.body.email.toLowerCase();
     //newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
-    profileObject.first_name = req.body.firstname;
-    profileObject.last_name = req.body.lastname;
+    profileObject.first_name = req.body.first_name;
+    profileObject.last_name = req.body.last_name;
     profileObject.dob = req.body.dob;
     profileObject.promoOptIn = req.body.promoOptIn;
     var returnTo = req.headers.origin + '/' + req.query.returnTo;

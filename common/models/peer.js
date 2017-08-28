@@ -497,7 +497,7 @@ module.exports = function (Peer) {
                             console.log(scheduleData);
                             if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
                                 var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
-                                var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
+                                var endDate = moment(startDate).add(scheduleData.endDay, 'days');
                                 if (scheduleData.startTime && scheduleData.endTime) {
                                     startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
                                     startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
@@ -525,42 +525,47 @@ module.exports = function (Peer) {
                 });
 
                 ownedCollections.forEach((collectionItem) => {
-                    collectionDate = collectionItem.calendars[0];
-                    if (collectionDate.startDate && collectionDate.endDate) {
-                        var contents = collectionItem.contents;
-                        contents.forEach((contentItem) => {
-                            var schedules = contentItem.schedules;
-                            var scheduleData = schedules[0];
-                            console.log(scheduleData);
-                            if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
-                                var endDate = moment(collectionDate.startDate).add(scheduleData.endDay, 'days');
-                                if (scheduleData.startTime && scheduleData.endTime) {
-                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                    startDate.seconds('00');
-                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-                                    endDate.seconds('00');
-                                    var calendarData = {
-                                        "eventType": collectionItem.type + "|" + contentItem.type,
-                                        "eventName": collectionItem.title + "|" + contentItem.title,
-                                        "eventId": collectionItem.id + "|" + contentItem.id,
-                                        "startDateTime": startDate,
-                                        "endDateTime": endDate
-                                    };
-                                    console.log(calendarData);
-                                    userCalendarData.push(calendarData);
+                    if (collectionItem.calendars !== undefined) {
+                        collectionDate = collectionItem.calendars[0];
+                        if (collectionDate.startDate && collectionDate.endDate) {
+                            var contents = collectionItem.contents;
+                            contents.forEach((contentItem) => {
+                                var schedules = contentItem.schedules;
+                                var scheduleData = schedules[0];
+                                console.log(scheduleData);
+                                if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                    var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
+                                    var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+                                    if (scheduleData.startTime && scheduleData.endTime) {
+                                        startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                        startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                        startDate.seconds('00');
+                                        endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                        endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                        endDate.seconds('00');
+                                        var calendarData = {
+                                            "eventType": collectionItem.type + "|" + contentItem.type,
+                                            "eventName": collectionItem.title + "|" + contentItem.title,
+                                            "eventId": collectionItem.id + "|" + contentItem.id,
+                                            "startDateTime": startDate,
+                                            "endDateTime": endDate
+                                        };
+                                        console.log(calendarData);
+                                        userCalendarData.push(calendarData);
+                                    } else {
+                                        console.log("Time Unavailable !");
+                                    }
                                 } else {
-                                    console.log("Time Unavailable !");
+                                    console.log("Schedule Days Unavailable");
                                 }
-                            } else {
-                                console.log("Schedule Days Unavailable");
-                            }
-                        });
+                            });
 
-                    } else {
-                        console.log("Collection Calendar Not Set");
+                        } else {
+                            console.log("Collection Calendar Not Set");
+                        }
+                    }
+                    else {
+                        console.log("This collection does not have any calendar.");
                     }
                 });
 

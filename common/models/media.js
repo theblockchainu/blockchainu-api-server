@@ -8,7 +8,13 @@ module.exports = function(Media) {
             if(err) {
                 cb(err);
             } else {
-                var fileInfo = fileObj.files.file[0];
+                console.log(fileObj);
+                if(fileObj.files.hasOwnProperty('file'))
+                    var fileInfo = fileObj.files.file[0];
+                if(fileObj.files.hasOwnProperty('image'))
+                    var fileInfo = fileObj.files.image[0];
+                if(fileObj.files.hasOwnProperty('video'))
+                    var fileInfo = fileObj.files.video[0];
                 Media.create({
                     name: fileInfo.name,
                     type: fileInfo.type,
