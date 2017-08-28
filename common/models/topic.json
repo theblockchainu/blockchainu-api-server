@@ -55,6 +55,13 @@
       "foreignKey": "targetId",
       "through": "peer_has_topicteaching",
       "keyThrough": "sourceId"
+    },
+    "submissions": {
+      "type": "hasMany",
+      "model": "submission",
+      "foreignKey": "targetId",
+      "through": "submission_has_topic",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
