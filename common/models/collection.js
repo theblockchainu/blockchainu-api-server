@@ -8,14 +8,12 @@ module.exports = function (Collection) {
 
     Collection.submitForReview = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
+        Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if(!err && collectionInstance !== null) {
-                var ownerEmail = collectionInstance.toJSON().owners[0].email;
+                //var ownerEmail = collectionInstance.toJSON().owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
-                delete collectionInstance.owners;
-
                 collectionInstance.save(function (err) {
                     if(err) {
                         console.log(err);
@@ -47,7 +45,7 @@ module.exports = function (Collection) {
                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                 var html_body = renderer(message);
                 loopback.Email.send({
-                    to: ownerEmail,
+                    to: 'connect@aakashbansal.com',
                     from: 'Peerbuds <noreply@mx.peerbuds.com>',
                     subject: subject,
                     html: html_body

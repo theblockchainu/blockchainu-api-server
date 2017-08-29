@@ -353,7 +353,6 @@ module.exports = function (Peer) {
         var loggedinPeer = req.user;
         //if user is logged in
         if (loggedinPeer) {
-
             // Generate new hex token for sms
             var phoneToken = crypto.randomBytes(Math.ceil(2))
                 .toString('hex') // convert to hexadecimal format
@@ -543,7 +542,7 @@ module.exports = function (Peer) {
                                 if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
                                     var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
                                     startDate = startDate.add(scheduleData.startDay, 'days');
-                                    var endDate = startDate;
+                                    var endDate = momenttz.tz(startDate, 'UTC');
                                     endDate = endDate.add(scheduleData.endDay, 'days');
                                     if (scheduleData.startTime && scheduleData.endTime) {
                                         startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
