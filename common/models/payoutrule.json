@@ -1,0 +1,33 @@
+{
+  "name": "payoutrule",
+  "plural": "payoutrules",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "collectionId": {
+      "type": "string"
+    },
+    "percentage1": {
+      "type": "number"
+    },
+    "payoutId1": {
+      "type": "string"
+    },
+    "percentage2": {
+      "type": "number"
+    },
+    "payoutId2": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

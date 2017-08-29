@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_stripeacc",
+  "name": "peer_has_payoutacc",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "stripeacc"
+    "targetModel": "payoutacc"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "stripeacc": {
+    "payoutacc": {
       "type": "belongsTo",
-      "model": "stripeacc",
+      "model": "payoutacc",
       "foreignKey": "targetId"
     }
   },

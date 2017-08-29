@@ -1,18 +1,10 @@
 {
-  "name": "stripeacc",
-  "plural": "stripeaccs",
+  "name": "vsession",
+  "plural": "vsessions",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
-  },
-  "mixins": {
-    "TimeStamp": {
-      "createdAt": "createdAt",
-      "updatedAt": "updatedAt",
-      "required": false
-    },
-    "GlobalUtils": {}
   },
   "properties": {
     "id": {

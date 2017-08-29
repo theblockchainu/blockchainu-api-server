@@ -25,5 +25,7 @@
   "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT",
   "twilioSID": "ACa4914016600d59b0d8d23638f7728639",
   "twilioToken": "3bef5aa63db83bc016ef945378be5b59",
-  "twilioPhone": "(424) 375-6775"
+  "twilioPhone": "(424) 375-6775",
+  "twilioKey": "",
+  "twilioSecret": ""
 }

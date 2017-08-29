@@ -813,6 +813,15 @@ module.exports = function (Peer) {
             next();
         });
 
+        PeerModel.afterRemote('prototype.__create__joinedrooms', function (ctx, newRoomInstance, next) {
+            console.log("PeerModel create");
+            var room = app.models.room;
+            room.createTwilioRoom(newRoomInstance, function (err, data) {
+                console.log("Room : " + JSON.stringify(data));
+            });
+            next();
+        });
+
         PeerModel.remoteMethod(
             'confirm',
             {
