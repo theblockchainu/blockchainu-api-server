@@ -1,4 +1,5 @@
 'use strict';
+var app = require('../../server/server');
 var accountSid = app.get('twilioSID');
 var apiKeySid = app.get('twilioKey');
 var apiKeySecret = app.get('twilioSecret');
@@ -6,7 +7,6 @@ const Twilio = require('twilio');
 const Video = require('twilio-video');
 const AccessToken = Twilio.jwt.AccessToken;
 var VideoGrant = AccessToken.VideoGrant;
-
 module.exports = function (Vsession) {
 
     Vsession.getToken = function (req, cb) {
@@ -17,7 +17,10 @@ module.exports = function (Vsession) {
             token.identity = loggedinPeer.id;
             var grant = new VideoGrant();
             token.addGrant(grant);
-            cb(token);
+            cb(null, {
+                identity: token.identity,
+                token: token.toJwt()
+            });
         } else {
             var err = new Error('Invalid access');
             err.code = 'INVALID_ACCESS';
