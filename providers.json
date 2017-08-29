@@ -70,7 +70,8 @@
     "failureRedirect": "/login",
     "scope": ["email", "user_friends", "user_likes"],
     "link": true,
-    "failureFlash": true
+    "failureFlash": true,
+    "session": true
   },
   "google-link": {
     "provider": "google",
@@ -87,6 +88,7 @@
     "link": true,
     "failureFlash": true,
     "accessType": "offline",
-    "approvalPrompt": "force"
+    "approvalPrompt": "force",
+    "session": true
   }
 }

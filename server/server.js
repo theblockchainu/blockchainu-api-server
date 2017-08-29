@@ -61,8 +61,6 @@ try {
 // Setup the view engine (jade)
 var path = require('path');
 app.set('views', path.join(__dirname, 'views'));
-//app.engine('html', require('ejs').renderFile);
-//app.set('view engine', 'html');
 app.set('view engine', 'jade');
 
 // Middlewars to enable cors on the server
@@ -101,7 +99,7 @@ app.middleware('auth', loopback.token({
     model: app.models.UserToken,
 }));
 
-app.middleware('session:before', cookieParser(app.get('cookieSecret')));
+app.middleware('session:before', cookieParser());
 
 app.middleware('session', session({
     secret: 'kitty',
@@ -166,7 +164,6 @@ app.post('/signup', function (req, res, next) {
     var newUser = {};
     var profileObject = {};
     newUser.email = req.body.email.toLowerCase();
-    //newUser.username = req.body.username.trim();
     newUser.password = req.body.password;
     profileObject.first_name = req.body.first_name;
     profileObject.last_name = req.body.last_name;

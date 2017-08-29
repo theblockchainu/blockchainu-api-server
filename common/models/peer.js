@@ -217,7 +217,7 @@ module.exports = function (Peer) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
                                 //console.log(req.headers.origin + '/' + redirect);
-                                fn(null, {});
+                                fn(null, {result: "success"});
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
@@ -283,7 +283,7 @@ module.exports = function (Peer) {
                         if (err) {
                             fn(err);
                         } else {
-                            fn();
+                            fn(null, user);
                         }
                     });
                 } else {
@@ -299,10 +299,10 @@ module.exports = function (Peer) {
 
     Peer.confirmSmsOTP = function (req, token, fn) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
-            this.findById(loggedinPeer.id, function (err, user) {
+            this.findById(loggedinPeer, function (err, user) {
                 if (err) {
                     fn(err);
                 } else {
@@ -313,7 +313,7 @@ module.exports = function (Peer) {
                             if (err) {
                                 fn(err);
                             } else {
-                                fn(err, user);
+                                fn(null, user);
                             }
                         });
                     } else {
@@ -350,7 +350,9 @@ module.exports = function (Peer) {
     Peer.sendVerifySms = function (req, phone, fn) {
 
         fn = fn || utils.createPromiseCallback();
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var formattedPhone = phone.replace(/[^\d]/g,'');
+        formattedPhone = '+91' + formattedPhone;
         //if user is logged in
         if (loggedinPeer) {
             // Generate new hex token for sms
@@ -358,13 +360,13 @@ module.exports = function (Peer) {
                 .toString('hex') // convert to hexadecimal format
                 .slice(0, 4);   // return required number of characters
 
-            var client = new twilio(twilioSid, twilioSid);
+            var client = new twilio(twilioSid, twilioToken);
 
             var message = "Verify your phone with Peerbuds using OTP: " + phoneToken;
 
             client.messages.create({
                 body: message,
-                to: phone,  // Text this number
+                to: formattedPhone,  // Text this number
                 from: twilioPhone // From a valid Twilio number
             }, function (err, message) {
                 if (err) {
@@ -374,23 +376,24 @@ module.exports = function (Peer) {
                 else {
                     console.log(message);
                     var User = app.models.peer;
-                    User.findById(loggedinPeer.id, function (err, peerInstance) {
+                    User.findById(loggedinPeer, function (err, peerInstance) {
                         if (err) {
                             cb(err);
                         } else {
                             peerInstance.phoneVerificationToken = phoneToken;
                             peerInstance.phoneVerified = false;
                             User.upsert(peerInstance, function (err, modifiedPeerInstance) {
-                                if (err)
+                                if (err) {
                                     fn(err);
-                                else
-                                    fn(err, modifiedPeerInstance);
+                                }
+                                else {
+                                    fn(null, {result: 'OTP SMS sent'});
+                                }
                             });
                         }
                     });
                 }
             });
-
         } else {
             var err = new Error('Invalid access');
             err.code = 'INVALID_ACCESS';
@@ -496,15 +499,14 @@ module.exports = function (Peer) {
                             var scheduleData = schedules[0];
                             console.log(scheduleData);
                             if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
-                                var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+                                var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
+                                startDate = startDate.add(scheduleData.startDay, 'days');
+                                var endDate = momenttz.tz(startDate, 'UTC');
+                                endDate = endDate.add(scheduleData.endDay, 'days');
                                 if (scheduleData.startTime && scheduleData.endTime) {
                                     startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                    console.log('Hours: ' + startDate.hours());
                                     startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                    console.log('Mins: ' + startDate.minutes());
                                     startDate.seconds('00');
-                                    console.log('Seconds: ' + startDate.seconds());
                                     endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                     endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                     endDate.seconds('00');
@@ -546,11 +548,8 @@ module.exports = function (Peer) {
                                     endDate = endDate.add(scheduleData.endDay, 'days');
                                     if (scheduleData.startTime && scheduleData.endTime) {
                                         startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                        console.log('Hours: ' + startDate.hours());
                                         startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                        console.log('Mins: ' + startDate.minutes());
                                         startDate.seconds('00');
-                                        console.log('Seconds: ' + startDate.seconds());
                                         endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                         endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                         endDate.seconds('00');
@@ -585,20 +584,6 @@ module.exports = function (Peer) {
         });
     };
 
-
-    /*Peer.observe('before delete', function(ctx, next) {
-        var AccessToken = ctx.Model.relations.accessTokens.modelTo;
-        var pkName = ctx.Model.definition.idName() || 'id';
-        ctx.Model.find({where: ctx.where, fields: [pkName]}, function(err, list) {
-            if (err) return next(err);
-     
-            var ids = list.map(function(u) { return u[pkName]; });
-            ctx.where = {};
-            ctx.where[pkName] = {inq: ids};
-     
-            AccessToken.destroyAll({userId: {inq: ids}}, next);
-        });
-    });*/
 
     //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function (ctx, next) {
@@ -846,6 +831,7 @@ module.exports = function (Peer) {
                     { arg: 'req', type: 'object', http: { source: 'req' } },
                     { arg: 'token', type: 'string', required: true }
                 ],
+                returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/confirmSmsOTP' }
             }
         );
@@ -854,8 +840,11 @@ module.exports = function (Peer) {
             'sendVerifySms',
             {
                 description: 'Send a Verification SMS to user phone with OTP',
-                accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
-                { arg: 'phone', type: 'string', required: true }],
+                accepts: [
+                    { arg: 'req', type: 'object', http: { source: 'req' } },
+                    { arg: 'phone', type: 'string', required: true }
+                    ],
+                returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/sendVerifySms' }
             }
         );
