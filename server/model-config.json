@@ -277,11 +277,11 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "stripeacc": {
+  "payoutacc": {
     "dataSource": "neo4j",
     "public": true
   },
-  "peer_has_stripeacc": {
+  "peer_has_payoutacc": {
     "dataSource": "neo4j-cypher",
     "public": false
   },
@@ -331,6 +331,22 @@
   },
   "submission_has_topic": {
     "dataSource": "neo4j-cypher",
+    "public": true
+  },
+  "payoutrule": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "paymentacc": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_payoutrule": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "vsession": {
+    "dataSource": "neo4j",
     "public": true
   }
 }
