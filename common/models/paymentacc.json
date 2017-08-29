@@ -1,0 +1,55 @@
+{
+  "name": "paymentacc",
+  "plural": "paymentaccs",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "account_balance": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "usd"
+    },
+    "default_source": {
+      "type": "string"
+    },
+    "delinquent": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string"
+    },
+    "discount": {
+      "type": "number"
+    },
+    "email": {
+      "type": "string"
+    },
+    "livemode": {
+      "type": "boolean",
+      "default": false
+    },
+    "metadata": {
+      "type": "string"
+    },
+    "shipping": false,
+    "sources": {
+      "type": {}
+    },
+    "subscriptions": {
+      "type": {}
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

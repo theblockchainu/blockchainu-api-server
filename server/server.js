@@ -4,7 +4,6 @@ var loopback = require('loopback');
 var boot = require('loopback-boot');
 var app = module.exports = loopback();
 var cookieParser = require('cookie-parser');
-var express = require('express');
 var session = require('express-session');
 var SALT_WORK_FACTOR = 10;
 var g = require('../node_modules/loopback/lib/globalize');
@@ -62,7 +61,6 @@ try {
 // Setup the view engine (jade)
 var path = require('path');
 app.set('views', path.join(__dirname, 'views'));
-//app.use(express.static(path.join(__dirname, '../public')));
 //app.engine('html', require('ejs').renderFile);
 //app.set('view engine', 'html');
 app.set('view engine', 'jade');
@@ -364,7 +362,6 @@ if (require.main === module) {
     app.io = require('socket.io')(app.start());
 
     var socketEvents = require('./socket-events')(app.io);
-    // var videoSession = require('./public/video-session')(app.io);
 
     // require('socketio-auth')(app.io, {
     //     authenticate: function (socket, value, callback) {
