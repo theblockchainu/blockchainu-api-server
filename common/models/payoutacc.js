@@ -3,12 +3,12 @@ var app = require('../../server/server');
 var request = require('request');
 var client_secret = app.get('stripeKey'); //need to take it from config file
 
-module.exports = function (StripeAcc) {
+module.exports = function (PayoutAcc) {
 
     // Charge the user's card/bank account
-    StripeAcc.createConnectedAcc = function (req, authCode, error, errorDesc, cb) {
+    PayoutAcc.createConnectedAcc = function (req, authCode, error, errorDesc, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         // if user is logged in
         if (loggedinPeer && !error) {
             //Remove user from Session
@@ -30,14 +30,22 @@ module.exports = function (StripeAcc) {
                     if (!authRes.hasOwnProperty("error")) {
 
                         var connUser = authRes;
-                        loggedinPeer.stripeaccs.create(connUser, function (err, connUserInstance) {
-                            if (err) {
-                                connUserInstance.destroy();
-                                cb(err);
-                            } else {
-                                cb(null, connUserInstance);
-                            }
+                        PayoutAcc.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
+                           if (!err && peerInstance !== null) {
+                               peerInstance.payoutaccs.create(connUser, function (err, connUserInstance) {
+                                   if (err) {
+                                       connUserInstance.destroy();
+                                       cb(err);
+                                   } else {
+                                       cb(null, connUserInstance);
+                                   }
+                               });
+                           }
+                           else {
+                               cb(err);
+                           }
                         });
+
                     } else {
                         cb(authRes.error_description);
                     }
@@ -54,7 +62,7 @@ module.exports = function (StripeAcc) {
         }
     }
 
-    StripeAcc.remoteMethod('createConnectedAcc', {
+    PayoutAcc.remoteMethod('createConnectedAcc', {
         description: 'Create connected account',
         accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
         { arg: 'authCode', type: 'string', required: false },

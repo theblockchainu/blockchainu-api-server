@@ -1,0 +1,53 @@
+{
+  "name": "payoutacc",
+  "plural": "payoutaccs",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "access_token": {
+      "type": "string"
+    },
+    "livemode": {
+      "type": "boolean",
+      "default": false
+    },
+    "refresh_token": {
+      "type": "string"
+    },
+    "token_type": {
+      "type": "string"
+    },
+    "stripe_publishable_key": {
+      "type": "string"
+    },
+    "stripe_user_id": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "default": "express"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

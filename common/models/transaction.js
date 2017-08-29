@@ -15,7 +15,7 @@ module.exports = function (Transaction) {
 
     //Customer related functions here
     Transaction.getCustomer = function (req, customerId, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -63,7 +63,7 @@ module.exports = function (Transaction) {
 
     Transaction.editCustomer = function (req, customerId, data, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -89,7 +89,7 @@ module.exports = function (Transaction) {
      * stripe customer id 
      */
     Transaction.createSource = function (req, customer, data, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             createCardOrBankAcc(customer, data, cb);
@@ -136,7 +136,7 @@ module.exports = function (Transaction) {
     */
 
     Transaction.getACard = function (req, customerId, cardId, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -156,7 +156,7 @@ module.exports = function (Transaction) {
     };
 
     Transaction.listAllCards = function (req, customerId, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -177,7 +177,7 @@ module.exports = function (Transaction) {
 
     Transaction.editCard = function (req, customerId, cardId, data, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.updateCard(customerId, cardId, data, function (err, card) {
@@ -196,7 +196,7 @@ module.exports = function (Transaction) {
 
     Transaction.deleteCard = function (req, customerId, cardId, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.deleteCard(customerId, cardId, function (err, card) {
@@ -215,7 +215,7 @@ module.exports = function (Transaction) {
     // Bank Account related functions goes here
 
     Transaction.retriveBankAccount = function (req, customerId, accId, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -235,7 +235,7 @@ module.exports = function (Transaction) {
     };
 
     Transaction.listBankAccounts = function (req, customerId, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -256,7 +256,7 @@ module.exports = function (Transaction) {
 
     Transaction.editBankAccount = function (req, customerId, accId, data, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.updateSource(customerId, accId, data, function (err, bank_account) {
@@ -275,7 +275,7 @@ module.exports = function (Transaction) {
 
     Transaction.deleteBankAccount = function (req, customerId, accId, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.deleteSource(customerId, accId, function (err, acc) {
@@ -298,7 +298,7 @@ module.exports = function (Transaction) {
     // Charge the user's card/bank account
     Transaction.createCharge = function (req, reqObj, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -317,14 +317,21 @@ module.exports = function (Transaction) {
                     charge.modified = currTime;
                     console.log(JSON.stringify(charge));
 
-                    loggedinPeer.transactions.create(charge, function (err, chargeInstance) {
-                        // Transaction.app.models.transaction.create(charge, function (err, chargeInstance) {
-                        if (err) {
-                            chargeInstance.destroy();
-                            cb(err);
-                        } else {
-                            cb(null, charge);
-                        }
+                    Transaction.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
+                       if(!err && peerInstance !== null) {
+                           peerInstance.transactions.create(charge, function (err, chargeInstance) {
+                               // Transaction.app.models.transaction.create(charge, function (err, chargeInstance) {
+                               if (err) {
+                                   chargeInstance.destroy();
+                                   cb(err);
+                               } else {
+                                   cb(null, charge);
+                               }
+                           });
+                       }
+                       else {
+                           cb(err);
+                       }
                     });
                 } else
                     cb(err);
@@ -338,7 +345,7 @@ module.exports = function (Transaction) {
 
     Transaction.transferFund = function (req, data, cb) {
 
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
 
@@ -350,12 +357,19 @@ module.exports = function (Transaction) {
                     delete transfer.id;
                     transfer.metadata = JSON.stringify(transfer.metadata);
                     transfer.reversals = JSON.stringify(transfer.reversals);
-                    loggedinPeer.transactions.create(transfer, function (err, transferInstance) {
-                        if (err) {
-                            transferInstance.destroy();
+                    Transaction.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
+                        if (!err && peerInstance !== null) {
+                            peerInstance.transactions.create(transfer, function (err, transferInstance) {
+                                if (err) {
+                                    transferInstance.destroy();
+                                    cb(err);
+                                } else {
+                                    cb(null, transfer);
+                                }
+                            });
+                        }
+                        else {
                             cb(err);
-                        } else {
-                            cb(null, transfer);
                         }
                     });
                 }
