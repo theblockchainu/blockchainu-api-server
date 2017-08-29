@@ -10,11 +10,11 @@ var VideoGrant = AccessToken.VideoGrant;
 module.exports = function (Vsession) {
 
     Vsession.getToken = function (req, cb) {
-        var loggedinPeer = req.user;
+        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         //if user is logged in
         if (loggedinPeer) {
             const token = new AccessToken(accountSid, apiKeySid, apiKeySecret);
-            token.identity = loggedinPeer.id;
+            token.identity = loggedinPeer;
             var grant = new VideoGrant();
             token.addGrant(grant);
             cb(null, {

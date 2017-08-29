@@ -7,8 +7,8 @@ module.exports = function (Model, options) {
 
         Model.afterRemote(methodName, function (ctx, newInstance, next) {
             //newInstance is the instance of the created relations Model
-            if (ctx.req.user) {
-                var userId = ctx.req.user.id;
+            if (ctx.req.cookies.userId) {
+                var userId = ctx.req.cookies.userId.split(/[ \:.]+/)[1];
                 Model.app.models.peer.findById(userId, function (err, instance) {
                     if (err) {
                         console.log("User Not Found");
