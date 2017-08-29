@@ -485,94 +485,105 @@ module.exports = function (Peer) {
             if (err) {
                 cb(err);
             } else {
-
                 peerInstance = peerInstance.toJSON();
                 var collections = peerInstance.collections;
                 var ownedCollections = peerInstance.ownedCollections;
                 var collectionDate;
                 collections.forEach((collectionItem) => {
-                    collectionDate = collectionItem.calendars[0];
-                    if (collectionDate.startDate && collectionDate.endDate) {
-                        var contents = collectionItem.contents;
-                        contents.forEach((contentItem) => {
-                            var schedules = contentItem.schedules;
-                            var scheduleData = schedules[0];
-                            console.log(scheduleData);
-                            if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
-                                startDate = startDate.add(scheduleData.startDay, 'days');
-                                var endDate = momenttz.tz(startDate, 'UTC');
-                                endDate = endDate.add(scheduleData.endDay, 'days');
-                                if (scheduleData.startTime && scheduleData.endTime) {
-                                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                    startDate.seconds('00');
-                                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-                                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-                                    endDate.seconds('00');
-                                    var calendarData = {
-                                        "eventType": collectionItem.type + "|" + contentItem.type,
-                                        "eventName": collectionItem.title + "|" + contentItem.title,
-                                        "eventId": collectionItem.id + "|" + contentItem.id,
-                                        "startDateTime": startDate,
-                                        "endDateTime": endDate
-                                    };
-                                    console.log(calendarData);
-                                    userCalendarData.push(calendarData);
-                                } else {
-                                    console.log("Time Unavailable !");
-                                }
+                    collectionItem.calendars.forEach((collectionDate) => {
+                        if (collectionDate.startDate && collectionDate.endDate) {
+                            var contents = collectionItem.contents;
+                            if (contents) {
+                                contents.forEach((contentItem) => {
+                                    var schedules = contentItem.schedules;
+                                    var scheduleData = schedules[0];
+                                    if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                        var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
+                                        var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+                                        if (scheduleData.startTime && scheduleData.endTime) {
+                                            startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                            startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                            startDate.seconds('00');
+                                            endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                            endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                            endDate.seconds('00');
+                                            var calendarData = {
+                                                "collectionType": collectionItem.type,
+                                                "collectionName": collectionItem.title,
+                                                "collectionId": collectionItem.id,
+                                                "contentType": contentItem.type,
+                                                "contentName": contentItem.title,
+                                                "contentId": contentItem.id,
+                                                "startDateTime": startDate,
+                                                "endDateTime": endDate
+                                            };
+                                            userCalendarData.push(calendarData);
+                                        } else {
+                                            console.log("Time Unavailable !");
+                                        }
+                                    } else {
+                                        console.log("Schedule Days Unavailable");
+                                    }
+                                });
                             } else {
-                                console.log("Schedule Days Unavailable");
+                                console.log('No Contents');
                             }
-                        });
+                        } else {
+                            console.log("Collection Calendar Not Set");
+                        }
+                    });
 
-                    } else {
-                        console.log("Collection Calendar Not Set");
-                    }
                 });
 
                 ownedCollections.forEach((collectionItem) => {
                     if (collectionItem.calendars !== undefined) {
-                        collectionDate = collectionItem.calendars[0];
-                        if (collectionDate.startDate && collectionDate.endDate) {
-                            var contents = collectionItem.contents;
-                            contents.forEach((contentItem) => {
-                                var schedules = contentItem.schedules;
-                                var scheduleData = schedules[0];
-                                console.log(scheduleData);
-                                if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                    var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
-                                    startDate = startDate.add(scheduleData.startDay, 'days');
-                                    var endDate = momenttz.tz(startDate, 'UTC');
-                                    endDate = endDate.add(scheduleData.endDay, 'days');
-                                    if (scheduleData.startTime && scheduleData.endTime) {
-                                        startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                        startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                        startDate.seconds('00');
-                                        endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-                                        endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-                                        endDate.seconds('00');
-                                        var calendarData = {
-                                            "eventType": collectionItem.type + "|" + contentItem.type,
-                                            "eventName": collectionItem.title + "|" + contentItem.title,
-                                            "eventId": collectionItem.id + "|" + contentItem.id,
-                                            "startDateTime": startDate.format(),
-                                            "endDateTime": endDate.format()
-                                        };
-                                        console.log(calendarData);
-                                        userCalendarData.push(calendarData);
-                                    } else {
-                                        console.log("Time Unavailable !");
-                                    }
+                        collectionItem.calendars.forEach((collectionDate) => {
+                            if (collectionDate.startDate && collectionDate.endDate) {
+                                var contents = collectionItem.contents;
+                                if (contents) {
+                                    contents.forEach((contentItem) => {
+                                        var schedules = contentItem.schedules;
+                                        var scheduleData = schedules[0];
+                                        if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                            var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
+                                            startDate = startDate.add(scheduleData.startDay, 'days');
+                                            var endDate = momenttz.tz(startDate, 'UTC');
+                                            endDate = endDate.add(scheduleData.endDay, 'days');
+                                            if (scheduleData.startTime && scheduleData.endTime) {
+                                                startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                                startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                                startDate.seconds('00');
+                                                endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                                endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                                endDate.seconds('00');
+                                                var calendarData = {
+                                                    "collectionType": collectionItem.type,
+                                                    "collectionName": collectionItem.title,
+                                                    "collectionId": collectionItem.id,
+                                                    "contentType": contentItem.type,
+                                                    "contentName": contentItem.title,
+                                                    "contentId": contentItem.id,
+                                                    "startDateTime": startDate,
+                                                    "endDateTime": endDate
+                                                };
+                                                userCalendarData.push(calendarData);
+                                            } else {
+                                                console.log("Time Unavailable !");
+                                            }
+                                        } else {
+                                            console.log("Schedule Days Unavailable");
+                                        }
+                                    });
                                 } else {
-                                    console.log("Schedule Days Unavailable");
+                                    console.log('Contents Not Found');
                                 }
-                            });
 
-                        } else {
-                            console.log("Collection Calendar Not Set");
-                        }
+
+                            } else {
+                                console.log("Collection Calendar Not Set");
+                            }
+                        });
+
                     }
                     else {
                         console.log("This collection does not have any calendar.");
@@ -826,7 +837,7 @@ module.exports = function (Peer) {
             'sendVerifyEmail',
             {
                 description: 'Send a Verification email to user email ID with OTP and link',
-                accepts: [{ arg: 'uid', type: 'string', required: true },{ arg: 'email', type: 'string', required: true }],
+                accepts: [{ arg: 'uid', type: 'string', required: true }, { arg: 'email', type: 'string', required: true }],
                 returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/sendVerifyEmail' }
             }
