@@ -11,15 +11,21 @@ module.exports = function (Collection) {
         Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if(!err && collectionInstance !== null) {
-                var ownerEmail = collectionInstance.owners[0].email;
+                var ownerEmail = collectionInstance.toJSON().owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
+                delete collectionInstance.owners;
+
                 collectionInstance.save(function (err) {
                     if(err) {
+                        console.log(err);
                         err = new Error(g.f('Error updating collection.'));
                         err.statusCode = 400;
                         err.code = 'DB_ERROR';
                         cb(err);
+                    }
+                    else {
+                        console.log('collectionInstance updated');
                     }
                 });
 

@@ -17,6 +17,7 @@ var uuid = require("uuid");
 var MAX_PASSWORD_LENGTH = 72;
 var debug = require('debug')('loopback:peer');
 var moment = require('moment');
+var momenttz = require('moment-timezone');
 var passcode = require("passcode");
 var twilio = require('twilio');
 var app = require('../../server/server');
@@ -500,14 +501,20 @@ module.exports = function (Peer) {
                                 var endDate = moment(startDate).add(scheduleData.endDay, 'days');
                                 if (scheduleData.startTime && scheduleData.endTime) {
                                     startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                    console.log('Hours: ' + startDate.hours());
                                     startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                    console.log('Mins: ' + startDate.minutes());
                                     startDate.seconds('00');
+                                    console.log('Seconds: ' + startDate.seconds());
                                     endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                     endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                     endDate.seconds('00');
                                     var calendarData = {
-                                        "startDate": startDate,
-                                        "endDate": endDate
+                                        "eventType": collectionItem.type + "|" + contentItem.type,
+                                        "eventName": collectionItem.title + "|" + contentItem.title,
+                                        "eventId": collectionItem.id + "|" + contentItem.id,
+                                        "startDateTime": startDate,
+                                        "endDateTime": endDate
                                     };
                                     console.log(calendarData);
                                     userCalendarData.push(calendarData);
@@ -534,12 +541,17 @@ module.exports = function (Peer) {
                                 var scheduleData = schedules[0];
                                 console.log(scheduleData);
                                 if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                    var startDate = moment(collectionDate.startDate).add(scheduleData.startDay, 'days');
-                                    var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+                                    var startDate = momenttz.tz(collectionDate.startDate, 'UTC');
+                                    startDate = startDate.add(scheduleData.startDay, 'days');
+                                    var endDate = startDate;
+                                    endDate = endDate.add(scheduleData.endDay, 'days');
                                     if (scheduleData.startTime && scheduleData.endTime) {
                                         startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                        console.log('Hours: ' + startDate.hours());
                                         startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                        console.log('Mins: ' + startDate.minutes());
                                         startDate.seconds('00');
+                                        console.log('Seconds: ' + startDate.seconds());
                                         endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                         endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                         endDate.seconds('00');
@@ -547,8 +559,8 @@ module.exports = function (Peer) {
                                             "eventType": collectionItem.type + "|" + contentItem.type,
                                             "eventName": collectionItem.title + "|" + contentItem.title,
                                             "eventId": collectionItem.id + "|" + contentItem.id,
-                                            "startDateTime": startDate,
-                                            "endDateTime": endDate
+                                            "startDateTime": startDate.format(),
+                                            "endDateTime": endDate.format()
                                         };
                                         console.log(calendarData);
                                         userCalendarData.push(calendarData);
