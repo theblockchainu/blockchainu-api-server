@@ -8,14 +8,12 @@ module.exports = function (Collection) {
 
     Collection.submitForReview = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
+        Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if(!err && collectionInstance !== null) {
-                var ownerEmail = collectionInstance.toJSON().owners[0].email;
+                //var ownerEmail = collectionInstance.toJSON().owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
-                delete collectionInstance.owners;
-
                 collectionInstance.save(function (err) {
                     if(err) {
                         console.log(err);
@@ -47,7 +45,7 @@ module.exports = function (Collection) {
                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                 var html_body = renderer(message);
                 loopback.Email.send({
-                    to: ownerEmail,
+                    to: 'connect@aakashbansal.com',
                     from: 'Peerbuds <noreply@mx.peerbuds.com>',
                     subject: subject,
                     html: html_body
@@ -73,11 +71,10 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": "owners"}, function (err, collectionInstance) {
+        Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
-            if(!err && collectionInstance !== null && req.hasOwnProperty('user')) {
-                var userId = req.user.id;
-                var ownerId = collectionInstance.owners[0].id;
+            if(!err && collectionInstance !== null) {
+                var userId = req.cookies.userId.split(/[ \:.]+/)[1];
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;
@@ -89,46 +86,37 @@ module.exports = function (Collection) {
                         cb(err);
                     }
                 });
-                Collection.app.models.peer.findById(ownerId, function (err, userInstance) {
-                    if (err) {
-                        err = new Error(g.f('No collection Owner with ID: %s', ownerId));
-                        err.statusCode = 400;
-                        err.code = 'NO_USER_FOUND';
-                        cb(err);
-                    } else {
-                        var message = '', subject = '';
-                        switch (collectionInstance.type) {
-                            case 'workshop':
-                                message = {heading: "Your workshop has been APPROVED!"};
-                                subject = 'Workshop Approved';
-                                break;
-                            case 'experience':
-                                message = {heading: "Your experience has been APPROVED"};
-                                subject = 'Experience Approved';
-                                break;
-                            default:
-                                message = {heading: "Your collection has been APPROVED"};
-                                subject = 'Collection Approved';
-                                break;
-                        }
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                        var html_body = renderer(message);
-                        loopback.Email.send({
-                            to: userInstance.email,
-                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                            subject: subject,
-                            html: html_body
-                        })
-                            .then(function (response) {
-                                console.log('email sent! - ' + response);
-                            })
-                            .catch(function (err) {
-                                console.log('email error! - ' + err);
-                            });
+                var message = '', subject = '';
+                switch (collectionInstance.type) {
+                    case 'workshop':
+                        message = {heading: "Your workshop has been APPROVED!"};
+                        subject = 'Workshop Approved';
+                        break;
+                    case 'experience':
+                        message = {heading: "Your experience has been APPROVED"};
+                        subject = 'Experience Approved';
+                        break;
+                    default:
+                        message = {heading: "Your collection has been APPROVED"};
+                        subject = 'Collection Approved';
+                        break;
+                }
+                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                var html_body = renderer(message);
+                loopback.Email.send({
+                    to: 'connect@aakashbansal.com',
+                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                    subject: subject,
+                    html: html_body
+                })
+                    .then(function (response) {
+                        console.log('email sent! - ' + response);
+                    })
+                    .catch(function (err) {
+                        console.log('email error! - ' + err);
+                    });
 
-                        cb(null, 'Collection approved. Email sent to owner.');
-                    }
-                });
+                cb(null, {result: 'Collection approved. Email sent to owner.'});
             }
             else {
                 err = new Error(g.f('Invalid Collection with ID: %s', id));
@@ -144,7 +132,7 @@ module.exports = function (Collection) {
         var collectionInstance = ctx.instance;
         /*console.log("ctx keys: " + Object.keys(ctx));
         console.log("ctx args: " + JSON.stringify(ctx.args));*/
-        if (collectionInstance.status === 'draft' || collectionInstance.status === "") {
+        if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
             next();
         }
         if(ctx.args.data.status === 'complete') {
@@ -281,7 +269,7 @@ module.exports = function (Collection) {
         /*console.log('received instance is: ' + JSON.stringify(collectionInstance));
         console.log("ctx args are: " + JSON.stringify(ctx.args));
         console.log("ctx method is: " + JSON.stringify(ctx.methodString));*/
-        if (collectionInstance.status === 'draft') {
+        if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
         if(ctx.args.data.status === 'complete') {
@@ -480,7 +468,7 @@ module.exports = function (Collection) {
                 { arg: 'id', type: 'string', required: true },
                 {arg: 'req', type: 'object', http: { source: 'req'}}
             ],
-            returns: { arg: 'result', type: 'string'},
+            returns: { arg: 'result', type: 'object', root: true},
             http: { path: '/:id/approve', verb: 'post' }
         }
     );

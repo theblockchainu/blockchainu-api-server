@@ -15,6 +15,10 @@
     "GlobalUtils": {}
   },
   "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
     "description": {
       "type": "string",
       "required": true
