@@ -99,7 +99,7 @@ app.middleware('auth', loopback.token({
     model: app.models.UserToken,
 }));
 
-app.middleware('session:before', cookieParser());
+app.middleware('session:before', cookieParser('kitty'));
 
 app.middleware('session', session({
     secret: 'kitty',

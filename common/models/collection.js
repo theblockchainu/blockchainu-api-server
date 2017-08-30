@@ -132,7 +132,7 @@ module.exports = function (Collection) {
         var collectionInstance = ctx.instance;
         /*console.log("ctx keys: " + Object.keys(ctx));
         console.log("ctx args: " + JSON.stringify(ctx.args));*/
-        if (collectionInstance.status === 'draft' || collectionInstance.status === "") {
+        if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
             next();
         }
         if(ctx.args.data.status === 'complete') {
@@ -269,7 +269,7 @@ module.exports = function (Collection) {
         /*console.log('received instance is: ' + JSON.stringify(collectionInstance));
         console.log("ctx args are: " + JSON.stringify(ctx.args));
         console.log("ctx method is: " + JSON.stringify(ctx.methodString));*/
-        if (collectionInstance.status === 'draft') {
+        if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
         if(ctx.args.data.status === 'complete') {
