@@ -19,7 +19,7 @@ module.exports = function (Vsession) {
             var grant = new VideoGrant();
             token.addGrant(grant);
             cb(null, {
-                identity: identity,
+                identity: token.identity,
                 token: token.toJwt()
             });
         } else {
