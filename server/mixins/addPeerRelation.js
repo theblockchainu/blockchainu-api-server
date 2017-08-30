@@ -7,9 +7,15 @@ module.exports = function (Model, options) {
 
         Model.afterRemote(methodName, function (ctx, newInstance, next) {
             //newInstance is the instance of the created relations Model
-            if (ctx.req.headers.cookie) {
-                var cookie = ctx.req.headers.cookie.split(';')[2].split('=')[1].trim();
-                var userId = cookie.split(/[ \:.]+/)[0].substring(4);
+            var cookieArray = ctx.req.headers.cookie.split(';');
+            var cookie = '';
+            for (var i = 0; i< cookieArray.length; i++) {
+                if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                    cookie = cookieArray[i].split('=')[1].trim();
+                }
+            }
+            var userId = cookie.split(/[ \:.]+/)[0].substring(4);
+            if (userId.length > 0) {
                 console.log('user ID from cookie is: ' + userId);
                 Model.app.models.peer.findById(userId, function (err, instance) {
                     if (err) {
