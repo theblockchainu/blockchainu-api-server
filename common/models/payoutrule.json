@@ -6,9 +6,18 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "id": true
     },
     "collectionId": {
       "type": "string"

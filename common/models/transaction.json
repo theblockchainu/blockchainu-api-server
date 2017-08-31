@@ -16,7 +16,8 @@
   },
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "id": true
     }
   },
   "validations": [],
