@@ -11,15 +11,15 @@ module.exports = function (Language) {
         var index = 1;
         for (var langCode in languages) {
 
-            if (languages.hasOwnProperty(langCode)) {
+            if (languages.hasOwnProperty(langCode) && languages[langCode].type === "living") {
 
                 console.log(index);
                 var language = languages[langCode];
                 var newLanguage = {};
-                newLanguage = language;
+                // newLanguage = language;
                 newLanguage.code = langCode;
                 newLanguage.name = language.referenceName;
-                delete newLanguage.referenceName
+                // delete newLanguage.referenceName
                 console.log(newLanguage);
 
                 Language.app.models.language.create(newLanguage, function (err, newLanguageInstance) {
