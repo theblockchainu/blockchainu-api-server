@@ -10,7 +10,14 @@ var VideoGrant = AccessToken.VideoGrant;
 module.exports = function (Vsession) {
 
     Vsession.getToken = function (req, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var cookieArray = req.headers.cookie.split(';');
+        var cookie = '';
+        for (var i = 0; i< cookieArray.length; i++) {
+            if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                cookie = cookieArray[i].split('=')[1].trim();
+            }
+        }
+        var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         //if user is logged in
         if (loggedinPeer) {
             const token = new AccessToken(accountSid, apiKeySid, apiKeySecret);

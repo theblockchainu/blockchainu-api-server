@@ -99,10 +99,10 @@ app.middleware('auth', loopback.token({
     model: app.models.UserToken,
 }));
 
-app.middleware('session:before', cookieParser('kitty'));
+app.middleware('session:before', cookieParser(app.get('cookieSecret')));
 
 app.middleware('session', session({
-    secret: 'kitty',
+    secret: app.get('cookieParser'),
     saveUninitialized: true,
     resave: true,
 }));
