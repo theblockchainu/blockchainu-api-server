@@ -74,7 +74,14 @@ module.exports = function (Collection) {
         Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if(!err && collectionInstance !== null) {
-                var userId = req.cookies.userId.split(/[ \:.]+/)[1];
+                var cookieArray = req.headers.cookie.split(';');
+                var cookie = '';
+                for (var i = 0; i< cookieArray.length; i++) {
+                    if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                        cookie = cookieArray[i].split('=')[1].trim();
+                    }
+                }
+                var userId = cookie.split(/[ \:.]+/)[0].substring(4);
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;

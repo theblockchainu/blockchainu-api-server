@@ -299,7 +299,14 @@ module.exports = function (Peer) {
 
     Peer.confirmSmsOTP = function (req, token, fn) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var cookieArray = req.headers.cookie.split(';');
+        var cookie = '';
+        for (var i = 0; i< cookieArray.length; i++) {
+            if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                cookie = cookieArray[i].split('=')[1].trim();
+            }
+        }
+        var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         //if user is logged in
         if (loggedinPeer) {
             this.findById(loggedinPeer, function (err, user) {
@@ -350,7 +357,14 @@ module.exports = function (Peer) {
     Peer.sendVerifySms = function (req, phone, fn) {
 
         fn = fn || utils.createPromiseCallback();
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var cookieArray = req.headers.cookie.split(';');
+        var cookie = '';
+        for (var i = 0; i< cookieArray.length; i++) {
+            if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                cookie = cookieArray[i].split('=')[1].trim();
+            }
+        }
+        var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         var formattedPhone = phone.replace(/[^\d]/g,'');
         formattedPhone = '+91' + formattedPhone;
         //if user is logged in
