@@ -10,12 +10,12 @@ module.exports = function (Collection) {
         // Find the collection by given ID
         Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
-            if(!err && collectionInstance !== null) {
+            if (!err && collectionInstance !== null) {
                 //var ownerEmail = collectionInstance.toJSON().owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
                 collectionInstance.save(function (err) {
-                    if(err) {
+                    if (err) {
                         console.log(err);
                         err = new Error(g.f('Error updating collection.'));
                         err.statusCode = 400;
@@ -30,15 +30,15 @@ module.exports = function (Collection) {
                 var message = '', subject = '';
                 switch (collectionInstance.type) {
                     case 'workshop':
-                        message = {heading: "Your workshop has been submitted for review"};
+                        message = { heading: "Your workshop has been submitted for review" };
                         subject = 'Workshop submitted for review';
                         break;
                     case 'experience':
-                        message = {heading: "Your experience has been submitted for review"};
+                        message = { heading: "Your experience has been submitted for review" };
                         subject = 'Experience submitted for review';
                         break;
                     default:
-                        message = {heading: "Your collection has been submitted for review"};
+                        message = { heading: "Your collection has been submitted for review" };
                         subject = 'Collection submitted for review';
                         break;
                 }
@@ -73,20 +73,21 @@ module.exports = function (Collection) {
         // Find the collection by given ID
         Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
-            if(!err && collectionInstance !== null) {
-                var cookieArray = req.headers.cookie.split(';');
-                var cookie = '';
-                for (var i = 0; i< cookieArray.length; i++) {
-                    if(cookieArray[i].split('=')[0].trim() === 'userId') {
-                        cookie = cookieArray[i].split('=')[1].trim();
-                    }
-                }
-                var userId = cookie.split(/[ \:.]+/)[0].substring(4);
+            if (!err && collectionInstance !== null) {
+                // var cookieArray = req.headers.cookie.split(';');
+                // var cookie = '';
+                // for (var i = 0; i< cookieArray.length; i++) {
+                //     if(cookieArray[i].split('=')[0].trim() === 'userId') {
+                //         cookie = cookieArray[i].split('=')[1].trim();
+                //     }
+                // }
+                // var userId = cookie.split(/[ \:.]+/)[0].substring(4);
+                var userId = Collection.app.models.peer.getCookieUserId(req);
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;
                 collectionInstance.save(function (err) {
-                    if(err) {
+                    if (err) {
                         err = new Error(g.f('Error updating collection.'));
                         err.statusCode = 400;
                         err.code = 'DB_ERROR';
@@ -96,15 +97,15 @@ module.exports = function (Collection) {
                 var message = '', subject = '';
                 switch (collectionInstance.type) {
                     case 'workshop':
-                        message = {heading: "Your workshop has been APPROVED!"};
+                        message = { heading: "Your workshop has been APPROVED!" };
                         subject = 'Workshop Approved';
                         break;
                     case 'experience':
-                        message = {heading: "Your experience has been APPROVED"};
+                        message = { heading: "Your experience has been APPROVED" };
                         subject = 'Experience Approved';
                         break;
                     default:
-                        message = {heading: "Your collection has been APPROVED"};
+                        message = { heading: "Your collection has been APPROVED" };
                         subject = 'Collection Approved';
                         break;
                 }
@@ -123,7 +124,7 @@ module.exports = function (Collection) {
                         console.log('email error! - ' + err);
                     });
 
-                cb(null, {result: 'Collection approved. Email sent to owner.'});
+                cb(null, { result: 'Collection approved. Email sent to owner.' });
             }
             else {
                 err = new Error(g.f('Invalid Collection with ID: %s', id));
@@ -135,21 +136,21 @@ module.exports = function (Collection) {
     };
 
 
-    Collection.beforeRemote('prototype.patchAttributes', function(ctx, newInstance, next){
+    Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
         var collectionInstance = ctx.instance;
         /*console.log("ctx keys: " + Object.keys(ctx));
         console.log("ctx args: " + JSON.stringify(ctx.args));*/
         if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
             next();
         }
-        if(ctx.args.data.status === 'complete') {
+        if (ctx.args.data.status === 'complete') {
             next();
         }
         else {
             // User is trying to update a non draft collection
             // We need to check if this collection is active and if it has any participants.
             if (collectionInstance.status === 'active') {
-                collectionInstance.__get__participants({"relInclude": "calendarId"}, function (err, participantInstances) {
+                collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                     if (err) {
                         next(err);
                     }
@@ -182,11 +183,11 @@ module.exports = function (Collection) {
                                 newCollectionInstance.isNewInstance = true;
 
                                 // Create a relation between logged in user and this new collection node
-                                collectionInstance.__get__owners(function(err, oldOwnerInstances) {
-                                    if(!err && oldOwnerInstances !== null) {
-                                        oldOwnerInstances.forEach(function(oldOwnerInstance) {
-                                            newCollectionInstance.__link__owners(oldOwnerInstance.id, function(err, ownerLinkInstance) {
-                                                if(!err && ownerLinkInstance !== null) {
+                                collectionInstance.__get__owners(function (err, oldOwnerInstances) {
+                                    if (!err && oldOwnerInstances !== null) {
+                                        oldOwnerInstances.forEach(function (oldOwnerInstance) {
+                                            newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
+                                                if (!err && ownerLinkInstance !== null) {
                                                     console.log('Linked owner to cloned collection.');
                                                 }
                                                 else {
@@ -201,13 +202,13 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy all contents from oldInstance to new instance
-                                collectionInstance.__get__contents({"include": ["schedules","locations"]}, function(err, oldContentInstances) {
+                                collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
                                         console.log('Existing content instances are: ' + JSON.stringify(oldContentInstances));
                                         oldContentInstances.forEach(function (oldContentInstance) {
                                             // Link new clone to all existing contents.
-                                            newCollectionInstance.__link__contents(oldContentInstance.id, function(err, newLinkedContentInstance){
-                                                if(!err && newLinkedContentInstance !== null){
+                                            newCollectionInstance.__link__contents(oldContentInstance.id, function (err, newLinkedContentInstance) {
+                                                if (!err && newLinkedContentInstance !== null) {
                                                     console.log('Linked content to collection');
                                                 }
                                             });
@@ -219,20 +220,20 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy calendars from old collection to new collection
-                                collectionInstance.__get__calendars(function(err, oldCalendarInstances){
-                                    if(!err && oldCalendarInstances !== null) {
-                                        oldCalendarInstances.forEach(function(oldCalendarInstance){
-                                            var hasParticipant = participantInstances.some(function(participantInstance){
+                                collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
+                                    if (!err && oldCalendarInstances !== null) {
+                                        oldCalendarInstances.forEach(function (oldCalendarInstance) {
+                                            var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             // If this calendar has no participant signed up
-                                            if(!hasParticipant) {
-                                                newCollectionInstance.__link__calendars(oldCalendarInstance.id, function(err, copiedCalendarInstance){
+                                            if (!hasParticipant) {
+                                                newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
                                                     // Do nothing here.
                                                     console.log('Linked calendar to new collection');
                                                 });
-                                                collectionInstance.__unlink__calendars(oldCalendarInstance.id, function(err, deletedCalendarInstance){
-                                                   console.log('unlinked calendar from old collection');
+                                                collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
+                                                    console.log('unlinked calendar from old collection');
                                                 });
                                             }
                                             else {
@@ -243,10 +244,10 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy topics from old collection to new collection
-                                collectionInstance.__get__topics(function(err, oldTopicInstances){
-                                    if(!err && oldTopicInstances !== null) {
-                                        oldTopicInstances.forEach(function(oldTopicInstance){
-                                            newCollectionInstance.__link__topics(oldTopicInstance.id, function(err, copiedTopicInstance){
+                                collectionInstance.__get__topics(function (err, oldTopicInstances) {
+                                    if (!err && oldTopicInstances !== null) {
+                                        oldTopicInstances.forEach(function (oldTopicInstance) {
+                                            newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
                                                 // Do nothing here.
                                                 console.log('Copied topic for new collection');
                                             });
@@ -271,7 +272,7 @@ module.exports = function (Collection) {
 
 
 
-    Collection.beforeRemote('prototype.__updateById__contents', function(ctx, newInstance, next){
+    Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next) {
         var collectionInstance = ctx.instance;
         /*console.log('received instance is: ' + JSON.stringify(collectionInstance));
         console.log("ctx args are: " + JSON.stringify(ctx.args));
@@ -279,14 +280,14 @@ module.exports = function (Collection) {
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
-        if(ctx.args.data.status === 'complete') {
+        if (ctx.args.data.status === 'complete') {
             next();
         }
         else {
             // User is trying to update a non draft collection
             // We need to check if this collection is active and if it has any participants.
             if (collectionInstance.status === 'active') {
-                collectionInstance.__get__participants({"relInclude": "calendarId"}, function (err, participantInstances) {
+                collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                     if (err) {
                         next(err);
                     }
@@ -316,11 +317,11 @@ module.exports = function (Collection) {
                                 newCollectionInstance.isNewInstance = true;
 
                                 // Get all owners of this collection and link them to cloned collection
-                                collectionInstance.__get__owners(function(err, oldOwnerInstances) {
-                                    if(!err && oldOwnerInstances !== null) {
-                                        oldOwnerInstances.forEach(function(oldOwnerInstance) {
-                                            newCollectionInstance.__link__owners(oldOwnerInstance.id, function(err, ownerLinkInstance) {
-                                                if(!err && ownerLinkInstance !== null) {
+                                collectionInstance.__get__owners(function (err, oldOwnerInstances) {
+                                    if (!err && oldOwnerInstances !== null) {
+                                        oldOwnerInstances.forEach(function (oldOwnerInstance) {
+                                            newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
+                                                if (!err && ownerLinkInstance !== null) {
                                                     console.log('Linked owner to cloned collection.');
                                                 }
                                             });
@@ -329,15 +330,15 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy all contents from oldInstance to new instance
-                                collectionInstance.__get__contents({"include": ["schedules","locations"]}, function(err, oldContentInstances) {
+                                collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
                                         var m = 0;
-                                        for(var i = 0; i < oldContentInstances.length; i++) {
+                                        for (var i = 0; i < oldContentInstances.length; i++) {
                                             // If this content is not a dirty content
-                                            if(oldContentInstances[i].id !== ctx.args.fk) {
+                                            if (oldContentInstances[i].id !== ctx.args.fk) {
                                                 // Link new clone to all non-dirty contents.
-                                                newCollectionInstance.__link__contents(oldContentInstances[i].id, function(err, newLinkedContentInstance){
-                                                    if(!err && newLinkedContentInstance !== null){
+                                                newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
+                                                    if (!err && newLinkedContentInstance !== null) {
                                                         console.log('Linked non-dirty content to collection');
                                                     }
                                                     m++;
@@ -357,8 +358,8 @@ module.exports = function (Collection) {
                                                 });
 
                                                 // Create clone of dirty content for new collection
-                                                newCollectionInstance.__create__contents(newContent, function(err, newCreatedContentInstance){
-                                                    if(!err && newCreatedContentInstance !== null){
+                                                newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
+                                                    if (!err && newCreatedContentInstance !== null) {
                                                         console.log('Cloned content for collection');
                                                         var oldContentInstance = oldContentInstances[m].__data;
                                                         console.log('Old content instance has keys: ' + Object.keys(oldContentInstance));
@@ -367,9 +368,9 @@ module.exports = function (Collection) {
                                                         // Copy locations from old content to new content
                                                         var newContentLocation = oldContentInstance.locations[0].toJSON();
                                                         console.log(typeof newContentLocation + " newContentLocation: " + JSON.stringify(newContentLocation));
-                                                        if(typeof newContentLocation === 'object' && newContentLocation !== undefined) {
+                                                        if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
                                                             delete newContentLocation.id;
-                                                            newCreatedContentInstance.__create__locations(newContentLocation, function(err, copiedLocationInstance){
+                                                            newCreatedContentInstance.__create__locations(newContentLocation, function (err, copiedLocationInstance) {
                                                                 // Do nothing here.
                                                                 console.log('Cloned location for content');
                                                             });
@@ -379,9 +380,9 @@ module.exports = function (Collection) {
                                                         // Copy schedules from old content to new content
                                                         var newContentSchedule = oldContentInstance.schedules[0].toJSON();
                                                         console.log(typeof newContentSchedule + " newContentSchedule: " + JSON.stringify(newContentSchedule));
-                                                        if(typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
+                                                        if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
                                                             delete newContentSchedule.id;
-                                                            newCreatedContentInstance.__create__schedules(newContentSchedule, function(err, copiedScheduleInstance){
+                                                            newCreatedContentInstance.__create__schedules(newContentSchedule, function (err, copiedScheduleInstance) {
                                                                 // Do nothing here.
                                                                 console.log('Cloned schedule for content');
                                                             });
@@ -399,21 +400,21 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy calendars from old collection to new collection
-                                collectionInstance.__get__calendars(function(err, oldCalendarInstances){
-                                    if(!err && oldCalendarInstances !== null) {
-                                        oldCalendarInstances.forEach(function(oldCalendarInstance){
+                                collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
+                                    if (!err && oldCalendarInstances !== null) {
+                                        oldCalendarInstances.forEach(function (oldCalendarInstance) {
                                             //participantInstances = participantInstances.toJSON();
-                                            var hasParticipant = participantInstances.some(function(participantInstance){
+                                            var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             console.log('hasParticipant: ' + hasParticipant);
                                             // If this calendar has no participant signed up
-                                            if(!hasParticipant) {
-                                                newCollectionInstance.__link__calendars(oldCalendarInstance.id, function(err, copiedCalendarInstance){
+                                            if (!hasParticipant) {
+                                                newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
                                                     // Do nothing here.
                                                     console.log('Linked calendar to new collection');
                                                 });
-                                                collectionInstance.__unlink__calendars(oldCalendarInstance.id, function(err, deletedCalendarInstance){
+                                                collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
                                                     console.log('Unlinked calendar from old collection');
                                                 });
                                             }
@@ -425,10 +426,10 @@ module.exports = function (Collection) {
                                 });
 
                                 // Copy topics from old collection to new collection
-                                collectionInstance.__get__topics(function(err, oldTopicInstances){
-                                    if(!err && oldTopicInstances !== null) {
-                                        oldTopicInstances.forEach(function(oldTopicInstance){
-                                            newCollectionInstance.__link__topics(oldTopicInstance.id, function(err, copiedTopicInstance){
+                                collectionInstance.__get__topics(function (err, oldTopicInstances) {
+                                    if (!err && oldTopicInstances !== null) {
+                                        oldTopicInstances.forEach(function (oldTopicInstance) {
+                                            newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
                                                 // Do nothing here.
                                                 console.log('Copied topic for new collection');
                                             });
@@ -461,9 +462,9 @@ module.exports = function (Collection) {
         {
             accepts: [
                 { arg: 'id', type: 'string', required: true },
-                {arg: 'req', type: 'object', http: { source: 'req'}}
+                { arg: 'req', type: 'object', http: { source: 'req' } }
             ],
-            returns: { arg: 'result', type: 'string'},
+            returns: { arg: 'result', type: 'string' },
             http: { path: '/:id/submitForReview', verb: 'post' }
         }
     );
@@ -473,9 +474,9 @@ module.exports = function (Collection) {
         {
             accepts: [
                 { arg: 'id', type: 'string', required: true },
-                {arg: 'req', type: 'object', http: { source: 'req'}}
+                { arg: 'req', type: 'object', http: { source: 'req' } }
             ],
-            returns: { arg: 'result', type: 'object', root: true},
+            returns: { arg: 'result', type: 'object', root: true },
             http: { path: '/:id/approve', verb: 'post' }
         }
     );

@@ -30,9 +30,10 @@ module.exports = function (Room) {
     }
 
     Room.afterRemote('prototype.__create__messages', function (ctx, newInstance, next) {
-        if (ctx.req.cookies.userId) {
-            var userId = ctx.req.cookies.userId.split(/[ \:.]+/)[1];
 
+        var userId = Room.app.models.peer.getCookieUserId(ctx.req);
+        //var userId = ctx.req.cookies.userId.split(/[ \:.]+/)[1];
+        if (userId) {
             Room.app.models.peer.findById(userId, function (err, instance) {
                 newInstance.peer.add(instance, function (err, addedinstance) {
                     if (!err) {
