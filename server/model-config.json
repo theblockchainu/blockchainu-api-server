@@ -348,5 +348,9 @@
   "vsession": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "timezone": {
+    "dataSource": "neo4j",
+    "public": true
   }
 }

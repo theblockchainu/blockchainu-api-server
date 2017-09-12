@@ -1,24 +1,30 @@
 {
-  "name": "language",
+  "name": "timezone",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
-  "mixins": {
-    "TimeStamp": {
-      "createdAt": "createdAt",
-      "updatedAt": "updatedAt",
-      "required": false
-    },
-    "GlobalUtils": {}
-  },
   "properties": {
-    "name": {
+    "value": {
       "type": "string"
     },
-    "code": {
+    "abbr": {
       "type": "string"
+    },
+    "offset": {
+      "type": "number"
+    },
+    "isdst": {
+      "type": "boolean"
+    },
+    "text": {
+      "type": "string"
+    },
+    "utc": {
+      "type": [
+        "string"
+      ]
     }
   },
   "validations": [],
