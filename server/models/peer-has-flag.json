@@ -1,13 +1,13 @@
 {
-  "name": "submission_has_topic",
+  "name": "peer_has_flag",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "submission",
-    "targetModel": "topic"
+    "sourceModel": "peer",
+    "targetModel": "flag"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "submission": {
+    "peer": {
       "type": "belongsTo",
-      "model": "submission",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
-    "topic": {
+    "flag": {
       "type": "belongsTo",
-      "model": "topic",
+      "model": "flag",
       "foreignKey": "targetId"
     }
   },
