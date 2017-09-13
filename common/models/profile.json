@@ -44,6 +44,9 @@
     "currency": {
       "type": "string"
     },
+    "gender": {
+      "type": "string"
+    },
     "timezone": {
       "type": "string"
     },
