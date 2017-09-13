@@ -230,6 +230,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_notification",
       "keyThrough": "targetId"
+    },
+    "flags": {
+      "type": "hasMany",
+      "model": "flag",
+      "foreignKey": "sourceId",
+      "through": "peer_has_flag",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -210,6 +210,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_bookmark",
       "keyThrough": "targetId"
+    },
+    "payments": {
+      "type": "hasMany",
+      "model": "transaction",
+      "foreignKey": "sourceId",
+      "through": "collection_has_payment",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

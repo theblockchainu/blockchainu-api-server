@@ -6,9 +6,16 @@ var client_secret = app.get('stripeKey'); //need to take it from config file
 module.exports = function (PayoutAcc) {
 
     // Charge the user's card/bank account
+    /**
+     * Create connected account(Express account) by using below link
+     * https://connect.stripe.com/express/oauth/authorize?response_type=code&client_id=ca_AlhauL6d5gJ66yM3RaXBHIwt0R8qeb9q&scope=read_write
+     * it will redirect to stripe site where user will insert details and will come back to our site 
+     * with auth code 
+     */
     PayoutAcc.createConnectedAcc = function (req, authCode, error, errorDesc, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = PayoutAcc.app.models.peer.getCookieUserId(req);
         // if user is logged in
         if (loggedinPeer && !error) {
             //Remove user from Session
@@ -30,20 +37,20 @@ module.exports = function (PayoutAcc) {
                     if (!authRes.hasOwnProperty("error")) {
 
                         var connUser = authRes;
-                        PayoutAcc.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
-                           if (!err && peerInstance !== null) {
-                               peerInstance.payoutaccs.create(connUser, function (err, connUserInstance) {
-                                   if (err) {
-                                       connUserInstance.destroy();
-                                       cb(err);
-                                   } else {
-                                       cb(null, connUserInstance);
-                                   }
-                               });
-                           }
-                           else {
-                               cb(err);
-                           }
+                        PayoutAcc.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
+                            if (!err && peerInstance !== null) {
+                                peerInstance.payoutaccs.create(connUser, function (err, connUserInstance) {
+                                    if (err) {
+                                        connUserInstance.destroy();
+                                        cb(err);
+                                    } else {
+                                        cb(null, connUserInstance);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(err);
+                            }
                         });
 
                     } else {

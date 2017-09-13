@@ -1,0 +1,39 @@
+{
+  "name": "reply_has_upvote",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "reply",
+    "targetModel": "upvote"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "reply": {
+      "type": "belongsTo",
+      "model": "reply",
+      "foreignKey": "sourceId"
+    },
+    "upvote": {
+      "type": "belongsTo",
+      "model": "upvote",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

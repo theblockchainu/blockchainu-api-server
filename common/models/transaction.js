@@ -11,11 +11,15 @@ module.exports = function (Transaction) {
         email: 'abc@abc.com',
         fullName: 'abc'
     };
-    socket.emit('add user', thisUser);
+    //socket.emit('add user', thisUser);
 
     //Customer related functions here
+    /**
+     * customerId = stripe customer id
+     */
     Transaction.getCustomer = function (req, customerId, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -35,6 +39,10 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Create stripe customer account by using email id
+     * and update peer node by adding stripe customer id 
+     */
     Transaction.createCustomer = function (data, cb) {
 
         var User = app.models.peer;
@@ -61,9 +69,17 @@ module.exports = function (Transaction) {
         });
     };
 
+    /**
+     * edit stripe customer
+     * params - 
+     * customerId - stripe customer id
+     * data => ref https://stripe.com/docs/api#customer_object
+     */
     Transaction.editCustomer = function (req, customerId, data, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+
         //if user is logged in
         if (loggedinPeer) {
 
@@ -85,11 +101,16 @@ module.exports = function (Transaction) {
 
     /**
      * data - should contain type of source, 
-     * token - generated after card info, 
-     * stripe customer id 
+     * 
+     * token inside data - generated from card detail page,
+     * if its bank account details from which source to be created 
+     * then reffer https://stripe.com/docs/api#customer_bank_account_object 
+     * customer - stripe customer id 
      */
     Transaction.createSource = function (req, customer, data, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+
         //if user is logged in
         if (loggedinPeer) {
             createCardOrBankAcc(customer, data, cb);
@@ -135,8 +156,12 @@ module.exports = function (Transaction) {
     }
     */
 
+    /**
+     * Get a card details by card id for customer from customer id 
+     */
     Transaction.getACard = function (req, customerId, cardId, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -155,8 +180,12 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Get all card details for customer by customer id 
+     */
     Transaction.listAllCards = function (req, customerId, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -175,9 +204,14 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Edit card details by card id for customer by customer id 
+     * data - https://stripe.com/docs/api#card_object
+     */
     Transaction.editCard = function (req, customerId, cardId, data, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.updateCard(customerId, cardId, data, function (err, card) {
@@ -194,9 +228,13 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Delete card details by card id for customer by customer id 
+     */
     Transaction.deleteCard = function (req, customerId, cardId, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.deleteCard(customerId, cardId, function (err, card) {
@@ -213,9 +251,12 @@ module.exports = function (Transaction) {
     };
 
     // Bank Account related functions goes here
-
+    /**
+     * Retrive bank details by account id for customer by customer id 
+     */
     Transaction.retriveBankAccount = function (req, customerId, accId, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -234,8 +275,12 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * List all bank accounts for customer by customer id 
+     */
     Transaction.listBankAccounts = function (req, customerId, cb) {
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -254,9 +299,14 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Edit bank account by account id for customer by customer id
+     * data - https://stripe.com/docs/api#customer_bank_account_object
+     */
     Transaction.editBankAccount = function (req, customerId, accId, data, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.updateSource(customerId, accId, data, function (err, bank_account) {
@@ -273,9 +323,13 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Delete bank account by account id for customer by customer id
+     */
     Transaction.deleteBankAccount = function (req, customerId, accId, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
             stripe.customers.deleteSource(customerId, accId, function (err, acc) {
@@ -296,9 +350,15 @@ module.exports = function (Transaction) {
     // Charge related functions here
 
     // Charge the user's card/bank account
-    Transaction.createCharge = function (req, reqObj, cb) {
+    /**
+     * Create charge - to charge the customer
+     * reqObj - https://stripe.com/docs/api#charge_object
+     * this can be used in connected account charge
+     */
+    Transaction.createCharge = function (req, chargeItem, chargeItemId, reqObj, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -317,21 +377,32 @@ module.exports = function (Transaction) {
                     charge.modified = currTime;
                     console.log(JSON.stringify(charge));
 
-                    Transaction.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
-                       if(!err && peerInstance !== null) {
-                           peerInstance.transactions.create(charge, function (err, chargeInstance) {
-                               // Transaction.app.models.transaction.create(charge, function (err, chargeInstance) {
-                               if (err) {
-                                   chargeInstance.destroy();
-                                   cb(err);
-                               } else {
-                                   cb(null, charge);
-                               }
-                           });
-                       }
-                       else {
-                           cb(err);
-                       }
+                    Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
+                        if (!err && peerInstance !== null) {
+                            peerInstance.transactions.create(charge, function (err, chargeInstance) {
+                                // Transaction.app.models.transaction.create(charge, function (err, chargeInstance) {
+                                if (err) {
+                                    chargeInstance.destroy();
+                                    cb(err);
+                                } else {
+
+                                    // Link collection to payment
+                                    if (chargeItem === 'collection') {
+                                        Transaction.app.models.collection.findById(chargeItemId, function (err, collection) {
+                                            collection.__link__payments(chargeInstance, function (err, collectionPaymentInstance) {
+                                                if (!err && collectionPaymentInstance !== null) {
+                                                    console.log('Payment made for collection');
+                                                }
+                                            });
+                                        });
+                                    }
+                                    cb(null, charge);
+                                }
+                            });
+                        }
+                        else {
+                            cb(err);
+                        }
                     });
                 } else
                     cb(err);
@@ -343,9 +414,14 @@ module.exports = function (Transaction) {
         }
     };
 
+    /**
+     * Transfer the ammount from stripe to card or bank account
+     * data - https://stripe.com/docs/api#transfer_object
+     */
     Transaction.transferFund = function (req, data, cb) {
 
-        var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
 
@@ -357,7 +433,7 @@ module.exports = function (Transaction) {
                     delete transfer.id;
                     transfer.metadata = JSON.stringify(transfer.metadata);
                     transfer.reversals = JSON.stringify(transfer.reversals);
-                    Transaction.app.models.peer.findById(loggedinPeer, function(err, peerInstance) {
+                    Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
                         if (!err && peerInstance !== null) {
                             peerInstance.transactions.create(transfer, function (err, transferInstance) {
                                 if (err) {
@@ -506,12 +582,14 @@ module.exports = function (Transaction) {
     Transaction.remoteMethod('createCharge', {
         description: 'Add Charge',
         accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+        { arg: 'chargeItem', type: 'string', http: { source: 'path' }, required: true },
+        { arg: 'chargeItemId', type: 'string', http: { source: 'path' }, required: true },
         {
             arg: 'data', type: 'object', http: { source: 'body' },
             description: "data should match as mentioned by stripe charges api", required: true
         }],
         returns: { arg: 'contentObject', type: 'object', root: true },
-        http: { verb: 'post', path: '/create-charge' }
+        http: { verb: 'post', path: '/create-charge/:chargeItem/:chargeItemId' }
     }
     );
 

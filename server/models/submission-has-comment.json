@@ -1,0 +1,39 @@
+{
+  "name": "submission_has_comment",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "submission",
+    "targetModel": "comment"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "submission": {
+      "type": "belongsTo",
+      "model": "submission",
+      "foreignKey": "sourceId"
+    },
+    "comment": {
+      "type": "belongsTo",
+      "model": "comment",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
