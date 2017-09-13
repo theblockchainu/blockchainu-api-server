@@ -27,6 +27,27 @@
       "foreignKey": "sourceId",
       "through": "upvote_has_voter",
       "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "targetId",
+      "through": "comment_has_upvote",
+      "keyThrough": "sourceId"
+    },
+    "replies": {
+      "type": "hasMany",
+      "model": "reply",
+      "foreignKey": "targetId",
+      "through": "reply_has_upvote",
+      "keyThrough": "sourceId"
+    },
+    "submissions": {
+      "type": "hasMany",
+      "model": "submission",
+      "foreignKey": "targetId",
+      "through": "submission_has_upvote",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

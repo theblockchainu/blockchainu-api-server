@@ -6,6 +6,12 @@
     "validateUpsert": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "comments",
+        "upvotes"
+      ]
+    },
     "PatchMany": {
       "relations": [
         {
@@ -32,7 +38,8 @@
       "type": "string"
     },
     "isPrivate": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": true
     },
     "file_url": {
       "type": "string"
@@ -59,6 +66,20 @@
       "model": "topic",
       "foreignKey": "sourceId",
       "through": "submission_has_topic",
+      "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "submission_has_comment",
+      "keyThrough": "targetId"
+    },
+    "upvotes": {
+      "type": "hasMany",
+      "model": "upvote",
+      "foreignKey": "sourceId",
+      "through": "submission_has_upvote",
       "keyThrough": "targetId"
     }
   },

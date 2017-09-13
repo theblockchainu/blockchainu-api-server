@@ -7,6 +7,11 @@
     "validateUpsert": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "upvotes"
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
@@ -31,6 +36,13 @@
       "model": "peer",
       "foreignKey": "sourceId",
       "through": "reply_has_replier",
+      "keyThrough": "targetId"
+    },
+    "upvotes": {
+      "type": "hasMany",
+      "model": "upvote",
+      "foreignKey": "sourceId",
+      "through": "reply_has_upvote",
       "keyThrough": "targetId"
     }
   },

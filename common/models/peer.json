@@ -83,6 +83,10 @@
     },
     "verificationIdUrl": {
       "type": "string"
+    },
+    "isAdmin": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

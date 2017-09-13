@@ -348,5 +348,21 @@
   "vsession": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "comment_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "submission_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "reply_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "submission_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

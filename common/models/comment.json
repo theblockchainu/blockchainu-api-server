@@ -9,7 +9,8 @@
   "mixins": {
     "AddPeerRelation": {
       "relationName": [
-        "replies"
+        "replies",
+        "upvotes"
       ]
     },
     "TimeStamp": {
@@ -23,6 +24,10 @@
     "description": {
       "type": "string",
       "required": true
+    },
+    "isAccouncement": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],
@@ -54,6 +59,20 @@
       "foreignKey": "targetId",
       "through": "content_has_comment",
       "keyThrough": "sourceId"
+    },
+    "submissions": {
+      "type": "hasMany",
+      "model": "submission",
+      "foreignKey": "targetId",
+      "through": "submission_has_comment",
+      "keyThrough": "sourceId"
+    },
+    "upvotes": {
+      "type": "hasMany",
+      "model": "upvote",
+      "foreignKey": "sourceId",
+      "through": "comment_has_upvote",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
