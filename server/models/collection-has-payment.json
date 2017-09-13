@@ -1,0 +1,39 @@
+{
+  "name": "collection_has_payment",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "collection",
+    "targetModel": "transaction"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collection": {
+      "type": "belongsTo",
+      "model": "collection",
+      "foreignKey": "sourceId"
+    },
+    "payment": {
+      "type": "belongsTo",
+      "model": "transaction",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
