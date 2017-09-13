@@ -348,5 +348,21 @@
   "vsession": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "requestedtopic": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_payment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "flag": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_flag": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

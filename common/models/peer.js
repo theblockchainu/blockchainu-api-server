@@ -217,7 +217,7 @@ module.exports = function (Peer) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
                                 //console.log(req.headers.origin + '/' + redirect);
-                                fn(null, {result: "success"});
+                                fn(null, { result: "success" });
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
@@ -299,14 +299,16 @@ module.exports = function (Peer) {
 
     Peer.confirmSmsOTP = function (req, token, fn) {
 
-        var cookieArray = req.headers.cookie.split(';');
-        var cookie = '';
-        for (var i = 0; i< cookieArray.length; i++) {
-            if(cookieArray[i].split('=')[0].trim() === 'userId') {
-                cookie = cookieArray[i].split('=')[1].trim();
-            }
-        }
-        var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
+        // var cookieArray = req.headers.cookie.split(';');
+        // var cookie = '';
+        // for (var i = 0; i < cookieArray.length; i++) {
+        //     if (cookieArray[i].split('=')[0].trim() === 'userId') {
+        //         cookie = cookieArray[i].split('=')[1].trim();
+        //     }
+        // }
+        // var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
+        var loggedinPeer = Peer.getCookieUserId(req);
+
         //if user is logged in
         if (loggedinPeer) {
             this.findById(loggedinPeer, function (err, user) {
@@ -357,15 +359,16 @@ module.exports = function (Peer) {
     Peer.sendVerifySms = function (req, phone, fn) {
 
         fn = fn || utils.createPromiseCallback();
-        var cookieArray = req.headers.cookie.split(';');
-        var cookie = '';
-        for (var i = 0; i< cookieArray.length; i++) {
-            if(cookieArray[i].split('=')[0].trim() === 'userId') {
-                cookie = cookieArray[i].split('=')[1].trim();
-            }
-        }
-        var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
-        var formattedPhone = phone.replace(/[^\d]/g,'');
+        // var cookieArray = req.headers.cookie.split(';');
+        // var cookie = '';
+        // for (var i = 0; i < cookieArray.length; i++) {
+        //     if (cookieArray[i].split('=')[0].trim() === 'userId') {
+        //         cookie = cookieArray[i].split('=')[1].trim();
+        //     }
+        // }
+        // var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
+        var loggedinPeer = Peer.getCookieUserId(req);
+        var formattedPhone = phone.replace(/[^\d]/g, '');
         formattedPhone = '+91' + formattedPhone;
         //if user is logged in
         if (loggedinPeer) {
@@ -401,7 +404,7 @@ module.exports = function (Peer) {
                                     fn(err);
                                 }
                                 else {
-                                    fn(null, {result: 'OTP SMS sent'});
+                                    fn(null, { result: 'OTP SMS sent' });
                                 }
                             });
                         }
@@ -489,6 +492,53 @@ module.exports = function (Peer) {
         });
 
         return cb.promise;
+    };
+
+    Peer.forgotPassword = function (email, fn) {
+
+        fn = fn || utils.createPromiseCallback();
+        this.findOne({ where: { email: email } }, function (err, user) {
+            if (err) {
+                fn(err);
+            } else {
+                if (user) {
+                    // Generate new verificationToken
+                    var verificationToken = passcode.hotp({
+                        secret: "0C6&7vvvv",
+                        counter: Date.now()
+                    });
+                    // Send token in email to user.
+                    var text = "To recover your account and reset your password, please <a href='http://www.peerbuds.com/forgot-pwd?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
+                    var message = { heading: text };
+                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                    var html_body = renderer(message);
+                    loopback.Email.send({
+                        to: email,
+                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                        subject: 'Peerbuds - Account recovery',
+                        html: html_body
+                    }).then(function (response) {
+                        console.log('email sent! - ' + response);
+                    }).catch(function (err) {
+                        console.log('email error! - ' + err);
+                    });
+                    user.verificationToken = verificationToken;
+                    user.save(function (err) {
+                        if (err) {
+                            fn(err);
+                        } else {
+                            fn(null, user);
+                        }
+                    });
+                } else {
+                    err = new Error(g.f('User not found: %s', uid));
+                    err.statusCode = 404;
+                    err.code = 'USER_NOT_FOUND';
+                    fn(err);
+                }
+            }
+        });
+        return fn.promise;
     };
 
     Peer.userCalendar = function (id, cb) {
@@ -775,6 +825,19 @@ module.exports = function (Peer) {
 
     };
 
+
+    Peer.getCookieUserId = function (req) {
+
+        var cookieArray = req.headers.cookie.split(';');
+        var cookie = '';
+        for (var i = 0; i < cookieArray.length; i++) {
+            if (cookieArray[i].split('=')[0].trim() === 'userId') {
+                cookie = cookieArray[i].split('=')[1].trim();
+            }
+        }
+        return cookie.split(/[ \:.]+/)[0].substring(4);
+    };
+
     /*!
      * Setup an extended user model.
      */
@@ -877,7 +940,7 @@ module.exports = function (Peer) {
                 accepts: [
                     { arg: 'req', type: 'object', http: { source: 'req' } },
                     { arg: 'phone', type: 'string', required: true }
-                    ],
+                ],
                 returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/sendVerifySms' }
             }
@@ -891,6 +954,17 @@ module.exports = function (Peer) {
                     { arg: 'options', type: 'object', required: true, http: { source: 'body' } }
                 ],
                 http: { verb: 'post', path: '/reset' }
+            }
+        );
+
+        PeerModel.remoteMethod(
+            'forgotPassword',
+            {
+                description: 'Forgot password for a user with email.',
+                accepts: [
+                    { arg: 'email', type: 'string', required: true }
+                ],
+                http: { verb: 'post', path: '/forgotPassword' }
             }
         );
 

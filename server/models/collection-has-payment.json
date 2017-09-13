@@ -1,13 +1,13 @@
 {
-  "name": "submission_has_topic",
+  "name": "collection_has_payment",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "submission",
-    "targetModel": "topic"
+    "sourceModel": "collection",
+    "targetModel": "transaction"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "submission": {
+    "collection": {
       "type": "belongsTo",
-      "model": "submission",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "topic": {
+    "payment": {
       "type": "belongsTo",
-      "model": "topic",
+      "model": "transaction",
       "foreignKey": "targetId"
     }
   },
