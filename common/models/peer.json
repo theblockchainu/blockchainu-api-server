@@ -203,13 +203,6 @@
       "through": "peer_has_payoutacc",
       "keyThrough": "targetId"
     },
-    "payoutrules": {
-      "type": "hasMany",
-      "model": "payoutrule",
-      "foreignKey": "sourceId",
-      "through": "peer_has_payoutrule",
-      "keyThrough": "targetId"
-    },
     "reviewsByYou": {
       "type": "hasMany",
       "model": "review",

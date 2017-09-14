@@ -217,6 +217,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_payment",
       "keyThrough": "targetId"
+    },
+    "payoutrules": {
+      "type": "hasMany",
+      "model": "payoutrule",
+      "foreignKey": "sourceId",
+      "through": "collection_has_payoutrule",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

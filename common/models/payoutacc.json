@@ -47,7 +47,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_payoutacc",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }
