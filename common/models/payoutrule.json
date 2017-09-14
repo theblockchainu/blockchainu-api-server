@@ -19,9 +19,6 @@
       "type": "string",
       "id": true
     },
-    "collectionId": {
-      "type": "string"
-    },
     "percentage1": {
       "type": "number"
     },
@@ -36,7 +33,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "collection": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_payoutrule",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

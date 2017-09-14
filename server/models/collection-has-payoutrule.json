@@ -1,12 +1,12 @@
 {
-  "name": "peer_has_payoutrule",
+  "name": "collection_has_payoutrule",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
+    "sourceModel": "collection",
     "targetModel": "payoutrule"
   },
   "properties": {
@@ -23,9 +23,9 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "collection": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
     "payoutrule": {

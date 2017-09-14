@@ -57,6 +57,32 @@ module.exports = function (Collection) {
                         console.log('email error! - ' + err);
                     });
 
+                // Create payout rule for this collection
+                var loggedinPeer = Collection.app.models.peer.getCookieUserId(req);
+                Collection.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] },
+                    function (err, peerInstance) {
+
+                        var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
+                        if (peerPayoutAccs && peerPayoutAccs.length) {
+
+                            peerPayoutAccs.forEach(function (payoutaccs) {
+
+                                if (payoutaccs.is_default) {
+                                    var payoutRule = {};
+                                    payoutRule.percentage1 = 100;
+                                    payoutRule.payoutId1 = payoutaccs.id;
+
+                                    collectionInstance.payoutrules.create(payoutRule,
+                                        function (err, payoutRulesInstance) {
+                                            if (err) {
+                                                payoutRulesInstance.destroy();
+                                                cb(err);
+                                            }
+                                        });
+                                }
+                            });
+                        }
+                    });
                 cb(null, 'Submitted for review. Email sent to user.');
             }
             else {

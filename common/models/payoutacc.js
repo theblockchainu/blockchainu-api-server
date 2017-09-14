@@ -37,8 +37,11 @@ module.exports = function (PayoutAcc) {
                     if (!authRes.hasOwnProperty("error")) {
 
                         var connUser = authRes;
-                        PayoutAcc.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
+                        PayoutAcc.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] }, function (err, peerInstance) {
                             if (!err && peerInstance !== null) {
+                                var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
+                                if (peerPayoutAccs && !peerPayoutAccs.length)
+                                    connUser.is_default = true;
                                 peerInstance.payoutaccs.create(connUser, function (err, connUserInstance) {
                                     if (err) {
                                         connUserInstance.destroy();
