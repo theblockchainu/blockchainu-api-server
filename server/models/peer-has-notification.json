@@ -28,7 +28,7 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "transaction": {
+    "notification": {
       "type": "belongsTo",
       "model": "notification",
       "foreignKey": "targetId"

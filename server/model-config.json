@@ -384,5 +384,21 @@
   "peer_has_flag": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "media_has_owner": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "notification_has_owner": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "notification_has_actor": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "notification_has_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

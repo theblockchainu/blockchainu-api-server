@@ -1,18 +1,17 @@
 {
-  "name": "peer_has_flag",
+  "name": "notification_has_actor",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "flag"
+    "sourceModel": "notification",
+    "targetModel": "peer"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "id": true
+      "type": "string"
     },
     "sourceId": {
       "type": "string"
@@ -23,14 +22,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "notification": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "notification",
       "foreignKey": "sourceId"
     },
-    "flag": {
+    "actor": {
       "type": "belongsTo",
-      "model": "flag",
+      "model": "peer",
       "foreignKey": "targetId"
     }
   },

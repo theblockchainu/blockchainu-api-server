@@ -22,7 +22,8 @@
     "connector": "loopback-component-storage",
     "provider": "amazon",
     "key": "+A6HpkJP18JXp/gq1ypDVddyVkkkuBd57YPsl1d9",
-    "keyId": "AKIAJNBGI45QDD7GUIFQ"
+    "keyId": "AKIAJNBGI45QDD7GUIFQ",
+    "nameConflict": "makeUnique"
   },
   "mailgun": {
     "name": "mailgun",

@@ -19,12 +19,6 @@
       "type": "string",
       "id": true
     },
-    "created": {
-      "type": "date"
-    },
-    "modified": {
-      "type": "date"
-    },
     "type": {
       "type": "string"
     },
@@ -34,22 +28,48 @@
     "description": {
       "type": "string"
     },
-    "from": {
-      "type": "string"
-    },
-    "to": {
-      "type": "string"
-    },
-    "refId": {
-      "type": "string"
+    "actionUrl": {
+      "type": [
+        "string"
+      ]
     },
     "seen": {
+      "type": "boolean",
+      "default": false
+    },
+    "new": {
+      "type": "boolean",
+      "default": true
+    },
+    "hidden": {
       "type": "boolean",
       "default": false
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_notification",
+      "keyThrough": "sourceId"
+    },
+    "actor": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "notification_has_actor",
+      "keyThrough": "targetId"
+    },
+    "collection": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "notification_has_collection",
+      "keyThrough": "targetId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

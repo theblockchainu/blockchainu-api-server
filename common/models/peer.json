@@ -230,6 +230,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_flag",
       "keyThrough": "targetId"
+    },
+    "medias": {
+      "type": "hasMany",
+      "model": "media",
+      "foreignKey": "targetId",
+      "through": "media_has_owner",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

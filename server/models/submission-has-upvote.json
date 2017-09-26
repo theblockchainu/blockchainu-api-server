@@ -21,6 +21,7 @@
       "type": "string"
     }
   },
+  "validations": [],
   "relations": {
     "submission": {
       "type": "belongsTo",
@@ -33,7 +34,6 @@
       "foreignKey": "targetId"
     }
   },
-  "validations": [],
   "acls": [],
   "methods": {}
 }

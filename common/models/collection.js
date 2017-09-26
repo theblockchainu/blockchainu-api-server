@@ -6,6 +6,47 @@ var g = require('../../node_modules/loopback/lib/globalize');
 module.exports = function (Collection) {
 
 
+    Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
+        // New participant added to collection. Notify collection owner.
+        var collectionInstance = ctx.instance;
+        collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
+           if(err) {
+               next(err);
+           }
+           else {
+               var ownerInstance = ownerInstances[0];
+               ownerInstance.__create__notifications({
+                   type: "action",
+                   title: "New participant!",
+                   description: "%username% joined %collectionTitle%",
+                   actionUrl: [collectionInstance.type,collectionInstance.id,"calendar",participantInstance.calendarId]
+               }, function(err, notificationInstance) {
+                  if(err) {
+                      next(err);
+                  }
+                  else {
+                      notificationInstance.actor.add(participantInstance.sourceId, function(err, actorInstance){
+                         if(err){
+                             next(err);
+                         }
+                         else {
+                             notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                if(err) {
+                                    next(err);
+                                }
+                                else {
+                                    next();
+                                }
+                             });
+                         }
+                      });
+                  }
+               });
+           }
+        });
+    });
+
+
     Collection.submitForReview = function (id, req, cb) {
         // Find the collection by given ID
         Collection.findById(id, function (err, collectionInstance) {
@@ -100,14 +141,6 @@ module.exports = function (Collection) {
         Collection.findById(id, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
-                // var cookieArray = req.headers.cookie.split(';');
-                // var cookie = '';
-                // for (var i = 0; i< cookieArray.length; i++) {
-                //     if(cookieArray[i].split('=')[0].trim() === 'userId') {
-                //         cookie = cookieArray[i].split('=')[1].trim();
-                //     }
-                // }
-                // var userId = cookie.split(/[ \:.]+/)[0].substring(4);
                 var userId = Collection.app.models.peer.getCookieUserId(req);
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
@@ -164,8 +197,6 @@ module.exports = function (Collection) {
 
     Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
         var collectionInstance = ctx.instance;
-        /*console.log("ctx keys: " + Object.keys(ctx));
-        console.log("ctx args: " + JSON.stringify(ctx.args));*/
         if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
             next();
         }
