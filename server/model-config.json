@@ -131,7 +131,7 @@
   },
   "peer_has_profile": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "collection_has_participant": {
     "dataSource": "neo4j-cypher",
@@ -231,7 +231,7 @@
   },
   "content_has_schedule": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "language": {
     "dataSource": "neo4j",
@@ -267,7 +267,7 @@
   },
   "content_has_location": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "transaction": {
     "dataSource": "neo4j",
@@ -311,7 +311,7 @@
   },
   "peer_has_notification": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "peer_has_review": {
     "dataSource": "neo4j-cypher",
@@ -319,7 +319,7 @@
   },
   "content_has_submission": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "submission": {
     "dataSource": "neo4j",
@@ -327,11 +327,11 @@
   },
   "submission_has_peer": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "submission_has_topic": {
     "dataSource": "neo4j-cypher",
-    "public": true
+    "public": false
   },
   "payoutrule": {
     "dataSource": "neo4j",
