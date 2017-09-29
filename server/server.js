@@ -228,8 +228,10 @@ app.post('/signup', function (req, res, next) {
         User.login({ email: newUser.email, password: newUser.password }, function (err, accessToken) {
             if (err) {
                 console.log("User model login error: " + err);
-                req.flash('error', err);
-                return res.redirect('back');
+                return res.json({
+                    'status': 'failed',
+                    'reason': 'Err: ' + err
+                });
             }
             if (accessToken) {
                 console.log("Access token: " + JSON.stringify(accessToken));
@@ -239,8 +241,10 @@ app.post('/signup', function (req, res, next) {
                 // be invoked to log in the newly registered user.
                 req.login(user, function (err) {
                     if (err) {
-                        req.flash('error', err.message);
-                        return res.redirect('back');
+                        return res.json({
+                            'status': 'failed',
+                            'reason': 'Err: ' + err
+                        });
                     }
                     res.cookie('access_token', accessToken[0].token.properties.id, {
                         signed: req.signedCookies ? true : false,
@@ -258,8 +262,10 @@ app.post('/signup', function (req, res, next) {
                 });
             } else {
                 console.log("no access token");
-                req.flash('error', 'Could not create access token');
-                return res.redirect('back');
+                return res.json({
+                    'status': 'failed',
+                    'reason': 'Err: Could not create access token'
+                });
             }
         });
     };
@@ -269,53 +275,62 @@ app.post('/signup', function (req, res, next) {
         console.log('Creating Profile Node');
         user.createProfile(profile, profileObject, user, function (err, user, profileNode) {
             if (!err) {
-                console.log('created!');
             } else {
-                console.log("ERROR");
+                console.log("ERROR CREATING PROFILE");
             }
         });
     };
 
-    User.findOrCreate({ where: query }, newUser, function (err, user, created) {
+    console.log('trying to find user with query: ' + JSON.stringify(query));
+    User.findOne({where: query}, function(err, existingUserInstance) {
+       if (err) {
+           return res.json({
+               'status': 'failed',
+               'reason': 'Err: ' + err
+            });
+       }
+       else {
+           if (existingUserInstance !== null) {
+               console.log("found existing USER");
+               return res.json({
+                   'status': 'failed',
+                   'reason': 'User email already exists. Try logging instead.'
+               });
+           }
+           else {
+               User.create(newUser, function (err, user) {
 
-        if (err) {
-            console.log("Error is: " + err);
-            req.flash('error', err.message);
-            return res.redirect('back');
-        } else {
-            console.log("User is: " + JSON.stringify(user));
+                   if (err) {
+                       return res.json({
+                           'status': 'failed',
+                           'reason': 'Err: ' + err
+                       });
+                   } else {
+                       console.log("User is: " + JSON.stringify(user));
 
-            setPassword(newUser.password);
+                       setPassword(newUser.password);
 
-            if (created) {
-                console.log("created new instance");
-                createProfileNode(user);
-                loopbackLogin(user);
-            }
-            // Found an existing account with this email ID and username
-            // Update the password field of that account with new password
-            // Update the username field of that account with new username
-            else {
+                       var stripeTransaction = app.models.transaction;
+                       stripeTransaction.createCustomer(user, function (err, data) {
+                           console.log("Stripe Customer : " + JSON.stringify(data));
+                       });
+                       console.log("NEW USER ACCOUNT CREATED");
+                       User.dataSource.connector.execute(
+                           "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
+                           function (err, results) {
+                               if (!err) {
+                                   createProfileNode(user);
+                                   loopbackLogin(user);
+                               }
+                               else {
 
-                var stripeTransaction = app.models.transaction;
-                stripeTransaction.createCustomer(user, function (err, data) {
-                    console.log("Stripe Customer : " + JSON.stringify(data));
-                });
-                console.log("found existing instance");
-                User.dataSource.connector.execute(
-                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
-                    function (err, results) {
-                        if (!err) {
-                            createProfileNode(user);
-                            loopbackLogin(user);
-                        }
-                        else {
-
-                        }
-                    }
-                );
-            }
-        }
+                               }
+                           }
+                       );
+                   }
+               });
+           }
+       }
     });
 });
 
