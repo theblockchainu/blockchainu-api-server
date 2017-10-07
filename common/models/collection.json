@@ -126,6 +126,9 @@
       "type": "string",
       "default": "draft"
     },
+    "submittedAt": {
+      "type": "date"
+    },
     "repeatPattern": {
       "type": "string"
     },

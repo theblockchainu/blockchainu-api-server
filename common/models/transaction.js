@@ -108,7 +108,6 @@ module.exports = function (Transaction) {
      * customer - stripe customer id 
      */
     Transaction.createSource = function (req, customer, data, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
 
         //if user is logged in
@@ -127,7 +126,7 @@ module.exports = function (Transaction) {
         if (data.hasOwnProperty("token"))
             requestData.source = data.token;
         else
-            requestData = data
+            requestData = data;
         stripe.customers.createSource(customer, requestData,
             function (err, card) {
                 if (err) {
@@ -138,23 +137,6 @@ module.exports = function (Transaction) {
             });
     }
 
-    /*
-    function createSourceForCustomer(type, token, customer, cb) {
-        stripe.sources.create({
-            type: type,
-            token: token,
-        }, function (err, source) {
-            if (err) {
-                cb(err)
-            } else {
-                stripe.customers.createSource(customer, {
-                    source: source.id
-                });
-                cb(null, source);
-            }
-        });
-    }
-    */
 
     /**
      * Get a card details by card id for customer from customer id 

@@ -37,17 +37,18 @@ module.exports = function (Model, options) {
                     var relatedModel = modelInstance[relation];
                     var targetIds = data.targetIds;
                     if (targetIds.constructor === Array) {
-                        targetIds.forEach(function (id) {
-                            relatedModel.remove(id, function (err, instanceData) {
+                        var errorIds = [];
+                        targetIds.forEach(function (targetId) {
+                            relatedModel.remove(targetId, function (err, instanceData) {
                                 if (err) {
                                     console.log(err);
-                                    cb(err);
+                                    errorIds.push(targetId);
                                 } else {
                                     console.log(instanceData);
                                 }
                             });
                         }, this);
-                        cb(null, true);
+                        cb(null, errorIds);
                     } else {
                         cb(err, "Please input Array targetIds:[]");
                     }
