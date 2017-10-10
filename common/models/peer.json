@@ -107,10 +107,7 @@
     "credentials": {
       "type": "hasMany",
       "model": "userCredential",
-      "foreignKey": "userId",
-      "options": {
-        "disableInclude": true
-      }
+      "foreignKey": "userId"
     },
     "topicsLearning": {
       "type": "hasMany",

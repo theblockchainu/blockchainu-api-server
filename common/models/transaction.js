@@ -2,23 +2,15 @@
 var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
 var stripe = require('stripe')(stripeKey);
-var socket = require('socket.io-client')('http://localhost:3000');
 
 module.exports = function (Transaction) {
-
-    var thisUser = {
-        id: '100',
-        email: 'abc@abc.com',
-        fullName: 'abc'
-    };
-    //socket.emit('add user', thisUser);
 
     //Customer related functions here
     /**
      * customerId = stripe customer id
      */
     Transaction.getCustomer = function (req, customerId, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -77,7 +69,6 @@ module.exports = function (Transaction) {
      */
     Transaction.editCustomer = function (req, customerId, data, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
 
         //if user is logged in
@@ -142,7 +133,6 @@ module.exports = function (Transaction) {
      * Get a card details by card id for customer from customer id 
      */
     Transaction.getACard = function (req, customerId, cardId, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -166,7 +156,6 @@ module.exports = function (Transaction) {
      * Get all card details for customer by customer id 
      */
     Transaction.listAllCards = function (req, customerId, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -192,7 +181,6 @@ module.exports = function (Transaction) {
      */
     Transaction.editCard = function (req, customerId, cardId, data, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -215,7 +203,6 @@ module.exports = function (Transaction) {
      */
     Transaction.deleteCard = function (req, customerId, cardId, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -237,7 +224,7 @@ module.exports = function (Transaction) {
      * Retrive bank details by account id for customer by customer id 
      */
     Transaction.retriveBankAccount = function (req, customerId, accId, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -261,7 +248,7 @@ module.exports = function (Transaction) {
      * List all bank accounts for customer by customer id 
      */
     Transaction.listBankAccounts = function (req, customerId, cb) {
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -287,7 +274,6 @@ module.exports = function (Transaction) {
      */
     Transaction.editBankAccount = function (req, customerId, accId, data, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -310,7 +296,6 @@ module.exports = function (Transaction) {
      */
     Transaction.deleteBankAccount = function (req, customerId, accId, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -339,7 +324,6 @@ module.exports = function (Transaction) {
      */
     Transaction.createCharge = function (req, chargeItem, chargeItemId, reqObj, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
@@ -362,7 +346,6 @@ module.exports = function (Transaction) {
                     Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
                         if (!err && peerInstance !== null) {
                             peerInstance.transactions.create(charge, function (err, chargeInstance) {
-                                // Transaction.app.models.transaction.create(charge, function (err, chargeInstance) {
                                 if (err) {
                                     chargeInstance.destroy();
                                     cb(err);
@@ -402,7 +385,6 @@ module.exports = function (Transaction) {
      */
     Transaction.transferFund = function (req, data, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
         //if user is logged in
         if (loggedinPeer) {
