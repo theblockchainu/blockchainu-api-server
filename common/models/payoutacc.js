@@ -2,6 +2,7 @@
 var app = require('../../server/server');
 var request = require('request');
 var client_secret = app.get('stripeKey'); //need to take it from config file
+var stripe = require("stripe")(client_secret);
 
 module.exports = function (PayoutAcc) {
 
@@ -29,13 +30,10 @@ module.exports = function (PayoutAcc) {
                 method: 'POST'               //Specify the method
             }, function (error, res, resBody) {
                 if (error) {
-                    //console.log(error);
+                    console.log(error);
                 } else {
-                    console.log(res.statusCode, resBody);
-
                     var authRes = JSON.parse(resBody);
                     if (!authRes.hasOwnProperty("error")) {
-
                         var connUser = authRes;
                         PayoutAcc.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] }, function (err, peerInstance) {
                             if (!err && peerInstance !== null) {
@@ -55,7 +53,6 @@ module.exports = function (PayoutAcc) {
                                 cb(err);
                             }
                         });
-
                     } else {
                         cb(authRes.error_description);
                     }
@@ -72,6 +69,72 @@ module.exports = function (PayoutAcc) {
         }
     }
 
+    PayoutAcc.retrieveConnectedAccs = function (req, cb) {
+        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
+        var loggedinPeer = PayoutAcc.app.models.peer.getCookieUserId(req);
+        // if user is logged in
+        if (loggedinPeer) {
+            //Remove user from Session
+            console.log('logged in');
+            PayoutAcc.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] }, function (err, peerInstance) {
+                if (!err && peerInstance !== null) {
+                    var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
+                    if (peerPayoutAccs) {
+                        var stripeAccounts = [];
+                        let requests = peerPayoutAccs.map((peerAccount) => {
+                            return new Promise((resolve) => {
+                                stripe.accounts.retrieve(
+                                    peerAccount.stripe_user_id,
+                                    function (err, account) {
+                                        if (err) {
+                                            console.log(err);
+                                            resolve();
+                                        } else {
+                                            stripeAccounts.push(account);
+                                            resolve();
+                                        }
+                                    }
+                                );
+                            });
+                        });
+                        Promise.all(requests).then(() => {
+                            cb(null, stripeAccounts)
+                        });
+
+                    }
+
+                }
+                else {
+                    cb(err);
+                }
+            });
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            cb(err);
+        }
+    }
+
+    PayoutAcc.createLoginLink = function (req, accountId, cb) {
+        var loggedinPeer = PayoutAcc.app.models.peer.getCookieUserId(req);
+        // if user is logged in
+        if (loggedinPeer) {
+            stripe.accounts.createLoginLink(accountId, function (err, account) {
+                if (err) {
+                    cb(err);
+                }
+                else {
+                    cb(null, account);
+                }
+            });
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            cb(err);
+        }
+    }
+
+
     PayoutAcc.remoteMethod('createConnectedAcc', {
         description: 'Create connected account',
         accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
@@ -81,6 +144,28 @@ module.exports = function (PayoutAcc) {
         ],
         returns: { arg: 'contentObject', type: 'object', root: true },
         http: { verb: 'get', path: '/create-connected-account' }
+    });
+
+    PayoutAcc.remoteMethod('retrieveConnectedAccs', {
+        description: 'Retrieve connected account',
+        accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } }
+        ],
+        returns: { arg: 'contentObject', type: 'object', root: true },
+        http: {
+            verb: 'get', path: '/retrieve-connected-accounts'
+        }
+    });
+
+    PayoutAcc.remoteMethod('createLoginLink', {
+        description: 'Create Login Link',
+        accepts: [
+            { arg: 'req', type: 'object', http: { source: 'req' } },
+            { arg: 'accountId', type: 'string', required: true }
+        ],
+        returns: { arg: 'contentObject', type: 'object', root: true },
+        http: {
+            verb: 'get', path: '/create-login-link'
+        }
     });
 
 };
