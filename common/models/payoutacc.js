@@ -15,7 +15,6 @@ module.exports = function (PayoutAcc) {
      */
     PayoutAcc.createConnectedAcc = function (req, authCode, error, errorDesc, cb) {
 
-        //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];
         var loggedinPeer = PayoutAcc.app.models.peer.getCookieUserId(req);
         // if user is logged in
         if (loggedinPeer && !error) {
@@ -67,7 +66,7 @@ module.exports = function (PayoutAcc) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     PayoutAcc.retrieveConnectedAccs = function (req, cb) {
         //var loggedinPeer = req.cookies.userId.split(/[ \:.]+/)[1];

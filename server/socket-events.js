@@ -79,6 +79,11 @@ exports = module.exports = function (io) {
             sendNotification(messageNotification);
         });
 
+        socket.on('notification', function (newNotification) {
+            console.log('NewNotification', messageNotification);
+            sendNotification(newNotification);
+        });
+
         socket.on('got reply', function (replyNotification) {
             console.log('ReplyNotification', replyNotification);
         });

@@ -481,7 +481,7 @@ module.exports = function (Peer) {
                 if (err) {
                     return cb(err);
                 }
-                cb();
+                cb(null,accessToken);
                 PeerModel.emit('resetPasswordRequest', {
                     email: options.email,
                     accessToken: accessToken,
@@ -494,7 +494,7 @@ module.exports = function (Peer) {
         return cb.promise;
     };
 
-    Peer.forgotPassword = function (email, fn) {
+    Peer.forgotPassword = function (req, email, fn) {
 
         fn = fn || utils.createPromiseCallback();
         this.findOne({ where: { email: email } }, function (err, user) {
@@ -508,7 +508,7 @@ module.exports = function (Peer) {
                         counter: Date.now()
                     });
                     // Send token in email to user.
-                    var text = "To recover your account and reset your password, please <a href='http://www.peerbuds.com/forgot-pwd?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
+                    var text = "To recover your account and reset your password, please <a href='"+ req.headers.origin + "/reset?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
                     var message = { heading: text };
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                     var html_body = renderer(message);
@@ -962,6 +962,7 @@ module.exports = function (Peer) {
             {
                 description: 'Forgot password for a user with email.',
                 accepts: [
+                    { arg: 'req', type: 'object', http: { source: 'req' } },
                     { arg: 'email', type: 'string', required: true }
                 ],
                 http: { verb: 'post', path: '/forgotPassword' }
