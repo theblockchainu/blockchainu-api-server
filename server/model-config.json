@@ -400,5 +400,13 @@
   "notification_has_collection": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_view": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "view_has_viewer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -12,7 +12,8 @@
         "comments",
         "upvotes",
         "downvotes",
-        "bookmarks"
+        "bookmarks",
+        "views"
       ]
     },
     "HasOne": {

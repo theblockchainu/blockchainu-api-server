@@ -18,9 +18,6 @@
       "type": "string",
       "id": true
     },
-    "fk": {
-      "type": "string"
-    },
     "type": {
       "type": "string"
     },
@@ -32,10 +29,41 @@
     },
     "browser": {
       "type": "string"
+    },
+    "viewedModelName": {
+      "type": "string"
+    },
+    "startTime": {
+      "type": "date"
+    },
+    "endTime": {
+      "type": "date"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_view",
+      "keyThrough": "sourceId"
+    },
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "targetId",
+      "through": "content_has_view",
+      "keyThrough": "sourceId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "view_has_viewer",
+      "keyThrough": "targetId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

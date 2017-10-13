@@ -234,6 +234,13 @@
       "foreignKey": "targetId",
       "through": "media_has_owner",
       "keyThrough": "sourceId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "views",
+      "foreignKey": "targetId",
+      "through": "view_has_viewer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

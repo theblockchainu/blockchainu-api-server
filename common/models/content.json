@@ -24,7 +24,8 @@
     "AddPeerRelation": {
       "relationName": [
         "comments",
-        "submissions"
+        "submissions",
+        "views"
       ]
     },
     "TimeStamp": {
@@ -107,6 +108,13 @@
       "model": "submission",
       "foreignKey": "sourceId",
       "through": "content_has_submission",
+      "keyThrough": "targetId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "view",
+      "foreignKey": "sourceId",
+      "through": "content_has_view",
       "keyThrough": "targetId"
     }
   },

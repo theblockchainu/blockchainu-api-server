@@ -1,0 +1,35 @@
+{
+  "name": "view_has_viewer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "neo4j": {
+    "sourceModel": "view",
+    "targetModel": "peer"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "view": {
+      "type": "belongsTo",
+      "model": "view",
+      "foreignKey": "sourceId"
+    },
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "targetId"
+    }
+  },
+  "methods": {}
+}

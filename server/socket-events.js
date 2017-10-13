@@ -10,21 +10,19 @@ exports = module.exports = function (io) {
             socket.join(room);
         });
 
-        socket.on('add user', function (user) {
+        socket.on('addUser', function (user) {
 
             try {
-
-                //console.log("adding user"+JSON.stringify(user, null, 4));
-                console.log("\n\n\n\n\n//**** Connecting user " + user.fullName + " id:" + user.id + " to socket " + socket.id + "****//");
+                console.log("\n\n\n\n\n//**** Connecting user id:" + user.id + " to socket " + socket.id + "****//");
                 socket.userId = user.id;
                 var connUser = findById(users, user.id);
-                if (connUser != undefined) {                  //user is already connected from some location
-                    if (findById(connUser.socketConns, socket.id) == undefined) {
+                if (connUser !== undefined) {                  //user is already connected from some location
+                    if (findById(connUser.socketConns, socket.id) === undefined) {
                         connUser.socketConns.push(socket.id);       // Store this socket reference as well for this user
                     }
                 } else {
 
-                    var userSockets = new Array();
+                    var userSockets = [];
                     userSockets.push(socket.id);    // Store a reference to your socket as there could be multiple socket for same user.
                     user.socketConns = userSockets;
                     users.push(user);         // Store this newly connected user in global users connection list
@@ -84,6 +82,18 @@ exports = module.exports = function (io) {
             sendNotification(newNotification);
         });
 
+        socket.on('startView', function (view) {
+            var connUser = findById(users, view.viewer.id);
+            console.log('startView', view);
+            startView(view, connUser);
+        });
+
+        socket.on('endView', function (view) {
+            var connUser = findById(users, view.viewer.id);
+            console.log('endView', view);
+            endView(view, connUser);
+        });
+
         socket.on('got reply', function (replyNotification) {
             console.log('ReplyNotification', replyNotification);
         });
@@ -121,8 +131,76 @@ exports = module.exports = function (io) {
                 }
             }
         }
+
+        function startView(view, connUser) {
+            if (view.viewedModelName === 'content') {
+                app.models.content.findById(view.content.id, function(err, contentInstance) {
+                    var viewer = view.viewer;
+                    delete view.content;
+                    delete view.viewer;
+                    if (err) {
+                       console.log(err);
+                    }
+                    else {
+                        // create a view node
+                        contentInstance.views.create(view, function (err, newViewInstance) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                // add a peer relation to the new view node
+                                app.models.peer.findById(viewer.id, function (err, peerInstance) {
+                                    if (err) {
+                                        console.log("User for this view Not Found");
+                                    } else {
+                                        newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                console.log(addedPeerInstance);
+                                                sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                console.log('no function to handle view for this model');
+            }
+        }
+
+        function endView(view, connUser) {
+            if (view.viewedModelName === 'content') {
+                delete view.viewer;
+                app.models.view.upsertWithWhere({"id": view.id}, view, function (err, newViewInstance) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        sendEmitToUser(connUser, 'endedView', newViewInstance);
+                    }
+                });
+            }
+            else {
+                console.log('no function to handle view for this model');
+            }
+        }
     });
 
+    function sendEmitToUser(toUser, emitKey, emitBody) {
+        if (toUser !== undefined) {
+            for (var j = 0; j < toUser.socketConns.length; j++) {
+                app.io.to(toUser.socketConns[j]).emit(emitKey, emitBody);
+            }
+        }
+        else {
+            console.log('Cannot emit on socket to undefined user. Maybe you restarted api server. Try refreshing front end page.');
+        }
+    }
 
     /**
      * Fn to find an Object based on some id from the given source
@@ -146,15 +224,13 @@ exports = module.exports = function (io) {
     function printConnectedUsers() {
         try {
             var log = "";
-            if (users.length) {
+            if (users !== undefined && users.length) {
                 log += "\n///////*****************************************///////";
                 log += "\n///////********** Connected Users **************///////";
                 log += "\n///////*****************************************///////";
                 var userCount = 1;
                 for (var i = 0; i < users.length; i++) {
-                    // log += JSON.stringify(users[i]);
-                    log += "\n\t" + (userCount++) + ") " + users[i].fullName
-                        + " Sockets(";
+                    log += "\n\t" + (userCount++) + ") " + users[i].id + " Sockets(";
                     for (var j = 0; j < users[i].socketConns.length; j++) {
                         log += users[i].socketConns[j] + ", ";
                     }
