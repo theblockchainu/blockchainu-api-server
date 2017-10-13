@@ -274,64 +274,66 @@ app.post('/signup', function (req, res, next) {
     var createProfileNode = function (user) {
         var profile = app.models.profile;
         console.log('Creating Profile Node');
-        user.createProfile(profile, profileObject, user, function (err, user, profileNode) {
+        user.updateProfileNode(profile, profileObject, user, function (err, user, profileNode) {
             if (!err) {
+                console.log(user);
             } else {
                 console.log("ERROR CREATING PROFILE");
             }
         });
     };
 
+
     console.log('trying to find user with query: ' + JSON.stringify(query));
-    User.findOne({where: query}, function(err, existingUserInstance) {
-       if (err) {
-           return res.json({
-               'status': 'failed',
-               'reason': 'Err: ' + err
+    User.findOne({ where: query }, function (err, existingUserInstance) {
+        if (err) {
+            return res.json({
+                'status': 'failed',
+                'reason': 'Err: ' + err
             });
-       }
-       else {
-           if (existingUserInstance !== null) {
-               console.log("found existing USER");
-               return res.json({
-                   'status': 'failed',
-                   'reason': 'User email already exists. Try logging instead.'
-               });
-           }
-           else {
-               User.create(newUser, function (err, user) {
+        }
+        else {
+            if (existingUserInstance !== null) {
+                console.log("found existing USER");
+                return res.json({
+                    'status': 'failed',
+                    'reason': 'User email already exists. Try logging instead.'
+                });
+            }
+            else {
+                User.create(newUser, function (err, user) {
 
-                   if (err) {
-                       return res.json({
-                           'status': 'failed',
-                           'reason': 'Err: ' + err
-                       });
-                   } else {
-                       console.log("User is: " + JSON.stringify(user));
+                    if (err) {
+                        return res.json({
+                            'status': 'failed',
+                            'reason': 'Err: ' + err
+                        });
+                    } else {
+                        console.log("User is: " + JSON.stringify(user));
 
-                       setPassword(newUser.password);
+                        setPassword(newUser.password);
 
-                       var stripeTransaction = app.models.transaction;
-                       stripeTransaction.createCustomer(user, function (err, data) {
-                           console.log("Stripe Customer : " + JSON.stringify(data));
-                       });
-                       console.log("NEW USER ACCOUNT CREATED");
-                       User.dataSource.connector.execute(
-                           "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
-                           function (err, results) {
-                               if (!err) {
-                                   createProfileNode(user);
-                                   loopbackLogin(user);
-                               }
-                               else {
+                        var stripeTransaction = app.models.transaction;
+                        stripeTransaction.createCustomer(user, function (err, data) {
+                            console.log("Stripe Customer : " + JSON.stringify(data));
+                        });
+                        console.log("NEW USER ACCOUNT CREATED");
+                        User.dataSource.connector.execute(
+                            "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
+                            function (err, results) {
+                                if (!err) {
+                                    createProfileNode(user);
+                                    loopbackLogin(user);
+                                }
+                                else {
 
-                               }
-                           }
-                       );
-                   }
-               });
-           }
-       }
+                                }
+                            }
+                        );
+                    }
+                });
+            }
+        }
     });
 });
 
