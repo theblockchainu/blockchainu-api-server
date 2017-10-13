@@ -21,7 +21,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_payment",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }
