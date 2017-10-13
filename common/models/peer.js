@@ -481,7 +481,7 @@ module.exports = function (Peer) {
                 if (err) {
                     return cb(err);
                 }
-                cb(null,accessToken);
+                cb(null, accessToken);
                 PeerModel.emit('resetPasswordRequest', {
                     email: options.email,
                     accessToken: accessToken,
@@ -508,7 +508,7 @@ module.exports = function (Peer) {
                         counter: Date.now()
                     });
                     // Send token in email to user.
-                    var text = "To recover your account and reset your password, please <a href='"+ req.headers.origin + "/reset?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
+                    var text = "To recover your account and reset your password, please <a href='" + req.headers.origin + "/reset?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
                     var message = { heading: text };
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                     var html_body = renderer(message);
@@ -752,6 +752,42 @@ module.exports = function (Peer) {
         return cb.promise;
     };
 
+    Peer.prototype.updateProfileNode = function (profileModel, profileObject, user, cb) {
+        Peer.findById(user.id, function (err, modelInstance) {
+            if (err) {
+                cb(err);
+            } else {
+                console.log(modelInstance);
+                if (modelInstance) {
+                    modelInstance.profiles((err, instances) => {
+                        if (err) {
+                            cb(err);
+                        } else {
+                            if (instances[0]) {
+                                var objId = instances[0].id;
+                                Peer.app.models.profile.upsertWithWhere({ "id": objId }, profileObject, function (err, updatedInstance) {
+                                    if (err) {
+                                        cb(err)
+                                    }
+                                    else {
+                                        cb(null, updatedInstance)
+                                    }
+                                });
+                            } else {
+                                console.log("not Added");
+                                cb();
+                            }
+                        }
+                    });
+                } else {
+                    console.log("Not Found");
+                    cb();
+                }
+
+            }
+
+        });
+    }
 
     Peer.prototype.hasPassword = function (plain, fn) {
         fn = fn || utils.createPromiseCallback();
