@@ -1,0 +1,23 @@
+{
+  "name": "phone_number",
+  "base": "Model",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "country_code": {
+      "type": "number"
+    },
+    "subscriber_number": {
+      "type": "number"
+    },
+    "isPrimary": {
+      "type": "boolean"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

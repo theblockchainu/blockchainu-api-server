@@ -408,5 +408,9 @@
   "view_has_viewer": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "phone_number": {
+    "dataSource": null,
+    "public": false
   }
 }
