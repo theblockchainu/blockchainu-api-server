@@ -29,6 +29,10 @@
     },
     "endYear": {
       "type": "string"
+    },
+    "presentlyPursuing": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

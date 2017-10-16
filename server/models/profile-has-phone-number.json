@@ -1,10 +1,13 @@
 {
-  "name": "view_has_viewer",
+  "name": "profile_has_phoneNumber",
   "base": "PersistedModel",
   "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
   "neo4j": {
-    "sourceModel": "view",
-    "targetModel": "peer"
+    "sourceModel": "profile",
+    "targetModel": "phone"
   },
   "properties": {
     "id": {
@@ -20,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "view": {
+    "profile": {
       "type": "belongsTo",
-      "model": "view",
+      "model": "profile",
       "foreignKey": "sourceId"
     },
-    "peer": {
+    "phoneNumber": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "phone",
       "foreignKey": "targetId"
     }
   },

@@ -50,6 +50,7 @@ module.exports = function (Collection) {
     Collection.submitForReview = function (id, req, cb) {
         // Find the collection by given ID
         Collection.findById(id, function (err, collectionInstance) {
+            var loggedinPeer = Collection.app.models.peer.getCookieUserId(req);
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
                 //var ownerEmail = collectionInstance.toJSON().owners[0].email;
@@ -85,23 +86,23 @@ module.exports = function (Collection) {
                 }
                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                 var html_body = renderer(message);
-                loopback.Email.send({
-                    to: 'connect@aakashbansal.com',
-                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                    subject: subject,
-                    html: html_body
-                })
-                    .then(function (response) {
-                        console.log('email sent! - ' + response);
-                    })
-                    .catch(function (err) {
-                        console.log('email error! - ' + err);
-                    });
 
                 // Create payout rule for this collection
-                var loggedinPeer = Collection.app.models.peer.getCookieUserId(req);
                 Collection.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] },
                     function (err, peerInstance) {
+
+                        loopback.Email.send({
+                            to: peerInstance.toJSON().email,
+                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            subject: subject,
+                            html: html_body
+                        })
+                            .then(function (response) {
+                                console.log('email sent! - ' + response);
+                            })
+                            .catch(function (err) {
+                                console.log('email error! - ' + err);
+                            });
 
                         var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
                         if (peerPayoutAccs && peerPayoutAccs.length) {
@@ -138,9 +139,10 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, function (err, collectionInstance) {
+        Collection.findById(id, {"include": {"owners": "profiles"}}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
+                var ownerId = collectionInstance.toJSON().owners[0].id;
                 var userId = Collection.app.models.peer.getCookieUserId(req);
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
@@ -170,18 +172,49 @@ module.exports = function (Collection) {
                 }
                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                 var html_body = renderer(message);
-                loopback.Email.send({
-                    to: 'connect@aakashbansal.com',
-                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                    subject: subject,
-                    html: html_body
-                })
-                    .then(function (response) {
-                        console.log('email sent! - ' + response);
-                    })
-                    .catch(function (err) {
-                        console.log('email error! - ' + err);
+
+                // Send email to owner of this workshop
+                Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+
+                    // Send notification to owner
+                    ownerInstance.__create__notifications({
+                        type: "action",
+                        title: collectionInstance.type + " Approved!",
+                        description: "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.",
+                        actionUrl: [collectionInstance.type,collectionInstance.id,"edit","15"]
+                    }, function(err, notificationInstance) {
+                        if(err) {
+                            cb(err);
+                        }
+                        else {
+                            notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
+                                if(err){
+                                    cb(err);
+                                }
+                                else {
+                                    notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                        if(err) {
+                                            cb(err);
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     });
+
+                    loopback.Email.send({
+                        to: ownerInstance.toJSON().email,
+                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                        subject: subject,
+                        html: html_body
+                    })
+                        .then(function (response) {
+                            console.log('email sent! - ' + response);
+                        })
+                        .catch(function (err) {
+                            console.log('email error! - ' + err);
+                        });
+                });
 
                 cb(null, { result: 'Collection approved. Email sent to owner.' });
             }

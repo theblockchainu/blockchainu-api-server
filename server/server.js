@@ -253,6 +253,12 @@ app.post('/signup', function (req, res, next) {
                         signed: req.signedCookies ? true : false,
                         maxAge: 1000 * accessToken[0].token.properties.ttl,
                     });
+                    if (user.accountVerified !== undefined) {
+                        res.cookie('accountApproved', user.accountVerified.toString(), {
+                            signed: req.signedCookies ? true : false,
+                            maxAge: 1000 * accessToken[0].token.properties.ttl,
+                        });
+                    }
                     res.cookie('userId', user.id.toString(), {
                         signed: req.signedCookies ? true : false,
                         maxAge: 1000 * accessToken[0].token.properties.ttl,
