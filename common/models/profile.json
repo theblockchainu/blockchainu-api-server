@@ -107,16 +107,6 @@
     },
     "vat_number": {
       "type": "string"
-    },
-    "phone_numbers": {
-      "type": [
-        "phone_number"
-      ]
-    },
-    "emergency_contact": {
-      "type": [
-        "phone_number"
-      ]
     }
   },
   "validations": [],
@@ -140,6 +130,20 @@
       "model": "education",
       "foreignKey": "sourceId",
       "through": "profile_has_education",
+      "keyThrough": "targetId"
+    },
+    "phone_numbers": {
+      "type": "hasMany",
+      "model": "phone",
+      "foreignKey": "sourceId",
+      "through": "profile_has_phoneNumber",
+      "keyThrough": "targetId"
+    },
+    "emergency_contacts": {
+      "type": "hasMany",
+      "model": "phone",
+      "foreignKey": "sourceId",
+      "through": "profile_has_emergencyContact",
       "keyThrough": "targetId"
     }
   },

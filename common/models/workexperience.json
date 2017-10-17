@@ -29,6 +29,10 @@
     },
     "endDate": {
       "type": "date"
+    },
+    "presentlyWorking": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

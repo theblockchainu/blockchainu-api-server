@@ -1,0 +1,42 @@
+{
+  "name": "phone",
+  "base": "PersistedModel",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": false
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "country_code": {
+      "type": "number"
+    },
+    "subscriber_number": {
+      "type": "number"
+    },
+    "isPrimary": {
+      "type": "boolean"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "profilePhoneNumber": {
+      "type": "hasMany",
+      "model": "profile",
+      "foreignKey": "targetId",
+      "through": "profile_has_phoneNumber",
+      "keyThrough": "sourceId"
+    },
+    "profileEmergencyContact": {
+      "type": "hasMany",
+      "model": "profile",
+      "foreignKey": "targetId",
+      "through": "profile_has_emergencyContact",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
