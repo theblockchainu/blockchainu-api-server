@@ -28,6 +28,13 @@
       "foreignKey": "targetId",
       "through": "collection_has_payment",
       "keyThrough": "sourceId"
+    },
+    "peers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_transaction",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
