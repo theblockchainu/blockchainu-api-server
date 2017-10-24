@@ -26,6 +26,12 @@
     "url": {
       "type": "string",
       "required": true
+    },
+    "originalFilename": {
+      "type": "string"
+    },
+    "size": {
+      "type": "number"
     }
   },
   "validations": [],

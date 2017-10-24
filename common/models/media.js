@@ -4,21 +4,22 @@ module.exports = function(Media) {
     Media.upload = function (ctx,options,cb) {
         if(!options) options = {};
         ctx.req.params.container = 'peerbuds-dev1290';
-        console.log(ctx.req);
         var loggedinPeer = Media.getCookieUserId(ctx.req);
         if(loggedinPeer) {
             Media.app.models.container.upload(ctx.req,ctx.result,options,function (err,fileObj) {
                 if(err) {
                     cb(err);
                 } else {
-                    console.log(fileObj);
                     if(fileObj.files.hasOwnProperty('file'))
                         var fileInfo = fileObj.files.file[0];
                     if(fileObj.files.hasOwnProperty('image'))
                         var fileInfo = fileObj.files.image[0];
                     if(fileObj.files.hasOwnProperty('video'))
                         var fileInfo = fileObj.files.video[0];
+
                     Media.create({
+                        originalFilename: fileInfo.originalFilename,
+                        size: fileInfo.size,
                         name: fileInfo.name,
                         type: fileInfo.type,
                         container: fileInfo.container,
