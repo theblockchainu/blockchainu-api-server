@@ -147,76 +147,86 @@ module.exports = function (Collection) {
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;
-                collectionInstance.save(function (err) {
+                delete collectionInstance.owners;
+                Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
                     if (err) {
+                        console.log(err);
                         err = new Error(g.f('Error updating collection.'));
                         err.statusCode = 400;
                         err.code = 'DB_ERROR';
                         cb(err);
                     }
-                });
-                var message = '', subject = '';
-                switch (collectionInstance.type) {
-                    case 'workshop':
-                        message = { heading: "Your workshop has been APPROVED!" };
-                        subject = 'Workshop Approved';
-                        break;
-                    case 'experience':
-                        message = { heading: "Your experience has been APPROVED" };
-                        subject = 'Experience Approved';
-                        break;
-                    default:
-                        message = { heading: "Your collection has been APPROVED" };
-                        subject = 'Collection Approved';
-                        break;
-                }
-                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                var html_body = renderer(message);
-
-                // Send email to owner of this workshop
-                Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
-
-                    // Send notification to owner
-                    ownerInstance.__create__notifications({
-                        type: "action",
-                        title: collectionInstance.type + " Approved!",
-                        description: "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.",
-                        actionUrl: [collectionInstance.type,collectionInstance.id,"edit","15"]
-                    }, function(err, notificationInstance) {
-                        if(err) {
-                            cb(err);
+                    else {
+                        var message = '', subject = '';
+                        switch (collectionInstance.type) {
+                            case 'workshop':
+                                message = { heading: "Your workshop has been APPROVED!" };
+                                subject = 'Workshop Approved';
+                                break;
+                            case 'experience':
+                                message = { heading: "Your experience has been APPROVED" };
+                                subject = 'Experience Approved';
+                                break;
+                            default:
+                                message = { heading: "Your collection has been APPROVED" };
+                                subject = 'Collection Approved';
+                                break;
                         }
-                        else {
-                            notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
-                                if(err){
-                                    cb(err);
-                                }
-                                else {
-                                    notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                        if(err) {
-                                            cb(err);
-                                        }
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        var html_body = renderer(message);
+
+                        // Send email to owner of this workshop
+                        Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+
+                            if (!err) {
+                                // Send notification to owner
+                                ownerInstance.__create__notifications({
+                                    type: "action",
+                                    title: collectionInstance.type + " Approved!",
+                                    description: "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.",
+                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","15"]
+                                }, function(err, notificationInstance) {
+                                    if(err) {
+                                        cb(err);
+                                    }
+                                    else {
+                                        notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
+                                            if(err){
+                                                cb(err);
+                                            }
+                                            else {
+                                                notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                                    if(err) {
+                                                        cb(err);
+                                                    }
+                                                    else {
+                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+
+                                loopback.Email.send({
+                                    to: ownerInstance.email,
+                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                    subject: subject,
+                                    html: html_body
+                                })
+                                    .then(function (response) {
+                                        console.log('email sent! - ' + response);
+                                    })
+                                    .catch(function (err) {
+                                        console.log('email error! - ' + err);
                                     });
-                                }
-                            });
-                        }
-                    });
-
-                    loopback.Email.send({
-                        to: ownerInstance.toJSON().email,
-                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                        subject: subject,
-                        html: html_body
-                    })
-                        .then(function (response) {
-                            console.log('email sent! - ' + response);
-                        })
-                        .catch(function (err) {
-                            console.log('email error! - ' + err);
+                            }
+                            else {
+                                cb(err);
+                            }
                         });
+                    }
                 });
-
-                cb(null, { result: 'Collection approved. Email sent to owner.' });
             }
             else {
                 err = new Error(g.f('Invalid Collection with ID: %s', id));
