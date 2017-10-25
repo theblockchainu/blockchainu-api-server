@@ -184,7 +184,7 @@ module.exports = function (Collection) {
                                     type: "action",
                                     title: collectionInstance.type + " Approved!",
                                     description: "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.",
-                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","15"]
+                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","16"]
                                 }, function(err, notificationInstance) {
                                     if(err) {
                                         cb(err);

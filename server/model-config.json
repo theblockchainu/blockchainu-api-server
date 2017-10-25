@@ -424,5 +424,13 @@
   "profile_has_emergencyContact": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "emailSubscription": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "guestContact": {
+    "dataSource": "neo4j",
+    "public": true
   }
 }
