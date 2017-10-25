@@ -164,6 +164,7 @@ app.post('/signup', function (req, res, next) {
 
     var newUser = {};
     var profileObject = {};
+    var rememberMe = req.body.rememberMe;
     newUser.email = req.body.email.toLowerCase();
     newUser.password = req.body.password;
     profileObject.first_name = req.body.first_name;
@@ -251,17 +252,17 @@ app.post('/signup', function (req, res, next) {
                     }
                     res.cookie('access_token', accessToken[0].token.properties.id, {
                         signed: req.signedCookies ? true : false,
-                        maxAge: 1000 * accessToken[0].token.properties.ttl,
+                        maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
                     if (user.accountVerified !== undefined) {
                         res.cookie('accountApproved', user.accountVerified.toString(), {
                             signed: req.signedCookies ? true : false,
-                            maxAge: 1000 * accessToken[0].token.properties.ttl,
+                            maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                         });
                     }
                     res.cookie('userId', user.id.toString(), {
                         signed: req.signedCookies ? true : false,
-                        maxAge: 1000 * accessToken[0].token.properties.ttl,
+                        maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
                     return res.redirect(returnTo);
                     /*return res.json({
