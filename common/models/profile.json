@@ -34,7 +34,8 @@
       "type": "date"
     },
     "preferred_language": {
-      "type": "string"
+      "type": "string",
+      "default": "english"
     },
     "other_languages": {
       "type": [
@@ -42,13 +43,15 @@
       ]
     },
     "currency": {
-      "type": "string"
+      "type": "string",
+      "default": "usd"
     },
     "gender": {
       "type": "string"
     },
     "timezone": {
-      "type": "string"
+      "type": "string",
+      "default": "pst"
     },
     "dobMonth": {
       "type": "string"

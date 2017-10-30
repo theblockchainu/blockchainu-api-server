@@ -260,6 +260,22 @@ app.post('/signup', function (req, res, next) {
                             maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                         });
                     }
+                    if (user.currency !== undefined) {
+                        res.cookie('currency', user.currency.toString(),
+                            {
+                                signed: req.signedCookies ? true : false,
+                                // maxAge is in ms
+                                maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
+                            });
+                    }
+                    if (user.timezone !== undefined) {
+                        res.cookie('timezone', user.timezone.toString(),
+                            {
+                                signed: req.signedCookies ? true : false,
+                                // maxAge is in ms
+                                maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
+                            });
+                    }
                     res.cookie('userId', user.id.toString(), {
                         signed: req.signedCookies ? true : false,
                         maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
@@ -286,6 +302,8 @@ app.post('/signup', function (req, res, next) {
         user.updateProfileNode(profile, profileObject, user, function (err, user, profileNode) {
             if (!err) {
                 console.log(user);
+                user.currency = profileNode.currency;
+                user.timezone = profileNode.timezone;
             } else {
                 console.log("ERROR CREATING PROFILE");
             }
