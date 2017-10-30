@@ -299,6 +299,14 @@ module.exports = function (Peer) {
 
     Peer.confirmSmsOTP = function (req, token, fn) {
 
+        // var cookieArray = req.headers.cookie.split(';');
+        // var cookie = '';
+        // for (var i = 0; i < cookieArray.length; i++) {
+        //     if (cookieArray[i].split('=')[0].trim() === 'userId') {
+        //         cookie = cookieArray[i].split('=')[1].trim();
+        //     }
+        // }
+        // var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         var loggedinPeer = Peer.getCookieUserId(req);
 
         //if user is logged in
@@ -779,7 +787,7 @@ module.exports = function (Peer) {
             }
 
         });
-    }
+    };
 
     Peer.prototype.hasPassword = function (plain, fn) {
         fn = fn || utils.createPromiseCallback();
