@@ -27,5 +27,6 @@
   "twilioToken": "57e16fdbb46e57e799f88856e1992a7b",
   "twilioPhone": "+14243756775",
   "twilioKey": "SK7fa266013cc50fdefd7fed30d60934a8",
-  "twilioSecret": "sTbOLDkRHG23FzFn9ftXGJ4edM3mWjcK"
+  "twilioSecret": "sTbOLDkRHG23FzFn9ftXGJ4edM3mWjcK",
+  "currencyLayerKey": "2a9f7fba082073623957827eb418edd3"
 }

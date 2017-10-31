@@ -14,7 +14,7 @@ var client = new elasticsearch.Client( {
         "accessKey": "AKIAJNBGI45QDD7GUIFQ",
         "secretKey": "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"
     },
-    apiVersion: "5.x",
+    apiVersion: "5.5",
     log: "trace",
     requestTimeout: 30000
 });

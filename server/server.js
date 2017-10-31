@@ -364,6 +364,10 @@ app.post('/signup', function (req, res, next) {
     });
 });
 
+app.post('convertCurrency', function(req, res, next) {
+
+});
+
 app.get('/login', function (req, res, next) {
     res.render('pages/login', {
         user: req.user,
