@@ -770,7 +770,7 @@ module.exports = function (Peer) {
                                         cb(err)
                                     }
                                     else {
-                                        cb(null, updatedInstance)
+                                        cb(null, user, updatedInstance)
                                     }
                                 });
                             } else {
