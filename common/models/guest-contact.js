@@ -1,4 +1,6 @@
 'use strict';
+var loopback = require('loopback');
+var path = require('path');
 
 module.exports = function(Guestcontact) {
 
