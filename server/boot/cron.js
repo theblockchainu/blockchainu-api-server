@@ -1,5 +1,6 @@
 'use strict';
 var CronJob = require('cron').CronJob;
+var moment = require('moment');
 var client = require('../esConnection.js');
 var bulk = [];
 
@@ -102,5 +103,36 @@ module.exports = function setupCron(server) {
     },
     true,
     'UTC'
+    );
+
+    var collectionCompleteCron = new CronJob('*/20 * * * * *',
+        function() {
+            console.log('Running collectionCompleteCron every minute');
+            server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars']}, function(err, collectionInstances){
+               collectionInstances.forEach(collection => {
+                   if (collection.toJSON().calendars !== undefined) {
+                       collection.toJSON().calendars.forEach(calendar => {
+                           var collectionCalendarEndDate = moment(calendar.endDate);
+                           var now = moment();
+                           if (calendar.status !== 'complete' && collectionCalendarEndDate.diff(now) <= 0) {
+                               console.log('Collection ' + collection.title + ' - cohort ending ' + calendar.endDate + ' is completed. Send out emails to student and teacher');
+                               // Mark the calendar as complete
+                               // Send email to student asking to review the teacher
+                               // Send notification to student asking to review teacher
+                               // Send email to teacher asking to review all students
+                               // Send notification to teacher asking to review students
+                               // Initiate payouts to teacher
+
+                           }
+                       });
+                   }
+               });
+            });
+        },
+        function() {
+
+    },
+        true,
+        'UTC'
     );
 };

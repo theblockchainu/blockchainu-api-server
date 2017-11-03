@@ -35,7 +35,9 @@
     "loopback-connector-neo4j-cypher": "0.0.6",
     "loopback-connector-neo4j-graphs": "latest",
     "loopback-ds-timestamp-mixin": "^3.4.1",
+    "moment": "^2.19.1",
     "moment-timezone": "^0.5.13",
+    "options": "latest",
     "passcode": "^1.0.2",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1",
@@ -55,7 +57,7 @@
     "twilio": "^3.6.2",
     "twilio-video": "^1.2.2",
     "uid2": "latest",
-    "options": "latest",
+    "unirest": "^0.5.1",
     "weak-map": "^1.0.5"
   },
   "devDependencies": {

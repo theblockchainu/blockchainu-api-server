@@ -10,7 +10,7 @@ var g = require('../node_modules/loopback/lib/globalize');
 var cors = require('cors');
 var bcrypt;
 var MAX_PASSWORD_LENGTH = 72;
-
+var unirest = require('unirest');
 
 try {
     // Try the native module first
@@ -364,8 +364,18 @@ app.post('/signup', function (req, res, next) {
     });
 });
 
-app.post('convertCurrency', function(req, res, next) {
-
+app.post('/convertCurrency', function(req, res, next) {
+    var access_key = app.get('currencyLayerKey');
+    console.log(access_key);
+    unirest.get('http://apilayer.net/api/convert')
+        .query('access_key=' + access_key)
+        .query('from=' + req.body.from)
+        .query('to=' + req.body.to)
+        .query('amount=' + req.body.amount)
+        .end(function (response) {
+            console.log(response.body);
+            res.json(response.body);
+        });
 });
 
 app.get('/login', function (req, res, next) {
