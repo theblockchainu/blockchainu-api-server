@@ -115,7 +115,7 @@ module.exports = function setupCron(server) {
                            var collectionCalendarEndDate = moment(calendar.endDate);
                            var now = moment();
                            if (calendar.status !== 'complete' && collectionCalendarEndDate.diff(now) <= 0) {
-                               console.log('Collection ' + collection.title + ' - cohort ending ' + calendar.endDate + ' is completed. Send out emails to student and teacher');
+                               //console.log('Collection ' + collection.title + ' - cohort ending ' + calendar.endDate + ' is completed. Send out emails to student and teacher');
                                // Mark the calendar as complete
                                // Send email to student asking to review the teacher
                                // Send notification to student asking to review teacher
