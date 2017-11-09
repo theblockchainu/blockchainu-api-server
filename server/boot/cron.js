@@ -3,6 +3,7 @@ var CronJob = require('cron').CronJob;
 var moment = require('moment');
 var client = require('../esConnection.js');
 var bulk = [];
+var app = require('../server');
 
 module.exports = function setupCron(server) {
 
@@ -12,7 +13,7 @@ module.exports = function setupCron(server) {
             var typeValue = typeDifferentiator === 'none'? modelName: modelInstances[current][typeDifferentiator];
             bulk.push(
                 // {action: {metadata}}
-                { index: {_index: modelName, _type: typeValue, _id: modelInstances[current].id } },
+                { index: {_index: app.get('uniqueDeveloperCode') + '_' + modelName, _type: typeValue, _id: modelInstances[current].id } },
                 modelInstances[current]
             );
         }

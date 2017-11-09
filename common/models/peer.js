@@ -541,7 +541,7 @@ module.exports = function (Peer) {
         return fn.promise;
     };
 
-    Peer.userCalendar = function (id, cb) {
+    Peer.userCalendar = function (id, timezone, cb) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
@@ -1010,6 +1010,7 @@ module.exports = function (Peer) {
             {
                 accepts: [
                     { arg: 'id', type: 'string', required: true },
+                    { arg: 'timezone', type: 'string', required: true }
                 ],
                 returns: { arg: 'calendarObject', type: 'object', root: true },
                 http: { path: '/:id/eventCalendar', verb: 'get' }
