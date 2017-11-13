@@ -108,7 +108,7 @@ module.exports = function setupCron(server) {
 
     var collectionCompleteCron = new CronJob('*/20 * * * * *',
         function() {
-            console.log('Running collectionCompleteCron every minute');
+            //console.log('Running collectionCompleteCron every minute');
             server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars']}, function(err, collectionInstances){
                collectionInstances.forEach(collection => {
                    if (collection.toJSON().calendars !== undefined) {
@@ -118,7 +118,18 @@ module.exports = function setupCron(server) {
                            if (calendar.status !== 'complete' && collectionCalendarEndDate.diff(now) <= 0) {
                                //console.log('Collection ' + collection.title + ' - cohort ending ' + calendar.endDate + ' is completed. Send out emails to student and teacher');
                                // Mark the calendar as complete
+                               var newCalendar = calendar;
+                               newCalendar.status = 'complete';
+                               server.models.calendar.upsertWithWhere({id: calendar.id}, newCalendar, function(err, updatedCalendarInstance) {
+                                  if (err) {
+                                      console.log('Could not mark calendar as complete. Error: ' + err);
+                                  }
+                                  else {
+                                      console.log('Marked calendar as complete');
+                                  }
+                               });
                                // Send email to student asking to review the teacher
+
                                // Send notification to student asking to review teacher
                                // Send email to teacher asking to review all students
                                // Send notification to teacher asking to review students

@@ -11,6 +11,9 @@ var cors = require('cors');
 var bcrypt;
 var MAX_PASSWORD_LENGTH = 72;
 var unirest = require('unirest');
+var https = require('https');
+var http = require('http');
+var sslConfig = require('./ssl-config');
 
 try {
     // Try the native module first
@@ -78,6 +81,7 @@ var corsOptions = {
     },
     credentials: true
 };
+
 app.use(cors(corsOptions));
 
 
@@ -349,6 +353,22 @@ app.post('/signup', function (req, res, next) {
                             "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
                             function (err, results) {
                                 if (!err) {
+                                    // Send welcome email to user
+                                    var message = { heading: "Welcome to peerbuds, " + profileObject.first_name + ' ' + profileObject.last_name };
+                                    var renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+                                    var html_body = renderer(message);
+                                    loopback.Email.send({
+                                        to: user.email,
+                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        subject: 'Welcome to Peerbuds',
+                                        html: html_body
+                                    })
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
                                     createProfileNode(user);
                                     loopbackLogin(user);
                                 }
@@ -400,42 +420,36 @@ app.get('/auth/logout', function (req, res, next) {
     );
 });
 
-app.start = function () {
+app.start = function (httpOnly) {
+    if (httpOnly === undefined) {
+        httpOnly = process.env.HTTP;
+    }
+    var server = null;
+    if (!httpOnly) {
+        var options = {
+            key: sslConfig.privateKey,
+            cert: sslConfig.certificate,
+        };
+        server = https.createServer(options, app);
+    } else {
+        server = http.createServer(app);
+    }
     // start the web server
-    return app.listen(function () {
-        app.emit('started');
-        var baseUrl = app.get('url').replace(/\/$/, '');
+    server.listen(app.get('port'), function () {
+        var baseUrl = (httpOnly? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
+        app.emit('started', baseUrl);
         console.log('Web server listening at: %s', baseUrl);
         if (app.get('loopback-component-explorer')) {
             var explorerPath = app.get('loopback-component-explorer').mountPath;
             console.log('Browse your REST API at %s%s', baseUrl, explorerPath);
         }
     });
+    return server;
 };
 
 // start the server if `$ node server.js`
 if (require.main === module) {
     app.io = require('socket.io')(app.start());
 
-    var socketEvents = require('./socket-events')(app.io);
-
-    // require('socketio-auth')(app.io, {
-    //     authenticate: function (socket, value, callback) {
-
-    //         var AccessToken = app.models.UserToken;
-    //         //get credentials sent by the client
-    //         var token = AccessToken.find({
-    //             where:{
-    //                 and: [{ userId: value.userId }, { access_token: value.access_token }]
-    //             }
-    //         }, function(err, tokenDetail){
-    //             if (err) throw err;
-    //             if(tokenDetail.length){
-    //                 callback(null, true);
-    //             } else {
-    //                 callback(null, false);
-    //             }
-    //         }); //find function..
-    //     } //authenticate function..
-    // });
+    app.socketService = require('./socket-events')(app.io);
 }

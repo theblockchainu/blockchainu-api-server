@@ -20,13 +20,15 @@
       "id": true
     },
     "percentage1": {
-      "type": "number"
+      "type": "number",
+      "default": 100
     },
     "payoutId1": {
       "type": "string"
     },
     "percentage2": {
-      "type": "number"
+      "type": "number",
+      "default": 0
     },
     "payoutId2": {
       "type": "string"

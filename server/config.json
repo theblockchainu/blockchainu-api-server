@@ -21,6 +21,9 @@
     "cors": false,
     "handleErrors": false
   },
+  "swagger": {
+    "protocol": "https"
+  },
   "legacyExplorer": false,
   "stripeKey": "sk_test_mjuDwEmXkxA1ewmsqgDdPCWT",
   "twilioSID": "ACc1c8552004aef409ea9ba6ceb3b3f4a3",

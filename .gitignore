@@ -70,3 +70,6 @@ Vagrantfile
 
 #Licode files
 licode/
+
+#private keys
+server/private/

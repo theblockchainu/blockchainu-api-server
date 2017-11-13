@@ -541,7 +541,7 @@ module.exports = function (Peer) {
         return fn.promise;
     };
 
-    Peer.userCalendar = function (id, timezone, cb) {
+    Peer.userCalendar = function (id, cb) {
         var Calendar = Peer.app.models.Calendar;
         var Schedule = Peer.app.models.Schedule;
         var userCalendarData = [];
@@ -659,72 +659,6 @@ module.exports = function (Peer) {
         });
     };
 
-    Peer.approve = function (id, req, cb) {
-        // Find the collection by given ID
-        Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null) {
-                var userId = peerInstance.toJSON().id;
-                peerInstance.accountVerified = true;
-                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function (err, newpeerInstance) {
-                    if (err) {
-                        console.log(err);
-                        err = new Error(g.f('Error updating Peer.'));
-                        err.statusCode = 400;
-                        err.code = 'DB_ERROR';
-                        cb(err);
-                    }
-                    else {
-                        var message = { heading: "Your Account has been APPROVED!" };
-                        var subject = 'Account Approved';
-
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                        var html_body = renderer(message);
-
-                        // Send notification to peer
-                        peerInstance.__create__notifications({
-                            type: "action",
-                            title: "Profile Approved!",
-                            description: "Profile has been approved. Add more details now.",
-                            actionUrl: ['console', 'profile', 'edit']
-                        }, function (err, notificationInstance) {
-                            if (err) {
-                                cb(err);
-                            }
-                            else {
-                                notificationInstance.actor.add(peerInstance.id, function (err, actorInstance) {
-                                    if (err) {
-                                        cb(err);
-                                    }
-                                    else {
-                                        loopback.Email.send({
-                                            to: peerInstance.email,
-                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                            subject: subject,
-                                            html: html_body
-                                        })
-                                            .then(function (response) {
-                                                console.log('email sent! - ' + response);
-                                            })
-                                            .catch(function (err) {
-                                                console.log('email error! - ' + err);
-                                            });
-                                        cb(null, { result: 'Collection approved. Email sent to Owner.' });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-            else {
-                err = new Error(g.f('Invalid Peer with ID: %s', id));
-                err.statusCode = 400;
-                err.code = 'INVALID_PEER';
-                cb(err);
-            }
-
-        });
-    };
 
     //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function (ctx, next) {
@@ -1075,23 +1009,10 @@ module.exports = function (Peer) {
             'userCalendar',
             {
                 accepts: [
-                    { arg: 'id', type: 'string', required: true },
-                    { arg: 'timezone', type: 'string', required: true }
+                    { arg: 'id', type: 'string', required: true }
                 ],
                 returns: { arg: 'calendarObject', type: 'object', root: true },
                 http: { path: '/:id/eventCalendar', verb: 'get' }
-            }
-        );
-
-        PeerModel.remoteMethod(
-            'approve',
-            {
-                accepts: [
-                    { arg: 'id', type: 'string', required: true },
-                    { arg: 'req', type: 'object', http: { source: 'req' } }
-                ],
-                returns: { arg: 'result', type: 'object', root: true },
-                http: { path: '/:id/approve', verb: 'post' }
             }
         );
 

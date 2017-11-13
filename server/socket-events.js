@@ -191,7 +191,7 @@ exports = module.exports = function (io) {
         }
     });
 
-    function sendEmitToUser(toUser, emitKey, emitBody) {
+    io.sendEmitToUser = function sendEmitToUser(toUser, emitKey, emitBody) {
         if (toUser !== undefined) {
             for (var j = 0; j < toUser.socketConns.length; j++) {
                 app.io.to(toUser.socketConns[j]).emit(emitKey, emitBody);
@@ -200,7 +200,7 @@ exports = module.exports = function (io) {
         else {
             console.log('Cannot emit on socket to undefined user. Maybe you restarted api server. Try refreshing front end page.');
         }
-    }
+    };
 
     /**
      * Fn to find an Object based on some id from the given source
