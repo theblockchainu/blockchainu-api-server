@@ -2,6 +2,8 @@
 var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
 var stripe = require('stripe')(stripeKey);
+var path = require('path');
+var loopback = require('../../node_modules/loopback/lib/loopback');
 
 module.exports = function (Transaction) {
 
@@ -361,6 +363,22 @@ module.exports = function (Transaction) {
                                             });
                                         });
                                     }
+                                    // Send receipt email to user
+                                    var message = { heading: "You have made a payment using card: \n\n" + chargeInstance.source  + "\n\nPayment details: \n\n" + chargeInstance.outcome};
+                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                    var html_body = renderer(message);
+                                    loopback.Email.send({
+                                        to: peerInstance.email,
+                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        subject: 'Your payment receipt',
+                                        html: html_body
+                                    })
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
                                     cb(null, charge);
                                 }
                             });

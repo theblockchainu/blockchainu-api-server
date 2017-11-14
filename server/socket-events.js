@@ -120,8 +120,10 @@ exports = module.exports = function (io) {
                     var toUser = users[i];
                     var notificationService = app.models.notification;
                     var toId = notification.to.id;
+                    var actorId = notification.from.id;
+                    delete notification.from;
                     notification.to = JSON.stringify(notification.to);
-                    notificationService.createNotification(toId, notification, function (err, saved_notification) {
+                    notificationService.createNotification(toId, actorId, notification, function (err, saved_notification) {
                         if (!err) {
                             for (var j = 0; j < toUser.socketConns.length; j++) {
                                 app.io.to(toUser.socketConns[j]).emit("notification", notification);

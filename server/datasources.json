@@ -23,7 +23,8 @@
     "provider": "amazon",
     "key": "+A6HpkJP18JXp/gq1ypDVddyVkkkuBd57YPsl1d9",
     "keyId": "AKIAJNBGI45QDD7GUIFQ",
-    "nameConflict": "makeUnique"
+    "nameConflict": "makeUnique",
+    "maxFileSize": "104857600"
   },
   "mailgun": {
     "name": "mailgun",

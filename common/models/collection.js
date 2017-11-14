@@ -9,40 +9,63 @@ module.exports = function (Collection) {
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
         var collectionInstance = ctx.instance;
-        collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
-           if(err) {
-               next(err);
-           }
-           else {
-               var ownerInstance = ownerInstances[0];
-               ownerInstance.__create__notifications({
-                   type: "action",
-                   title: "New participant!",
-                   description: "%username% joined %collectionTitle%",
-                   actionUrl: [collectionInstance.type,collectionInstance.id,"calendar",participantInstance.calendarId]
-               }, function(err, notificationInstance) {
-                  if(err) {
-                      next(err);
-                  }
-                  else {
-                      notificationInstance.actor.add(participantInstance.sourceId, function(err, actorInstance){
-                         if(err){
-                             next(err);
-                         }
-                         else {
-                             notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                if(err) {
-                                    next(err);
-                                }
-                                else {
-                                    next();
-                                }
-                             });
-                         }
-                      });
-                  }
-               });
-           }
+        Collection.app.models.peer.findById(participantInstance.sourceId, function(err, participantUserInstance) {
+            if (err) {
+                next(err);
+            }
+            else {
+                collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
+                    if(err) {
+                        next(err);
+                    }
+                    else {
+                        var ownerInstance = ownerInstances[0];
+                        ownerInstance.__create__notifications({
+                            type: "action",
+                            title: "New participant!",
+                            description: "%username% joined %collectionTitle%",
+                            actionUrl: [collectionInstance.type,collectionInstance.id,"calendar",participantInstance.calendarId]
+                        }, function(err, notificationInstance) {
+                            if(err) {
+                                next(err);
+                            }
+                            else {
+                                notificationInstance.actor.add(participantInstance.sourceId, function(err, actorInstance){
+                                    if(err){
+                                        next(err);
+                                    }
+                                    else {
+                                        notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                            if(err) {
+                                                next(err);
+                                            }
+                                            else {
+                                                // Send email to the student welcoming him to course
+                                                var message = { heading: "Welcome to this workshop. \n\n- Learn\n\n- Collaborate\n\n- Practice"};
+                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                var html_body = renderer(message);
+                                                loopback.Email.send({
+                                                    to: participantUserInstance.email,
+                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    subject: '[Get Set Go] ' + collectionInstance.title,
+                                                    html: html_body
+                                                })
+                                                    .then(function (response) {
+                                                        console.log('email sent! - ' + response);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log('email error! - ' + err);
+                                                    });
+                                                next();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
         });
     });
 
