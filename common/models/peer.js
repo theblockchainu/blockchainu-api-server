@@ -508,7 +508,7 @@ module.exports = function (Peer) {
                         counter: Date.now()
                     });
                     // Send token in email to user.
-                    var text = "To recover your account and reset your password, please <a href='" + req.headers.origin + "/reset?email=" + email + "&code=" + verificationToken + "' target='_blank'>click here</a>.";
+                    var text = 'To recover your account and reset your password, please <a href="' + req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken + '">click here</a>.';
                     var message = { heading: text };
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                     var html_body = renderer(message);
