@@ -160,7 +160,7 @@ exports = module.exports = function (io) {
                                                 console.log(err);
                                             } else {
                                                 console.log(addedPeerInstance);
-                                                sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                                io.sendEmitToUser(connUser, 'startedView', newViewInstance);
                                             }
                                         });
                                     }
@@ -183,7 +183,7 @@ exports = module.exports = function (io) {
                         console.log(err);
                     }
                     else {
-                        sendEmitToUser(connUser, 'endedView', newViewInstance);
+                        io.sendEmitToUser(connUser, 'endedView', newViewInstance);
                     }
                 });
             }
