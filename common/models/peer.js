@@ -455,9 +455,7 @@ module.exports = function (Peer) {
         var where = {
             email: options.email
         };
-        if (options.realm) {
-            where.realm = options.realm;
-        }
+
         PeerModel.findOne({ where: where }, function (err, user) {
             if (err) {
                 return cb(err);
@@ -468,27 +466,15 @@ module.exports = function (Peer) {
                 err.code = 'EMAIL_NOT_FOUND';
                 return cb(err);
             }
-            // create a short lived access token for temp login to change password
-            // TODO(ritch) - eventually this should only allow password change
-            if (PeerModel.settings.emailVerificationRequired && !user.emailVerified) {
+
+            if (!user.emailVerified) {
                 err = new Error(g.f('Email has not been verified'));
                 err.statusCode = 401;
                 err.code = 'RESET_FAILED_EMAIL_NOT_VERIFIED';
                 return cb(err);
             }
 
-            user.createAccessToken(ttl, function (err, accessToken) {
-                if (err) {
-                    return cb(err);
-                }
-                cb(null, accessToken);
-                PeerModel.emit('resetPasswordRequest', {
-                    email: options.email,
-                    accessToken: accessToken,
-                    user: user,
-                    options: options
-                });
-            });
+
         });
 
         return cb.promise;
