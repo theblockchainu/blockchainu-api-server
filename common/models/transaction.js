@@ -334,6 +334,7 @@ module.exports = function (Transaction) {
 
                 if (!err) {
                     var currTime = new Date().toISOString();
+                    var chargeSourceJson = charge.source;
                     charge.charge_id = charge.id;
                     delete charge.id;
                     charge.source = JSON.stringify(charge.source);
@@ -364,8 +365,8 @@ module.exports = function (Transaction) {
                                         });
                                     }
                                     // Send receipt email to user
-                                    var message = { heading: "You have made a payment using card: \n\n" + chargeInstance.source  + "\n\nPayment details: \n\n" + chargeInstance.outcome};
-                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                    var message = { cardBrand: chargeSourceJson.brand, cardLast4: chargeSourceJson.last4, cardName: chargeSourceJson.name, amount: reqObj.amount / 100, currency: reqObj.currency, chargeId: chargeInstance.id};
+                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/paymentReceipt.ejs'));
                                     var html_body = renderer(message);
                                     loopback.Email.send({
                                         to: peerInstance.email,

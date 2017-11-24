@@ -434,97 +434,103 @@ module.exports = function (Peer) {
 
     Peer.resetPassword = function (options, cb) {
         cb = cb || utils.createPromiseCallback();
-        var PeerModel = this;
-        var ttl = PeerModel.settings.resetPasswordTokenTTL || DEFAULT_RESET_PW_TTL;
-        options = options || {};
-        if (typeof options.email !== 'string') {
-            var err = new Error(g.f('Email is required'));
+        if (options.email && options.password && options.verificationToken) {
+            console.log('resetting password ');
+            try {
+                options.password = this.hashPassword(options.password);
+            } catch (err) {
+                cb(err);
+            }
+            console.log('Finding Model with email' + options.email);
+            this.findOne({
+                where: {
+                    email: options.email
+                }
+            }, (err, user) => {
+                if (user) {
+                    console.log('User Found!');
+                    if (options.verificationToken === user.verificationToken) {
+                        var diff = moment().diff(moment.unix(user.verificationTokenTime), 'minutes');
+                        if (diff > 10) {
+                            err = new Error(g.f('Token Expired'));
+                            err.statusCode = 400;
+                            err.code = 'TOKEN_EXPIRED';
+                            cb(err);
+                        } else {
+                            console.log('Verification Successful');
+                            user.updateAttributes({
+                                "password": options.password,
+                                "verificationToken": '',
+                                "verificationTokenTime": ''
+                            });
+                            cb(null, {
+                                'message': 'Password changed',
+                                'success': true
+                            });
+                        }
+                    } else {
+                        err = new Error(g.f('Invalid Token'));
+                        err.statusCode = 400;
+                        err.code = 'INVALID_TOKEN';
+                        cb(err);
+                    }
+
+                } else {
+                    err = new Error(g.f('User not found'));
+                    err.statusCode = 404;
+                    err.code = 'EMAIL_NOT_FOUND';
+                    cb(err);
+                }
+            });
+        } else {
+            err = new Error(g.f('Invalid Data'));
             err.statusCode = 400;
-            err.code = 'EMAIL_REQUIRED';
+            err.code = 'INVALID_DATA';
             cb(err);
-            return cb.promise;
         }
 
-        try {
-            if (options.password) {
-                PeerModel.validatePassword(options.password);
-            }
-        } catch (err) {
-            return cb(err);
-        }
-        var where = {
-            email: options.email
-        };
-
-        PeerModel.findOne({ where: where }, function (err, user) {
-            if (err) {
-                return cb(err);
-            }
-            if (!user) {
-                err = new Error(g.f('Email not found'));
-                err.statusCode = 404;
-                err.code = 'EMAIL_NOT_FOUND';
-                return cb(err);
-            }
-
-            if (!user.emailVerified) {
-                err = new Error(g.f('Email has not been verified'));
-                err.statusCode = 401;
-                err.code = 'RESET_FAILED_EMAIL_NOT_VERIFIED';
-                return cb(err);
-            }
-
-
-        });
-
-        return cb.promise;
     };
 
-    Peer.forgotPassword = function (req, email, fn) {
-
-        fn = fn || utils.createPromiseCallback();
+    Peer.forgotPassword = function (req, email, cb) {
+        cb = cb || utils.createPromiseCallback();
         this.findOne({ where: { email: email } }, function (err, user) {
-            if (err) {
-                fn(err);
+            if (user) {
+                // Generate new verificationToken
+                var verificationToken = passcode.hotp({
+                    secret: "0C6&7vvvv",
+                    counter: Date.now()
+                });
+                user.verificationToken = verificationToken;
+                user.verificationTokenTime = moment().unix();
+                user.save((err, result) => {
+                    if (err) {
+                        cb(err);
+                    } else {
+                        // Send token in email to user.
+                        var resetLink = req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken ;
+                        var message = { resetLink: resetLink };
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/forgotPasswordEmail.ejs'));
+                        var html_body = renderer(message);
+                        loopback.Email.send({
+                            to: email,
+                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            subject: 'Peerbuds - Account recovery',
+                            html: html_body
+                        }).then(function (response) {
+                            cb(null, { email: email, sent: true });
+                        }).catch(function (err) {
+                            cb(err);
+                        });
+                    }
+                });
             } else {
-                if (user) {
-                    // Generate new verificationToken
-                    var verificationToken = passcode.hotp({
-                        secret: "0C6&7vvvv",
-                        counter: Date.now()
-                    });
-                    // Send token in email to user.
-                    var text = 'To recover your account and reset your password, please <a href="' + req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken + '">click here</a>.';
-                    var message = { heading: text };
-                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                    var html_body = renderer(message);
-                    loopback.Email.send({
-                        to: email,
-                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                        subject: 'Peerbuds - Account recovery',
-                        html: html_body
-                    }).then(function (response) {
-                        console.log('email sent! - ' + response);
-                    }).catch(function (err) {
-                        console.log('email error! - ' + err);
-                    });
-                    user.verificationToken = verificationToken;
-                    user.save(function (err) {
-                        if (err) {
-                            fn(err);
-                        } else {
-                            fn(null, user);
-                        }
-                    });
-                } else {
-                    err = new Error(g.f('User not found: %s', uid));
-                    err.statusCode = 404;
-                    err.code = 'USER_NOT_FOUND';
-                    fn(err);
-                }
+                err = new Error(g.f('User not found'));
+                err.statusCode = 404;
+                err.code = 'USER_NOT_FOUND';
+                cb(err);
             }
+
         });
-        return fn.promise;
     };
 
     Peer.userCalendar = function (id, cb) {
@@ -876,7 +882,11 @@ module.exports = function (Peer) {
      * Hash the plain password
      */
     Peer.hashPassword = function (plain) {
-        this.validatePassword(plain);
+        try {
+            this.validatePassword(plain);
+        } catch (err) {
+            return err;
+        }
         var salt = bcrypt.genSaltSync(this.settings.saltWorkFactor || SALT_WORK_FACTOR);
         return bcrypt.hashSync(plain, salt);
     };
@@ -1042,7 +1052,8 @@ module.exports = function (Peer) {
                 accepts: [
                     { arg: 'options', type: 'object', required: true, http: { source: 'body' } }
                 ],
-                http: { verb: 'post', path: '/reset' }
+                returns: { arg: 'response', type: 'object', root: true },
+                http: { verb: 'post', path: '/resetPassword' }
             }
         );
 
@@ -1054,6 +1065,7 @@ module.exports = function (Peer) {
                     { arg: 'req', type: 'object', http: { source: 'req' } },
                     { arg: 'email', type: 'string', required: true }
                 ],
+                returns: { arg: 'response', type: 'object', root: true },
                 http: { verb: 'post', path: '/forgotPassword' }
             }
         );
