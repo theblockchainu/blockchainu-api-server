@@ -9,11 +9,29 @@ module.exports = function (Collection) {
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
         var collectionInstance = ctx.instance;
-        Collection.app.models.peer.findById(participantInstance.sourceId, function(err, participantUserInstance) {
+        Collection.app.models.peer.findById(participantInstance.sourceId, {"include": "profiles"}, function(err, participantUserInstance) {
             if (err) {
                 next(err);
             }
             else {
+                // Link all topics of this collection to the participant as topics learning
+                collectionInstance.__get__topics({}, function (err, topicInstances) {
+                    if (!err) {
+                        topicInstances.forEach(topicInstance => {
+                            participantUserInstance.__link__topicsLearning(topicInstance.id, function(err1, linkedTopicInstance) {
+                                if (!err1) {
+                                    console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
+                                }
+                                else {
+                                    console.log(err1);
+                                }
+                            });
+                        });
+                    }
+                    else {
+                        console.log(err);
+                    }
+                });
                 collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
                     if(err) {
                         next(err);
@@ -56,7 +74,105 @@ module.exports = function (Collection) {
                                                     .catch(function (err) {
                                                         console.log('email error! - ' + err);
                                                     });
+
+                                                // Send email to the teacher informing about new student
+                                                message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has just joined " + collectionInstance.title};
+                                                html_body = renderer(message);
+                                                loopback.Email.send({
+                                                    to: ownerInstance.email,
+                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    subject: 'New Participant @ ' + collectionInstance.title,
+                                                    html: html_body
+                                                })
+                                                    .then(function (response) {
+                                                        console.log('email sent! - ' + response);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log('email error! - ' + err);
+                                                    });
+
                                                 next();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    Collection.afterRemote('prototype.__unlink__participants', function (ctx, next1) {
+        // Participant canceled collection. Notify collection owner.
+        var collectionInstance = ctx.instance;
+        var participantId = ctx.args.fk;
+        Collection.app.models.peer.findById(participantId, {"include": "profiles"}, function(err, participantUserInstance) {
+            if (err) {
+                next1(err);
+            }
+            else {
+                collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
+                    if(err) {
+                        next1(err);
+                    }
+                    else {
+                        var ownerInstance = ownerInstances[0];
+                        ownerInstance.__create__notifications({
+                            type: "action",
+                            title: "Cancelled participation",
+                            description: "%username% cancelled participation for %collectionTitle%",
+                            actionUrl: [collectionInstance.type,collectionInstance.id]
+                        }, function(err, notificationInstance) {
+                            if(err) {
+                                next1(err);
+                            }
+                            else {
+                                notificationInstance.actor.add(participantId, function(err, actorInstance){
+                                    if(err){
+                                        next1(err);
+                                    }
+                                    else {
+                                        notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                            if(err) {
+                                                next(err);
+                                            }
+                                            else {
+                                                // Send email to the confirming cancellation
+                                                var message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days."};
+                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                var html_body = renderer(message);
+                                                loopback.Email.send({
+                                                    to: participantUserInstance.email,
+                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    subject: 'Participation cancelled : ' + collectionInstance.title,
+                                                    html: html_body
+                                                })
+                                                    .then(function (response) {
+                                                        console.log('email sent! - ' + response);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log('email error! - ' + err);
+                                                    });
+
+                                                // Send email to the teacher informing about cancelled student
+                                                message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has dropped out of " + collectionInstance.title};
+                                                html_body = renderer(message);
+                                                loopback.Email.send({
+                                                    to: ownerInstance.email,
+                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    subject: 'Dropped student @ ' + collectionInstance.title,
+                                                    html: html_body
+                                                })
+                                                    .then(function (response) {
+                                                        console.log('email sent! - ' + response);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log('email error! - ' + err);
+                                                    });
+
+                                                ctx.res.json(participantUserInstance);
                                             }
                                         });
                                     }
