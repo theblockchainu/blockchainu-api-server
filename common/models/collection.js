@@ -380,6 +380,7 @@ module.exports = function (Collection) {
     Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
         var collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
+            //console.log('collection status draft or blank or submitted');
             next();
         }
         else if (ctx.args.data.status === 'complete') {
@@ -389,23 +390,15 @@ module.exports = function (Collection) {
             // User is trying to update a non draft collection
             // We need to check if this collection is active and if it has any participants.
             if (collectionInstance.status === 'active') {
+                console.log('collection status active');
                 collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                     if (err) {
                         next(err);
                     }
                     else if (participantInstances !== null && participantInstances.length > 0) {
                         // This collection has existing participants on it. It cannot be edited without branching out.
-                        //next(new Error(g.f("Cannot edit active collection with participants on it.")));
-
                         // Create a new collection by copying all the data of this collection
                         var newCollection = collectionInstance.toJSON();
-                        delete newCollection.id;
-                        delete newCollection.status;
-                        delete newCollection.isCanceled;
-                        delete newCollection.createdAt;
-                        delete newCollection.updatedAt;
-                        delete newCollection.isApproved;
-                        delete newCollection.isNewInstance;
 
                         newCollection.title = 'Cloned: ' + newCollection.title;
                         newCollection.disableHasOneCreate = true;
@@ -414,6 +407,14 @@ module.exports = function (Collection) {
                         updatedContentKeys.forEach(function (updatedContentKey) {
                             newCollection[updatedContentKey] = ctx.args.data[updatedContentKey];
                         });
+
+                        delete newCollection.id;
+                        delete newCollection.status;
+                        delete newCollection.isCanceled;
+                        delete newCollection.createdAt;
+                        delete newCollection.updatedAt;
+                        delete newCollection.isApproved;
+                        delete newCollection.isNewInstance;
 
                         console.log('new collection: ' + JSON.stringify(newCollection));
 
@@ -520,6 +521,10 @@ module.exports = function (Collection) {
                     }
                 });
             }
+            else {
+                // Collection status is neither draft or active.
+                next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
+            }
         }
     });
 
@@ -549,7 +554,6 @@ module.exports = function (Collection) {
                         console.log('Existing participants: ' + JSON.stringify(participantInstances));
 
                         // This collection has existing participants on it. It cannot be edited without branching out.
-                        //next(new Error(g.f("Cannot edit active collection with participants on it.")));
 
                         // Create a new collection by copying all the data of this collection
                         var newCollection = collectionInstance.toJSON();
@@ -607,15 +611,17 @@ module.exports = function (Collection) {
                                             else {
                                                 var newContent = {};
                                                 newContent = oldContentInstances[i].toJSON();
+
+                                                var updatedContentKeys = Object.keys(ctx.args.data);
+                                                updatedContentKeys.forEach(function (updatedContentKey) {
+                                                    newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
+                                                });
+
                                                 delete newContent.id;
                                                 delete newContent.schedules;
                                                 delete newContent.locations;
                                                 newContent.disableHasOneCreate = true;
                                                 newContent.isNewInstance = true;
-                                                var updatedContentKeys = Object.keys(ctx.args.data);
-                                                updatedContentKeys.forEach(function (updatedContentKey) {
-                                                    newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
-                                                });
 
                                                 // Add content to array to pass in result
                                                 resultContents.push(newContent);
@@ -766,7 +772,6 @@ module.exports = function (Collection) {
                         console.log('Existing participants: ' + JSON.stringify(participantInstances));
 
                         // This collection has existing participants on it. It cannot be edited without branching out.
-                        //next(new Error(g.f("Cannot edit active collection with participants on it.")));
 
                         // Create a new collection by copying all the data of this collection
                         var newCollection = collectionInstance.toJSON();
