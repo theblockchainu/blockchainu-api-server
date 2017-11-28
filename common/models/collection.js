@@ -432,13 +432,13 @@ module.exports = function (Collection) {
                         // Create a new collection by copying all the data of this collection
                         var newCollection = collectionInstance.toJSON();
 
-                        newCollection.title = 'Cloned: ' + newCollection.title;
-                        newCollection.disableHasOneCreate = true;
-
                         var updatedContentKeys = Object.keys(ctx.args.data);
                         updatedContentKeys.forEach(function (updatedContentKey) {
                             newCollection[updatedContentKey] = ctx.args.data[updatedContentKey];
                         });
+
+                        newCollection.title = 'Cloned: ' + newCollection.title;
+                        newCollection.disableHasOneCreate = true;
 
                         delete newCollection.id;
                         delete newCollection.status;
@@ -447,8 +447,6 @@ module.exports = function (Collection) {
                         delete newCollection.updatedAt;
                         delete newCollection.isApproved;
                         delete newCollection.isNewInstance;
-
-                        console.log('new collection: ' + JSON.stringify(newCollection));
 
                         Collection.create(newCollection, function (err, newCollectionInstance) {
                             if (err) {
