@@ -386,11 +386,43 @@ module.exports = function (Collection) {
         else if (ctx.args.data.status === 'complete') {
             next();
         }
+        else if (ctx.args.data.status === 'cancelled') {
+            // cancelling a workshop with participants.
+            collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
+                if (err) {
+                    next(err);
+                }
+                else if (participantInstances !== null && participantInstances.length > 0) {
+                    //Inform all participants that the workshop is cancelled.
+                    participantInstances.forEach((participantInstance) => {
+                        // Send email to participants
+                        var message = { heading: "Your workshop : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        var html_body = renderer(message);
+                        loopback.Email.send({
+                            to: participantInstance.email,
+                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            subject: 'Workshop cancelled : ' + collectionInstance.title,
+                            html: html_body
+                        })
+                            .then(function (response) {
+                                console.log('email sent! - ' + response);
+                            })
+                            .catch(function (err) {
+                                console.log('email error! - ' + err);
+                            });
+                    });
+                    next();
+                }
+                else {
+                    next();
+                }
+            });
+        }
         else {
             // User is trying to update a non draft collection
             // We need to check if this collection is active and if it has any participants.
             if (collectionInstance.status === 'active') {
-                console.log('collection status active');
                 collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                     if (err) {
                         next(err);

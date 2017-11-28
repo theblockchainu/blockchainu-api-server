@@ -4,7 +4,8 @@ module.exports = function (Model, options) {
     Model.observe('before delete', function (ctx, next) {
         console.log('tyring to delete something in model: ' + Model.modelName);
         if (Model.modelName === 'collection') {
-            //get the ID of the item being deleted.
+            next();
+            /*//get the ID of the item being deleted.
             if (ctx.where.id) {
                 var itemId = ctx.where.id;
                 Model.dataSource.connector.execute(
@@ -23,7 +24,7 @@ module.exports = function (Model, options) {
                 err.statusCode = 400;
                 console.log(err.toString());
                 next(err);
-            }
+            }*/
         }
         else {
             next();
