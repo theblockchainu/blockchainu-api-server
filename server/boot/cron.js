@@ -4,6 +4,8 @@ var moment = require('moment');
 var client = require('../esConnection.js');
 var bulk = [];
 var app = require('../server');
+var loopback = require('../../node_modules/loopback/lib/loopback');
+var path = require('path');
 
 module.exports = function setupCron(server) {
 
@@ -144,6 +146,105 @@ module.exports = function setupCron(server) {
         function() {
 
     },
+        true,
+        'UTC'
+    );
+
+    var upcomingActivityCron = new CronJob('*/20 * * * * *',
+        function() {
+            console.log('Running upcomingActivityCron every 10 mins');
+            server.models.collection.find({'where': {'status': 'active'}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars']}, function(err, collectionInstances){
+                collectionInstances.forEach(collection => {
+                    if (collection.calendars !== undefined) {
+                        collection.toJSON().calendars.forEach(calendar => {
+                            var collectionCalendarStartDate = moment(calendar.startDate);
+                            var collectionCalendarEndDate = moment(calendar.endDate);
+                            var now = moment();
+                            if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate, collectionCalendarEndDate)) {
+                                // This collection has a currently running calendar
+                                // Check if it has any upcoming activity
+                                collection.toJSON().contents.forEach(content => {
+                                    var schedules = content.schedules;
+                                    var scheduleData = schedules[0];
+                                    if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+                                        var startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
+                                        var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+                                        if (scheduleData.startTime && scheduleData.endTime) {
+                                            startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+                                            startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+                                            startDate.seconds('00');
+                                            endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+                                            endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+                                            endDate.seconds('00');
+                                            console.log('Activity time to start is: ' + startDate.diff(now, 'hours') + ' hours');
+                                            if (content.type === 'online' && startDate.diff(now, 'hours') === 1) {
+                                                // Upcoming online session starts in 1 hour. Send notification and email to all participants
+                                                collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+                                                    if (!err && participantInstances.length > 0) {
+                                                        participantInstances.forEach(participantInstance => {
+                                                            console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
+                                                            // Send email
+                                                            var message = { heading: 'Hi ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ', your ' + collection.type + ' - ' + collection.title + ' has this upcoming Online Session in the next hour : ' + content.title};
+                                                            var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                            var html_body = renderer(message);
+                                                            loopback.Email.send({
+                                                                to: participantInstance.email,
+                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                subject: 'Verify your email with Peerbuds',
+                                                                html: html_body
+                                                            })
+                                                                .then(function (response) {
+                                                                    console.log('email sent! - ' + response);
+                                                                })
+                                                                .catch(function (err) {
+                                                                    console.log('email error! - ' + err);
+                                                                });
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                            if (content.type === 'project' && endDate.diff(now, 'hours') === 1) {
+                                                // Upcoming project deadline in 1 hour. Send notification and email to all participants
+                                                collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+                                                    if (!err && participantInstances.length > 0) {
+                                                        participantInstances.forEach(participantInstance => {
+                                                            console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
+                                                            // Send email
+                                                            var message = { heading: 'Hi ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ', your ' + collection.type + ' - ' + collection.title + ' has this upcoming Project Deadline in the next hour : ' + content.title};
+                                                            var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                            var html_body = renderer(message);
+                                                            loopback.Email.send({
+                                                                to: participantInstance.email,
+                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                subject: 'Verify your email with Peerbuds',
+                                                                html: html_body
+                                                            })
+                                                                .then(function (response) {
+                                                                    console.log('email sent! - ' + response);
+                                                                })
+                                                                .catch(function (err) {
+                                                                    console.log('email error! - ' + err);
+                                                                });
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        } else {
+                                            console.log("Time Unavailable !");
+                                        }
+                                    } else {
+                                        console.log("Schedule Days Unavailable");
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        },
+        function() {
+
+        },
         true,
         'UTC'
     );
