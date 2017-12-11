@@ -108,7 +108,7 @@ module.exports = function setupCron(server) {
     'UTC'
     );
 
-    var collectionCompleteCron = new CronJob('*/20 * * * * *',
+    var collectionCompleteCron = new CronJob('* */10 * * * *',
         function() {
             //console.log('Running collectionCompleteCron every minute');
             server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars']}, function(err, collectionInstances){
@@ -150,9 +150,9 @@ module.exports = function setupCron(server) {
         'UTC'
     );
 
-    var upcomingActivityCron = new CronJob('*/20 * * * * *',
+    var upcomingActivityCron = new CronJob('* */10 * * * *',
         function() {
-            console.log('Running upcomingActivityCron every 10 mins');
+            /*console.log('Running upcomingActivityCron every 10 mins');*/
             server.models.collection.find({'where': {'status': 'active'}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars']}, function(err, collectionInstances){
                 collectionInstances.forEach(collection => {
                     if (collection.calendars !== undefined) {
@@ -176,8 +176,8 @@ module.exports = function setupCron(server) {
                                             endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                             endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                             endDate.seconds('00');
-                                            console.log('Activity time to start is: ' + startDate.diff(now, 'hours') + ' hours');
-                                            if (content.type === 'online' && startDate.diff(now, 'hours') === 1) {
+                                            console.log('Activity time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
+                                            if ((content.type === 'online' || content.type === 'in-person') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
                                                 // Upcoming online session starts in 1 hour. Send notification and email to all participants
                                                 collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
                                                     if (!err && participantInstances.length > 0) {
@@ -190,7 +190,7 @@ module.exports = function setupCron(server) {
                                                             loopback.Email.send({
                                                                 to: participantInstance.email,
                                                                 from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                                subject: 'Verify your email with Peerbuds',
+                                                                subject: 'Upcoming ' + content.type + ' session',
                                                                 html: html_body
                                                             })
                                                                 .then(function (response) {
@@ -216,7 +216,7 @@ module.exports = function setupCron(server) {
                                                             loopback.Email.send({
                                                                 to: participantInstance.email,
                                                                 from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                                subject: 'Verify your email with Peerbuds',
+                                                                subject: 'Upcoming project deadline',
                                                                 html: html_body
                                                             })
                                                                 .then(function (response) {

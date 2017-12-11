@@ -1,0 +1,48 @@
+{
+  "name": "rsvp",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "calendarId": {
+      "type": "string"
+    },
+    "isPresent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "validations": [],
+  "relations": {
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "targetId",
+      "through": "content_has_rsvp",
+      "keyThrough": "sourceId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "rsvp_has_peer",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

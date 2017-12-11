@@ -34,17 +34,40 @@ module.exports = function (PayoutAcc) {
                     var authRes = JSON.parse(resBody);
                     if (!authRes.hasOwnProperty("error")) {
                         var connUser = authRes;
-                        PayoutAcc.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] }, function (err, peerInstance) {
+                        PayoutAcc.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs", {"ownedCollections": "payoutrules"}] }, function (err, peerInstance) {
                             if (!err && peerInstance !== null) {
                                 var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
                                 if (peerPayoutAccs && !peerPayoutAccs.length)
                                     connUser.is_default = true;
-                                peerInstance.payoutaccs.create(connUser, function (err, connUserInstance) {
+                                peerInstance.payoutaccs.create(connUser, function (err, payoutAccountInstance) {
                                     if (err) {
-                                        connUserInstance.destroy();
+                                        payoutAccountInstance.destroy();
                                         cb(err);
                                     } else {
-                                        cb(null, connUserInstance);
+                                        peerInstance.toJSON().ownedCollections.forEach((collection) => {
+                                            if (collection.payoutrules === undefined) {
+                                                // Create a new payout rule for this collection of user
+                                                var payoutRule = {};
+                                                payoutRule.percentage1 = 100;
+                                                payoutRule.payoutId1 = payoutAccountInstance.id;
+
+                                                PayoutAcc.app.models.collection.findById(collection.id, function(err, collectionInstance) {
+                                                   if (err) {
+                                                       console.log('cannot find collection with this ID');
+                                                   }
+                                                   else {
+                                                       collectionInstance.payoutrules.create(payoutRule,
+                                                           function (err, payoutRulesInstance) {
+                                                               if (err) {
+                                                                   payoutRulesInstance.destroy();
+                                                                   cb(err);
+                                                               }
+                                                           });
+                                                   }
+                                                });
+                                            }
+                                        });
+                                        cb(null, payoutAccountInstance);
                                     }
                                 });
                             }
@@ -112,7 +135,7 @@ module.exports = function (PayoutAcc) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
     PayoutAcc.createLoginLink = function (req, accountId, cb) {
         var loggedinPeer = PayoutAcc.app.models.peer.getCookieUserId(req);
@@ -131,7 +154,7 @@ module.exports = function (PayoutAcc) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
 
 
     PayoutAcc.remoteMethod('createConnectedAcc', {

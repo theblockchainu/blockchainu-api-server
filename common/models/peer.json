@@ -244,6 +244,13 @@
       "foreignKey": "targetId",
       "through": "view_has_viewer",
       "keyThrough": "sourceId"
+    },
+    "rsvps": {
+      "type": "hasMany",
+      "model": "rsvp",
+      "foreignKey": "targetId",
+      "through": "rsvp_has_peer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

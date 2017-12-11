@@ -117,6 +117,130 @@
     "dataSource": "neo4j",
     "public": true
   },
+  "contact": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "calendar": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "schedule": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "language": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "currency": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "bookmark": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "location": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "transaction": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "payoutacc": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "workexperience": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "education": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "emailSubscription": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "guestContact": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "rsvp": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "phone": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "flag": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "notification": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "submission": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "payoutrule": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "paymentacc": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "vsession": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "timezone": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "requestedtopic": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_calendar": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_schedule": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_contact": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_bookmark": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "bookmark_has_bookmarker": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_location": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_transaction": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
   "peer_has_topiclearning": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -213,74 +337,6 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "contact": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "calendar": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "schedule": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "collection_has_calendar": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "content_has_schedule": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "language": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "peer_has_contact": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "currency": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "content_has_comment": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "bookmark": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "collection_has_bookmark": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "bookmark_has_bookmarker": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "location": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "content_has_location": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "transaction": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "peer_has_transaction": {
-    "dataSource": "neo4j-cypher",
-    "public": false
-  },
-  "payoutacc": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "peer_has_payoutacc": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -289,14 +345,6 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "workexperience": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "education": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "profile_has_workexperience": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -304,10 +352,6 @@
   "profile_has_education": {
     "dataSource": "neo4j-cypher",
     "public": false
-  },
-  "notification": {
-    "dataSource": "neo4j",
-    "public": true
   },
   "peer_has_notification": {
     "dataSource": "neo4j-cypher",
@@ -321,10 +365,6 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "submission": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "submission_has_peer": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -333,21 +373,9 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "payoutrule": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "paymentacc": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "collection_has_payoutrule": {
     "dataSource": "neo4j-cypher",
     "public": false
-  },
-  "vsession": {
-    "dataSource": "neo4j",
-    "public": true
   },
   "comment_has_upvote": {
     "dataSource": "neo4j-cypher",
@@ -365,21 +393,9 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "timezone": {
-    "dataSource": "neo4j",
-    "public": true
-  },
-  "requestedtopic": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "collection_has_payment": {
     "dataSource": "neo4j-cypher",
     "public": false
-  },
-  "flag": {
-    "dataSource": "neo4j",
-    "public": true
   },
   "peer_has_flag": {
     "dataSource": "neo4j-cypher",
@@ -413,10 +429,6 @@
     "dataSource": null,
     "public": false
   },
-  "phone": {
-    "dataSource": "neo4j",
-    "public": true
-  },
   "profile_has_phoneNumber": {
     "dataSource": "neo4j-cypher",
     "public": false
@@ -425,12 +437,12 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "emailSubscription": {
-    "dataSource": "neo4j",
-    "public": true
+  "content_has_rsvp": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   },
-  "guestContact": {
-    "dataSource": "neo4j",
-    "public": true
+  "rsvp_has_peer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

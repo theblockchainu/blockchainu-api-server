@@ -59,7 +59,7 @@ module.exports = function (Collection) {
                                             }
                                             else {
                                                 // Send email to the student welcoming him to course
-                                                var message = { heading: "Welcome to this workshop. \n\n- Learn\n\n- Collaborate\n\n- Practice"};
+                                                var message = { heading: "Welcome to this " + collectionInstance.type + ". \n\n- Learn\n\n- Collaborate\n\n- Practice"};
                                                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                                                 var html_body = renderer(message);
                                                 loopback.Email.send({
@@ -396,13 +396,13 @@ module.exports = function (Collection) {
                     //Inform all participants that the workshop is cancelled.
                     participantInstances.forEach((participantInstance) => {
                         // Send email to participants
-                        var message = { heading: "Your workshop : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
+                        var message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                         var html_body = renderer(message);
                         loopback.Email.send({
                             to: participantInstance.email,
                             from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                            subject: 'Workshop cancelled : ' + collectionInstance.title,
+                            subject: collectionInstance.type + ' cancelled : ' + collectionInstance.title,
                             html: html_body
                         })
                             .then(function (response) {
@@ -965,24 +965,22 @@ module.exports = function (Collection) {
     });
 
     Collection.beforeRemote('prototype.__delete__contents', function (ctx, next)   {
-        console.log('***** DELETING NEW CONTENT TO ACTIVE COLLECTION');
+        console.log('***** DELETING CONTENT OF COLLECTION');
         var collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
-        else if (ctx.args.data.status === 'complete') {
-            next();
-        }
         else {
-            // User is trying to update a non draft collection
+            // User is trying to delete a non draft collection
             // We need to check if this collection is active and if it has any participants.
             if (collectionInstance.status === 'active') {
+                console.log('***** DELETING CONTENT OF ACTIVE COLLECTION');
                 collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                     if (err) {
                         next(err);
                     }
                     else if (participantInstances !== null && participantInstances.length > 0) {
-                        console.log('Existing participants: ' + JSON.stringify(participantInstances));
+                        console.log('***** DELETING CONTENT OF ACTIVE COLLECTION WITH PARTICIPANTS');
 
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
@@ -1110,15 +1108,14 @@ module.exports = function (Collection) {
                         });
                     }
                     else {
-                        // This collection has no participants on it. We can edit it but put it back in draft status.
-                        ctx.args.data.status = 'draft';
+                        // This collection has no participants on it. We can delete its content.
                         next();
                     }
                 });
             }
             else {
                 // Collection status is neither draft or active.
-                next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
+                next(new Error(g.f('Cannot delete collection in state: ' + collectionInstance.status)));
             }
         }
     });

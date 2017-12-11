@@ -25,7 +25,8 @@
       "relationName": [
         "comments",
         "submissions",
-        "views"
+        "views",
+        "rsvps"
       ]
     },
     "TimeStamp": {
@@ -115,6 +116,13 @@
       "model": "view",
       "foreignKey": "sourceId",
       "through": "content_has_view",
+      "keyThrough": "targetId"
+    },
+    "rsvps": {
+      "type": "hasMany",
+      "model": "rsvp",
+      "foreignKey": "sourceId",
+      "through": "content_has_rsvp",
       "keyThrough": "targetId"
     }
   },

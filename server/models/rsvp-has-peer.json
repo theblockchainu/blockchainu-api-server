@@ -1,0 +1,36 @@
+{
+  "name": "rsvp_has_peer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "neo4j": {
+    "sourceModel": "rsvp",
+    "targetModel": "peer"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "rsvp": {
+      "type": "belongsTo",
+      "model": "rsvp",
+      "foreignKey": "sourceId"
+    },
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
