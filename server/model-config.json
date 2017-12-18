@@ -444,5 +444,13 @@
   "rsvp_has_peer": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "socket_connection": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_socketconnection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -3,7 +3,7 @@ var app = require('../../server/server');
 
 module.exports = function (Notification, socket) {
 
-    Notification.createNotification = function (toId, actorId, notificationData, cb) {
+    Notification.prototype.createNotification = function (toId, actorId, notificationData, cb) {
 
         var User = app.models.peer;
 

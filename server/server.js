@@ -354,13 +354,13 @@ app.post('/signup', function (req, res, next) {
                             function (err, results) {
                                 if (!err) {
                                     // Send welcome email to user
-                                    var message = { heading: "Welcome to peerbuds, " + profileObject.first_name + ' ' + profileObject.last_name };
+                                    var message = { username: profileObject.first_name};
                                     var renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
                                     var html_body = renderer(message);
                                     loopback.Email.send({
                                         to: user.email,
                                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                        subject: 'Welcome to Peerbuds',
+                                        subject: 'Welcome to peerbuds',
                                         html: html_body
                                     })
                                         .then(function (response) {

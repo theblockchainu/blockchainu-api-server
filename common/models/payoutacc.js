@@ -112,6 +112,7 @@ module.exports = function (PayoutAcc) {
                                             console.log(err);
                                             resolve();
                                         } else {
+                                            account.payoutaccount = peerAccount;
                                             stripeAccounts.push(account);
                                             resolve();
                                         }

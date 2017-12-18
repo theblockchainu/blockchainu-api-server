@@ -203,7 +203,7 @@ module.exports = function setupCron(server) {
                                                     }
                                                 });
                                             }
-                                            if (content.type === 'project' && endDate.diff(now, 'hours') === 1) {
+                                            if (content.type === 'project' && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
                                                 // Upcoming project deadline in 1 hour. Send notification and email to all participants
                                                 collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
                                                     if (!err && participantInstances.length > 0) {

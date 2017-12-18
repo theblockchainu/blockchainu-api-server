@@ -380,7 +380,6 @@ module.exports = function (Collection) {
     Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
         var collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
-            //console.log('collection status draft or blank or submitted');
             next();
         }
         else if (ctx.args.data.status === 'complete') {
@@ -547,6 +546,7 @@ module.exports = function (Collection) {
                     else {
                         // This collection has no participants on it. We can edit it but put it back in draft status.
                         ctx.args.data.status = 'draft';
+                        ctx.args.data.isNewInstance = true;
                         next();
                     }
                 });
@@ -557,8 +557,6 @@ module.exports = function (Collection) {
             }
         }
     });
-
-
 
 
     Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next)   {
@@ -774,6 +772,7 @@ module.exports = function (Collection) {
                     else {
                         // This collection has no participants on it. We can edit it but put it back in draft status.
                         ctx.args.data.status = 'draft';
+                        ctx.args.data.isNewInstance = true;
                         next();
                     }
                 });
@@ -842,43 +841,46 @@ module.exports = function (Collection) {
 
                                 var resultContents = [];
 
-                                // Create new content for this collection
-                                var newContent = {};
-                                var updatedContentKeys = Object.keys(ctx.args.data);
-                                updatedContentKeys.forEach(function (updatedContentKey) {
-                                    newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
-                                });
-                                newContent.isNewInstance = true;
-                                // Create clone of dirty content for new collection
-                                newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
-                                    if (!err && newCreatedContentInstance !== null) {
-                                        console.log('Created content for collection');
-                                        // Add content to array to pass as result
-                                        resultContents.push(newCreatedContentInstance.toJSON());
-
-                                        var resultCollectionInstance = newCollectionInstance.toJSON();
-                                        resultCollectionInstance['contents'] = resultContents;
-                                        ctx.res.json(resultCollectionInstance);
-                                    }
-                                    else {
-                                        next(new Error(g.f('Cannot update collection. Error: ' + err)));
-                                    }
-                                });
 
                                 // Copy all contents from oldInstance to new instance
                                 collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
                                         var m = 0;
                                         for (var i = 0; i < oldContentInstances.length; i++) {
-                                            // Add content to array to pass as result
-                                            resultContents.push(oldContentInstances[i]);
                                             // Link new clone to all non-dirty contents.
                                             newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
                                                 if (!err && newLinkedContentInstance !== null) {
                                                     console.log('Linked existing content to collection');
+                                                    // Add content to array to pass as result
+                                                    resultContents.push(newLinkedContentInstance.toJSON());
                                                 }
                                                 m++;
                                             });
+                                            if (m === oldContentInstances.length) {
+
+                                                // Create new content for this collection
+                                                var newContent = {};
+                                                var updatedContentKeys = Object.keys(ctx.args.data);
+                                                updatedContentKeys.forEach(function (updatedContentKey) {
+                                                    newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
+                                                });
+                                                newContent.isNewInstance = true;
+                                                // Create new content for this new collection
+                                                newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
+                                                    if (!err && newCreatedContentInstance !== null) {
+                                                        console.log('Created content for collection');
+                                                        // Add content to array to pass as result
+                                                        resultContents.push(newCreatedContentInstance.toJSON());
+                                                        // Sent result response
+                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        resultCollectionInstance['contents'] = resultContents;
+                                                        ctx.res.json(resultCollectionInstance);
+                                                    }
+                                                    else {
+                                                        next(new Error(g.f('Cannot update collection. Error: ' + err)));
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                     else {
@@ -953,6 +955,7 @@ module.exports = function (Collection) {
                     else {
                         // This collection has no participants on it. We can edit it but put it back in draft status.
                         ctx.args.data.status = 'draft';
+                        ctx.args.data.isNewInstance = true;
                         next();
                     }
                 });
@@ -964,7 +967,7 @@ module.exports = function (Collection) {
         }
     });
 
-    Collection.beforeRemote('prototype.__delete__contents', function (ctx, next)   {
+    Collection.beforeRemote('prototype.__destroyById__contents', function (ctx, newInstance, next)   {
         console.log('***** DELETING CONTENT OF COLLECTION');
         var collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
@@ -1027,13 +1030,18 @@ module.exports = function (Collection) {
 
                                             if (oldContentInstances[i].id !== ctx.args.fk) {
                                                 // Add content to array to pass as result
-                                                resultContents.push(oldContentInstances[i]);
                                                 // Link new clone to all non-dirty contents.
                                                 newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
                                                     if (!err && newLinkedContentInstance !== null) {
                                                         console.log('Linked existing content to collection');
+                                                        resultContents.push(newLinkedContentInstance.toJSON());
                                                     }
                                                     m++;
+                                                    if (m === (oldContentInstances.length - 1)) {
+                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        resultCollectionInstance['contents'] = resultContents;
+                                                        ctx.res.json(resultCollectionInstance);
+                                                    }
                                                 });
                                             }
                                         }
@@ -1049,7 +1057,6 @@ module.exports = function (Collection) {
                                     if (!err && oldCalendarInstances !== null) {
                                         var hasOneCalendarCopied = false;
                                         oldCalendarInstances.forEach(function (oldCalendarInstance) {
-                                            //participantInstances = participantInstances.toJSON();
                                             var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
@@ -1108,14 +1115,27 @@ module.exports = function (Collection) {
                         });
                     }
                     else {
-                        // This collection has no participants on it. We can delete its content.
-                        next();
+                        // This collection has no participants on it. We can delete its content but change status to draft
+                        var newCollectionData = collectionInstance.toJSON();
+                        newCollectionData.isNewInstance = true;
+                        // Copy all contents from oldInstance to new instance
+                        collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
+                            if (!err && oldContentInstances !== null) {
+                                var resultCollectionInstance = newCollectionData;
+                                resultCollectionInstance['contents'] = oldContentInstances.toJSON();
+                                ctx.res.json(resultCollectionInstance);
+                            }
+                            else {
+                                console.log(err);
+                                next(new Error(g.f('Cannot update collection. Error: ' + err)));
+                            }
+                        });
                     }
                 });
             }
             else {
                 // Collection status is neither draft or active.
-                next(new Error(g.f('Cannot delete collection in state: ' + collectionInstance.status)));
+                next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
             }
         }
     });

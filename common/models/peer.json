@@ -251,6 +251,20 @@
       "foreignKey": "targetId",
       "through": "rsvp_has_peer",
       "keyThrough": "sourceId"
+    },
+    "socketconnections": {
+      "type": "hasMany",
+      "model": "socket_connection",
+      "foreignKey": "sourceId",
+      "through": "peer_has_socketconnection",
+      "keyThrough": "targetId"
+    },
+    "bookmarks": {
+      "type": "hasMany",
+      "model": "bookmark",
+      "foreignKey": "targetId",
+      "through": "bookmark_has_bookmarker",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

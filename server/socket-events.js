@@ -15,22 +15,38 @@ exports = module.exports = function (io) {
             try {
                 console.log("\n\n\n\n\n//**** Connecting user id:" + user.id + " to socket " + socket.id + "****//");
                 socket.userId = user.id;
-                var connUser = findById(users, user.id);
-                if (connUser !== undefined) {                  //user is already connected from some location
-                    if (findById(connUser.socketConns, socket.id) === undefined) {
-                        connUser.socketConns.push(socket.id);       // Store this socket reference as well for this user
-                    }
-                } else {
+                app.models.peer.findById(user.id, function(err, peerInstance) {
+                   if (err) {
+                       console.log("add user err ::" + err);
+                   }
+                   else {
+                       var socketValue = {
+                           socketId: socket.id
+                       };
+                       peerInstance.socketconnections.create(socketValue, function (err, socketInstance) {
+                          if (err) {
+                              console.log("add socket to db err ::" + err);
+                          }
+                          else {
+                              var connUser = findById(users, user.id);
+                              if (connUser !== undefined) {                  //user is already connected from some location
+                                  if (findById(connUser.socketConns, socket.id) === undefined) {
+                                      connUser.socketConns.push(socket.id);       // Store this socket reference as well for this user
+                                  }
+                              } else {
 
-                    var userSockets = [];
-                    userSockets.push(socket.id);    // Store a reference to your socket as there could be multiple socket for same user.
-                    user.socketConns = userSockets;
-                    users.push(user);         // Store this newly connected user in global users connection list
-                }
+                                  var userSockets = [];
+                                  userSockets.push(socket.id);    // Store a reference to your socket as there could be multiple socket for same user.
+                                  user.socketConns = userSockets;
+                                  users.push(user);         // Store this newly connected user in global users connection list
+                              }
 
-                //currently connected user
-                printConnectedUsers();
-
+                              //currently connected user
+                              printConnectedUsers();
+                          }
+                       });
+                   }
+                });
             } catch (err) {
                 console.log("add user err ::" + err);
             }
@@ -39,34 +55,48 @@ exports = module.exports = function (io) {
         socket.on('disconnect', function () {
 
             try {
-                var disconnectingUser = null;
 
-                for (var i = 0; i < users.length; i++) {
+                app.models.socket_connection.find({'where': {'socketId': socket.id}}, function(err, socketInstance) {
+                    if (!err && socketInstance.length > 0) {
+                        socketInstance[0].destroy(function(err, deleteInstance){
+                            if (!err) {
+                                var disconnectingUser = null;
 
-                    disconnectingUser = users[i];
+                                for (var i = 0; i < users.length; i++) {
 
-                    if (disconnectingUser.id == socket.userId) {
+                                    disconnectingUser = users[i];
 
-                        console.log("Disconnecting " + disconnectingUser.fullName);
+                                    if (disconnectingUser.id === socket.userId) {
 
-                        if (disconnectingUser.socketConns.length > 1) {
-                            for (var j = 0; j < disconnectingUser.socketConns.length; j++) {
-                                if (disconnectingUser.socketConns[j] == socket.id) {
-                                    disconnectingUser.socketConns.splice(j, 1);
+                                        console.log("Disconnecting " + disconnectingUser.fullName);
+
+                                        if (disconnectingUser.socketConns.length > 1) {
+                                            for (var j = 0; j < disconnectingUser.socketConns.length; j++) {
+                                                if (disconnectingUser.socketConns[j] === socket.id) {
+                                                    disconnectingUser.socketConns.splice(j, 1);
+                                                }
+                                            }
+                                        } else {
+                                            //remove from user
+                                            users.splice(i, 1);
+                                        }
+
+                                        console.log('Disconnected');
+                                    }
                                 }
+
+                                //currently connected user
+                                printConnectedUsers();
                             }
-                        } else {
-                            //remove from user
-                            users.splice(i, 1);
-                        }
-
-                        console.log('Disconnected');
+                            else {
+                                console.log("disconnect err ::" + err);
+                            }
+                        });
                     }
-                }
-
-                //currently connected user
-                printConnectedUsers();
-
+                    else {
+                        console.log("disconnect err or no socket to delete ::" + err);
+                    }
+                });
             } catch (err) {
                 console.log("disconnect err ::" + err);
             }
@@ -116,7 +146,7 @@ exports = module.exports = function (io) {
 
         function sendNotification(notification) {
             for (var i = 0; i < users.length; i++) {
-                if (users[i].id == notification.to.id) {
+                if (users[i].id === notification.to.id) {
                     var toUser = users[i];
                     var notificationService = app.models.notification;
                     var toId = notification.to.id;
@@ -214,7 +244,7 @@ exports = module.exports = function (io) {
         try {
             var resultObj = undefined;
             for (var i = 0; i < source.length; i++) {
-                if (source[i].id == id)
+                if (source[i].id === id)
                     resultObj = source[i];
             }
             return resultObj;
@@ -228,7 +258,7 @@ exports = module.exports = function (io) {
             var log = "";
             if (users !== undefined && users.length) {
                 log += "\n///////*****************************************///////";
-                log += "\n///////********** Connected Users **************///////";
+                log += "\n///////********** Connected & Saved Users to DB **************///////";
                 log += "\n///////*****************************************///////";
                 var userCount = 1;
                 for (var i = 0; i < users.length; i++) {
