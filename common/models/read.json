@@ -1,0 +1,33 @@
+{
+  "name": "read",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "read_has_peer",
+      "keyThrough": "targetId"
+    },
+    "message": {
+      "type": "hasMany",
+      "model": "message",
+      "foreignKey": "targetId",
+      "through": "message_has_readreceipt",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -265,6 +265,27 @@
       "foreignKey": "targetId",
       "through": "bookmark_has_bookmarker",
       "keyThrough": "sourceId"
+    },
+    "messages": {
+      "type": "hasMany",
+      "model": "bookmark",
+      "foreignKey": "targetId",
+      "through": "message_has_peer",
+      "keyThrough": "sourceId"
+    },
+    "readreceipts": {
+      "type": "hasMany",
+      "model": "read",
+      "foreignKey": "targetId",
+      "through": "read_has_peer",
+      "keyThrough": "sourceId"
+    },
+    "deliveryreceipts": {
+      "type": "hasMany",
+      "model": "delivery",
+      "foreignKey": "targetId",
+      "through": "delivery_has_peer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

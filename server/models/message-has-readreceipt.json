@@ -1,0 +1,39 @@
+{
+  "name": "message_has_readreceipt",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "message",
+    "targetModel": "read"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "message": {
+      "type": "belongsTo",
+      "model": "message",
+      "foreignKey": "sourceId"
+    },
+    "readreceipt": {
+      "type": "belongsTo",
+      "model": "read",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

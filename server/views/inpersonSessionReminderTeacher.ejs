@@ -12,7 +12,7 @@
     </div>
     <!-- Title -->
     <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-        Congrats on completing your <%= type %>!
+        Get ready for your in-person session
     </div>
     <!-- Body -->
     <div>
@@ -20,18 +20,10 @@
             Hey there,
         </div>
         <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
-            We hope what you've learned was both helpful and exciting.  We're also hoping you'll be inspired to go forward and share what you've learned with others.   Below is a review of what you learned in this past <%= type %> so you can refresh anything that might have gone fuzzy in your memory - and it's here as a handy reference if you ever need it.
-            <br><br>
-            You spent over <%= viewTime %> hours on this <%= days %> day <%= type%> which is <%= viewTimeComparison %> than <%= viewTimePercentile %> of the participants.
-            <br>
-            You covered <%= contentCount %> activities which included <%= contentSplit %>.
-            <br>
-            During this period <%= totalCommentCount %> discussion threads were started of which you were active in <%= personalCommentCount %>.
-            <br>
-            This <%= type %> covered <%= topics %> topics.
+            You ready for your upcoming in-person session -- <%= title %>,  today at <%= time %>?  A lot of cool people have signed up and they're all looking forward to seeing you there.
         </div>
         <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://dev.peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">View <%= type %></a>
+            <a style="color: white; text-decoration: none;" href="https://dev.peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>/<%= contentId%>">Check RSVPs</a>
         </div>
     </div>
     <!-- Signature -->

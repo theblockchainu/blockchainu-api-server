@@ -12,15 +12,20 @@
         </div>
         <!-- Title -->
         <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-            Reset your password
+            Time to review <%= owner %>
         </div>
         <!-- Body -->
         <div>
             <div style="font-size: 17px; margin-top: 25px;">
-                Forgot your password?  It happens to all of us.  Just click the link below and we'll prompt you to create a new one.  Easy breezy.
+                Hey there,
+            </div>
+            <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
+                Hopefully you had an awesome experience in <%= owner %>'s <%= type %> and learned some new info and skills that were helpful.  To make sure that all our teachers continue to do the most effective job they can, be sure to leave a review. It doesn't have to be long or complicated - just something honest, fair, and helpful.
+                <br><br>
+                By the way, we're glad you're a part of our community.  Each individual person brings unique perspective and talents that benefits the rest of us in a way that no one else can, so thanks for that.
             </div>
             <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-                <a style="color: white; text-decoration: none;" href="<%= resetLink %>">Reset Password</a>
+                <a style="color: white; text-decoration: none;" href="https://dev.peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">Review <%= owner %></a>
             </div>
         </div>
         <!-- Signature -->

@@ -228,6 +228,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_payoutrule",
       "keyThrough": "targetId"
+    },
+    "rooms": {
+      "type": "hasMany",
+      "model": "room",
+      "foreignKey": "sourceId",
+      "through": "collection_has_room",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

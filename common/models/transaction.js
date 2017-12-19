@@ -375,7 +375,7 @@ module.exports = function (Transaction) {
                                         html: html_body
                                     })
                                         .then(function (response) {
-                                            console.log('email sent! - ' + response);
+                                            console.log('email sent! - ');
                                         })
                                         .catch(function (err) {
                                             console.log('email error! - ' + err);

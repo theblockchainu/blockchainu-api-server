@@ -5,38 +5,41 @@
 </head>
 
 <body>
-    <div style="font-family: Helvetica; padding: 50px 70px; background-color: #ffffff; color: #333333; font-size: 17px;">
-        <!-- Header -->
-        <div style="vertical-align: middle; ">
-            <img src="https://dev.peerbuds.com/assets/images/pb_logo.png" width="35px" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"><b>&nbsp;peerbuds</b></span>
+<div style="font-family: Helvetica; padding: 50px 70px; background-color: #ffffff; color: #333333; font-size: 17px;">
+    <!-- Header -->
+    <div style="vertical-align: middle; ">
+        <img src="https://dev.peerbuds.com/assets/images/pb_logo.png" width="35px" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"><b>&nbsp;peerbuds</b></span>
+    </div>
+    <!-- Title -->
+    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+        Get ready for your live session
+    </div>
+    <!-- Body -->
+    <div>
+        <div style="font-size: 17px; margin-top: 25px;">
+            Hey there,
         </div>
-        <!-- Title -->
-        <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-            Reset your password
+        <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
+            You ready for your upcoming live session -- <%= title %>,  today at <%= time %>?  A lot of cool people have signed up and they're all looking forward to seeing you there.
         </div>
-        <!-- Body -->
-        <div>
-            <div style="font-size: 17px; margin-top: 25px;">
-                Forgot your password?  It happens to all of us.  Just click the link below and we'll prompt you to create a new one.  Easy breezy.
-            </div>
-            <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-                <a style="color: white; text-decoration: none;" href="<%= resetLink %>">Reset Password</a>
-            </div>
-        </div>
-        <!-- Signature -->
-        <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
-            Cheers,
-            <br>
-            Peerbuds Team
-        </div>
-        <!-- Footer -->
-        <hr style="margin-top: 40px; background-color: #dbdbdb;">
-        <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
-            Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
-            <br><br>
-            Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94539
+        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+            <a style="color: white; text-decoration: none;" href="https://dev.peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>/<%= contentId%>">Start live session</a>
         </div>
     </div>
+    <!-- Signature -->
+    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
+        Cheers,
+        <br>
+        Peerbuds Team
+    </div>
+    <!-- Footer -->
+    <hr style="margin-top: 40px; background-color: #dbdbdb;">
+    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+        Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
+        <br><br>
+        Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+    </div>
+</div>
 </body>
 
 </html>

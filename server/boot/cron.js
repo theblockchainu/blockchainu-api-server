@@ -108,14 +108,15 @@ module.exports = function setupCron(server) {
     'UTC'
     );
 
-    var collectionCompleteCron = new CronJob('* */10 * * * *',
+    // Runs once every 24 hours
+    var collectionCompleteCron = new CronJob('00 00 00 * * *',
         function() {
-            //console.log('Running collectionCompleteCron every minute');
-            server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars']}, function(err, collectionInstances){
+            server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars', 'participants', {'owners': 'profiles'}]}, function(err, collectionInstances){
                collectionInstances.forEach(collection => {
                    if (collection.toJSON().calendars !== undefined) {
                        collection.toJSON().calendars.forEach(calendar => {
                            var collectionCalendarEndDate = moment(calendar.endDate);
+                           var collectionCalendarStartDate = moment(calendar.startDate);
                            var now = moment();
                            if (calendar.status !== 'complete' && collectionCalendarEndDate.diff(now) <= 0) {
                                //console.log('Collection ' + collection.title + ' - cohort ending ' + calendar.endDate + ' is completed. Send out emails to student and teacher');
@@ -130,13 +131,129 @@ module.exports = function setupCron(server) {
                                       console.log('Marked calendar as complete');
                                   }
                                });
-                               // Send email to student asking to review the teacher
 
-                               // Send notification to student asking to review teacher
+                               // Get all students of this calendar
+                               collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+                                   if (!err && participantInstances.length > 0) {
+                                       participantInstances.forEach(participantInstance => {
+                                           // Send email to student asking to review the teacher
+                                           var message = { type: collection.type, owner: collection.toJSON().owners[0].profiles[0].first_name + ' ' + collection.toJSON().owners[0].profiles[0].last_name, collectionId: collection.id, calendarId: calendar.id};
+                                           var renderer = loopback.template(path.resolve(__dirname, '../../server/views/reviewReminderEmailStudent.ejs'));
+                                           var html_body = renderer(message);
+                                           loopback.Email.send({
+                                               to: participantInstance.email,
+                                               from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                               subject: 'Write a review for ' + collection.toJSON().owners[0].profiles[0].first_name + ' ' + collection.toJSON().owners[0].profiles[0].last_name,
+                                               html: html_body
+                                           })
+                                               .then(function (response) {
+                                                   console.log('email sent! - ');
+                                               })
+                                               .catch(function (err) {
+                                                   console.log('email error! - ' + err);
+                                               });
+                                           // Send cohort completion summary to student
+                                           message = { type: collection.type, viewTime: '', days: '', viewTimeComparison: '', viewTimePercentile: '', contentCount: '', contentSplit: '', totalCommentCount: '', personalCommentCount: '', topics: '', collectionId: collection.id, calendarId: calendar.id};
+                                           renderer = loopback.template(path.resolve(__dirname, '../../server/views/cohortCompletionSummaryStudent.ejs'));
+                                           html_body = renderer(message);
+                                           loopback.Email.send({
+                                               to: participantInstance.email,
+                                               from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                               subject: 'Your summary for ' + collection.title,
+                                               html: html_body
+                                           })
+                                               .then(function (response) {
+                                                   console.log('email sent! - ');
+                                               })
+                                               .catch(function (err) {
+                                                   console.log('email error! - ' + err);
+                                               });
+                                           // Send notification to student asking to review teacher
+
+                                       });
+                                   }
+                               });
+
                                // Send email to teacher asking to review all students
+                               var message = { type: collection.type, collectionId: collection.id, calendarId: calendar.id};
+                               var renderer = loopback.template(path.resolve(__dirname, '../../server/views/reviewReminderEmailTeacher.ejs'));
+                               var html_body = renderer(message);
+                               loopback.Email.send({
+                                   to: collection.toJSON().owners[0].email,
+                                   from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                   subject: 'Write a review for your students',
+                                   html: html_body
+                               })
+                                   .then(function (response) {
+                                       console.log('email sent! - ');
+                                   })
+                                   .catch(function (err) {
+                                       console.log('email error! - ' + err);
+                                   });
+                               // Send cohort completion summary to teacher
+                               message = { type: collection.type, viewTime: '', days: '', participantCount: '', participantCompletionRatio: '', contentCount: '', contentSplit: '', totalCommentCount: '', personalCommentCount: '', topics: '', collectionId: collection.id, calendarId: calendar.id};
+                               renderer = loopback.template(path.resolve(__dirname, '../../server/views/cohortCompletionSummaryTeacher.ejs'));
+                               html_body = renderer(message);
+                               loopback.Email.send({
+                                   to: collection.toJSON().owners[0].email,
+                                   from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                   subject: 'Your summary for ' + collection.title,
+                                   html: html_body
+                               })
+                                   .then(function (response) {
+                                       console.log('email sent! - ');
+                                   })
+                                   .catch(function (err) {
+                                       console.log('email error! - ' + err);
+                                   });
                                // Send notification to teacher asking to review students
                                // Initiate payouts to teacher
+                           }
 
+                           // Get upcoming cohorts starting the next day
+                           if (calendar.status !== 'complete' && collectionCalendarStartDate.isBetween(now, collectionCalendarStartDate.add(1, 'days'))) {
+
+                               // Get all students of this calendar
+                               collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+                                   if (!err && participantInstances.length > 0) {
+                                       participantInstances.forEach(participantInstance => {
+                                           // Send email to student reminding of upcoming cohort
+                                           var message = { type: collection.type, title: collection.title, startDate: collectionCalendarStartDate.format('DD MMM'), endDate: collectionCalendarEndDate.format('DD MMM'), owner: collection.toJSON().owners[0].profiles[0].first_name + ' ' + collection.toJSON().owners[0].profiles[0].last_name, collectionId: collection.id, calendarId: calendar.id};
+                                           var renderer = loopback.template(path.resolve(__dirname, '../../server/views/upcomingCohortReminderStudent.ejs'));
+                                           var html_body = renderer(message);
+                                           loopback.Email.send({
+                                               to: participantInstance.email,
+                                               from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                               subject: 'Upcoming ' + collection.type + ' -- ' + collection.title,
+                                               html: html_body
+                                           })
+                                               .then(function (response) {
+                                                   console.log('email sent! - ');
+                                               })
+                                               .catch(function (err) {
+                                                   console.log('email error! - ' + err);
+                                               });
+
+                                       });
+                                   }
+                               });
+
+                               // Send email to teacher reminding of upcoming cohort
+                               message = { type: collection.type, title: collection.title, startDate: collectionCalendarStartDate.format('DD MMM'), endDate: collectionCalendarEndDate.format('DD MMM'), owner: collection.toJSON().owners[0].profiles[0].first_name + ' ' + collection.toJSON().owners[0].profiles[0].last_name, collectionId: collection.id, calendarId: calendar.id};
+                               renderer = loopback.template(path.resolve(__dirname, '../../server/views/upcomingCohortReminderTeacher.ejs'));
+                               html_body = renderer(message);
+                               loopback.Email.send({
+                                   to: collection.toJSON().owners[0].email,
+                                   from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                   subject: 'Upcoming ' + collection.type + ' cohort -- ' + collection.title,
+                                   html: html_body
+                               })
+                                   .then(function (response) {
+                                       console.log('email sent! - ');
+                                   })
+                                   .catch(function (err) {
+                                       console.log('email error! - ' + err);
+                                   });
                            }
                        });
                    }
@@ -150,10 +267,10 @@ module.exports = function setupCron(server) {
         'UTC'
     );
 
-    var upcomingActivityCron = new CronJob('* */10 * * * *',
+    // Runs once every 10 minutes
+    var upcomingActivityCron = new CronJob('00 */10 * * * *',
         function() {
-            /*console.log('Running upcomingActivityCron every 10 mins');*/
-            server.models.collection.find({'where': {'status': 'active'}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars']}, function(err, collectionInstances){
+            server.models.collection.find({'where': {'status': 'active'}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': 'profiles'}]}, function(err, collectionInstances){
                 collectionInstances.forEach(collection => {
                     if (collection.calendars !== undefined) {
                         collection.toJSON().calendars.forEach(calendar => {
@@ -176,16 +293,25 @@ module.exports = function setupCron(server) {
                                             endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                             endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                             endDate.seconds('00');
-                                            console.log('Activity time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
-                                            if ((content.type === 'online' || content.type === 'in-person') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
+                                            console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
+                                            if ((content.type !== 'video') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
                                                 // Upcoming online session starts in 1 hour. Send notification and email to all participants
                                                 collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
                                                     if (!err && participantInstances.length > 0) {
                                                         participantInstances.forEach(participantInstance => {
                                                             console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
-                                                            // Send email
-                                                            var message = { heading: 'Hi ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ', your ' + collection.type + ' - ' + collection.title + ' has this upcoming Online Session in the next hour : ' + content.title};
-                                                            var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                            // Send email to student
+                                                            var message = { title: content.title, time: startDate.format('hh:mm a'), collectionId: collection.id, calendarId: calendar.id, contentId: content.id};
+                                                            var renderer;
+                                                            if (content.type === 'online') {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));
+                                                            }
+                                                            else if (content.type === 'project') {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderStudent.ejs'));
+                                                            }
+                                                            else {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderStudent.ejs'));
+                                                            }
                                                             var html_body = renderer(message);
                                                             loopback.Email.send({
                                                                 to: participantInstance.email,
@@ -194,33 +320,31 @@ module.exports = function setupCron(server) {
                                                                 html: html_body
                                                             })
                                                                 .then(function (response) {
-                                                                    console.log('email sent! - ' + response);
+                                                                    console.log('email sent! - ');
                                                                 })
                                                                 .catch(function (err) {
                                                                     console.log('email error! - ' + err);
                                                                 });
-                                                        });
-                                                    }
-                                                });
-                                            }
-                                            if (content.type === 'project' && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
-                                                // Upcoming project deadline in 1 hour. Send notification and email to all participants
-                                                collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
-                                                    if (!err && participantInstances.length > 0) {
-                                                        participantInstances.forEach(participantInstance => {
-                                                            console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
-                                                            // Send email
-                                                            var message = { heading: 'Hi ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ', your ' + collection.type + ' - ' + collection.title + ' has this upcoming Project Deadline in the next hour : ' + content.title};
-                                                            var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                                                            var html_body = renderer(message);
+
+                                                            // send email to teacher
+                                                            if (content.type === 'online') {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
+                                                            }
+                                                            else if (content.type === 'project') {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
+                                                            }
+                                                            else {
+                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
+                                                            }
+                                                            html_body = renderer(message);
                                                             loopback.Email.send({
-                                                                to: participantInstance.email,
+                                                                to: collection.toJSON().owners[0].email,
                                                                 from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                                subject: 'Upcoming project deadline',
+                                                                subject: 'Upcoming ' + content.type + ' session',
                                                                 html: html_body
                                                             })
                                                                 .then(function (response) {
-                                                                    console.log('email sent! - ' + response);
+                                                                    console.log('email sent! - ');
                                                                 })
                                                                 .catch(function (err) {
                                                                     console.log('email error! - ' + err);

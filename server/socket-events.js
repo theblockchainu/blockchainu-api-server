@@ -5,7 +5,7 @@ exports = module.exports = function (io) {
 
     app.io.on('connection', function (socket) {
 
-        socket.on('subscribe', function (room) {
+        socket.on('joinRoom', function (room) {
             console.log('joining room', room);
             socket.join(room);
         });

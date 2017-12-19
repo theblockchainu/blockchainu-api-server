@@ -59,39 +59,74 @@ module.exports = function (Collection) {
                                             }
                                             else {
                                                 // Send email to the student welcoming him to course
-                                                var message = { heading: "Welcome to this " + collectionInstance.type + ". \n\n- Learn\n\n- Collaborate\n\n- Practice"};
-                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                var message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
                                                 var html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: participantUserInstance.email,
                                                     from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                    subject: '[Get Set Go] ' + collectionInstance.title,
+                                                    subject: '[Welcome] ' + collectionInstance.title,
                                                     html: html_body
                                                 })
                                                     .then(function (response) {
-                                                        console.log('email sent! - ' + response);
+                                                        console.log('email sent! - ');
                                                     })
                                                     .catch(function (err) {
                                                         console.log('email error! - ' + err);
                                                     });
 
                                                 // Send email to the teacher informing about new student
-                                                message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has just joined " + collectionInstance.title};
+                                                message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
                                                 html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: ownerInstance.email,
                                                     from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                    subject: 'New Participant @ ' + collectionInstance.title,
+                                                    subject: 'New participant @ ' + collectionInstance.title,
                                                     html: html_body
                                                 })
                                                     .then(function (response) {
-                                                        console.log('email sent! - ' + response);
+                                                        console.log('email sent! - ');
                                                     })
                                                     .catch(function (err) {
                                                         console.log('email error! - ' + err);
                                                     });
 
-                                                next();
+                                                // Add this participant to the collection's chat room
+                                                collectionInstance.__get__rooms({}, function(err, roomInstances) {
+                                                   if (!err) {
+                                                       if (roomInstances.length > 0) {
+                                                           roomInstances[0].__link__participants(participantUserInstance.id, function(err, linkedParticipantInstance) {
+                                                               if (!err) {
+                                                                   console.log('Added participant to chat room');
+                                                                   // Add a new system message about new participant
+                                                                   var messageObject = {
+                                                                       text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
+                                                                       type: 'system'
+                                                                   };
+                                                                   roomInstances[0].__create__messages(messageObject, function(err, newMessageInstance) {
+                                                                       if (!err) {
+                                                                           Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+                                                                           next();
+                                                                       }
+                                                                       else {
+                                                                           next(new Error('Could not create system message'));
+                                                                       }
+                                                                   });
+                                                               }
+                                                               else {
+                                                                   next(err);
+                                                               }
+                                                           });
+                                                       }
+                                                       else {
+                                                           next();
+                                                       }
+                                                   }
+                                                   else {
+                                                       next(err);
+                                                   }
+                                                });
                                             }
                                         });
                                     }
@@ -150,7 +185,7 @@ module.exports = function (Collection) {
                                                     html: html_body
                                                 })
                                                     .then(function (response) {
-                                                        console.log('email sent! - ' + response);
+                                                        console.log('email sent! - ');
                                                     })
                                                     .catch(function (err) {
                                                         console.log('email error! - ' + err);
@@ -166,13 +201,48 @@ module.exports = function (Collection) {
                                                     html: html_body
                                                 })
                                                     .then(function (response) {
-                                                        console.log('email sent! - ' + response);
+                                                        console.log('email sent! - ');
                                                     })
                                                     .catch(function (err) {
                                                         console.log('email error! - ' + err);
                                                     });
 
-                                                ctx.res.json(participantUserInstance);
+                                                // Add this participant to the collection's chat room
+                                                collectionInstance.__get__rooms({}, function(err, roomInstances) {
+                                                    if (!err) {
+                                                        if (roomInstances.length > 0) {
+                                                            roomInstances[0].__unlink__participants(participantUserInstance.id, function(err, unlinkedParticipantInstance) {
+                                                                if (!err) {
+                                                                    console.log('Removed participant from room');
+                                                                    // Add a new system message about new participant
+                                                                    var messageObject = {
+                                                                        text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " left ",
+                                                                        type: 'system'
+                                                                    };
+                                                                    roomInstances[0].__create__messages(messageObject, function(err, newMessageInstance) {
+                                                                        if (!err) {
+                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+                                                                            ctx.res.json(participantUserInstance);
+                                                                        }
+                                                                        else {
+                                                                            next(new Error('Could not create system message'));
+                                                                        }
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    next(err);
+                                                                }
+                                                            });
+                                                        }
+                                                        else {
+                                                            ctx.res.json(participantUserInstance);
+                                                        }
+
+                                                    }
+                                                    else {
+                                                        next(err);
+                                                    }
+                                                });
                                             }
                                         });
                                     }
@@ -209,21 +279,19 @@ module.exports = function (Collection) {
                 });
 
                 var message = '', subject = '';
+                message = { type: collectionInstance.type };
                 switch (collectionInstance.type) {
                     case 'workshop':
-                        message = { heading: "Your workshop has been submitted for review" };
                         subject = 'Workshop submitted for review';
                         break;
                     case 'experience':
-                        message = { heading: "Your experience has been submitted for review" };
                         subject = 'Experience submitted for review';
                         break;
                     default:
-                        message = { heading: "Your collection has been submitted for review" };
                         subject = 'Collection submitted for review';
                         break;
                 }
-                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionSubmitted.ejs'));
                 var html_body = renderer(message);
 
                 // Create payout rule for this collection
@@ -237,7 +305,7 @@ module.exports = function (Collection) {
                             html: html_body
                         })
                             .then(function (response) {
-                                console.log('email sent! - ' + response);
+                                console.log('email sent! - ');
                             })
                             .catch(function (err) {
                                 console.log('email error! - ' + err);
@@ -297,21 +365,19 @@ module.exports = function (Collection) {
                     }
                     else {
                         var message = '', subject = '';
+                        message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
                             case 'workshop':
-                                message = { heading: "Your workshop has been APPROVED!" };
                                 subject = 'Workshop Approved';
                                 break;
                             case 'experience':
-                                message = { heading: "Your experience has been APPROVED" };
                                 subject = 'Experience Approved';
                                 break;
                             default:
-                                message = { heading: "Your collection has been APPROVED" };
                                 subject = 'Collection Approved';
                                 break;
                         }
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
                         var html_body = renderer(message);
 
                         // Send email to owner of this workshop
@@ -339,7 +405,19 @@ module.exports = function (Collection) {
                                                         cb(err);
                                                     }
                                                     else {
-                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                        // Create a new chat room for this collection
+                                                        var roomValue =  {
+                                                            name: collectionInstance.title
+                                                        };
+                                                        collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
+                                                           if (!err) {
+                                                               console.log('New chat room created for this collection');
+                                                               cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                           }
+                                                           else {
+                                                               cb(err);
+                                                           }
+                                                        });
                                                     }
                                                 });
                                             }
@@ -354,7 +432,105 @@ module.exports = function (Collection) {
                                     html: html_body
                                 })
                                     .then(function (response) {
-                                        console.log('email sent! - ' + response);
+                                        console.log('email sent! - ');
+                                    })
+                                    .catch(function (err) {
+                                        console.log('email error! - ' + err);
+                                    });
+                            }
+                            else {
+                                cb(err);
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                err = new Error(g.f('Invalid Collection with ID: %s', id));
+                err.statusCode = 400;
+                err.code = 'INVALID_COLLECTION';
+                cb(err);
+            }
+        });
+    };
+
+    Collection.reject = function (id, req, cb) {
+        // Find the collection by given ID
+        Collection.findById(id, {"include": {"owners": "profiles"}}, function (err, collectionInstance) {
+            // if collection exists and the user is logged in
+            if (!err && collectionInstance !== null) {
+                var ownerId = collectionInstance.toJSON().owners[0].id;
+                var userId = Collection.app.models.peer.getCookieUserId(req);
+                collectionInstance.status = 'draft';
+                collectionInstance.isApproved = false;
+                collectionInstance.approvedBy = '';
+                delete collectionInstance.owners;
+                Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
+                    if (err) {
+                        console.log(err);
+                        err = new Error(g.f('Error updating collection.'));
+                        err.statusCode = 400;
+                        err.code = 'DB_ERROR';
+                        cb(err);
+                    }
+                    else {
+                        var message = '', subject = '';
+                        message = { type: collectionInstance.type};
+                        switch (collectionInstance.type) {
+                            case 'workshop':
+                                subject = 'Workshop rejected';
+                                break;
+                            case 'experience':
+                                subject = 'Experience rejected';
+                                break;
+                            default:
+                                subject = 'Collection rejected';
+                                break;
+                        }
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
+                        var html_body = renderer(message);
+
+                        // Send email to owner of this workshop
+                        Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+
+                            if (!err) {
+                                // Send notification to owner
+                                ownerInstance.__create__notifications({
+                                    type: "action",
+                                    title: collectionInstance.type + " rejected!",
+                                    description: "%collectionType% %collectionName% has been rejected. Edit your details and submit again.",
+                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","13"]
+                                }, function(err, notificationInstance) {
+                                    if(err) {
+                                        cb(err);
+                                    }
+                                    else {
+                                        notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
+                                            if(err){
+                                                cb(err);
+                                            }
+                                            else {
+                                                notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
+                                                    if(err) {
+                                                        cb(err);
+                                                    }
+                                                    else {
+                                                        cb(null, { result: 'Collection rejected. Email sent to owner.' });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+
+                                loopback.Email.send({
+                                    to: ownerInstance.email,
+                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                    subject: subject,
+                                    html: html_body
+                                })
+                                    .then(function (response) {
+                                        console.log('email sent! - ');
                                     })
                                     .catch(function (err) {
                                         console.log('email error! - ' + err);
@@ -405,7 +581,7 @@ module.exports = function (Collection) {
                             html: html_body
                         })
                             .then(function (response) {
-                                console.log('email sent! - ' + response);
+                                console.log('email sent! - ');
                             })
                             .catch(function (err) {
                                 console.log('email error! - ' + err);
@@ -478,7 +654,6 @@ module.exports = function (Collection) {
                                 // Copy all contents from oldInstance to new instance
                                 collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
-                                        console.log('Existing content instances are: ' + JSON.stringify(oldContentInstances));
                                         oldContentInstances.forEach(function (oldContentInstance) {
                                             // Link new clone to all existing contents.
                                             newCollectionInstance.__link__contents(oldContentInstance.id, function (err, newLinkedContentInstance) {
@@ -579,7 +754,6 @@ module.exports = function (Collection) {
                         next(err);
                     }
                     else if (participantInstances !== null && participantInstances.length > 0) {
-                        console.log('Existing participants: ' + JSON.stringify(participantInstances));
 
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
@@ -594,7 +768,6 @@ module.exports = function (Collection) {
                         delete newCollection.isNewInstance;
                         newCollection.title = 'Cloned: ' + newCollection.title;
                         newCollection.disableHasOneCreate = true;
-                        console.log('new collection: ' + JSON.stringify(newCollection));
 
                         Collection.create(newCollection, function (err, newCollectionInstance) {
                             if (err) {
@@ -661,14 +834,12 @@ module.exports = function (Collection) {
                                                     if (!err && newCreatedContentInstance !== null) {
                                                         console.log('Cloned content for collection');
                                                         var oldContentInstance = oldContentInstances[m].__data;
-                                                        console.log('Old content instance has keys: ' + Object.keys(oldContentInstance));
 
                                                         // Add content to array to pass in result
                                                         resultContents.push(newCreatedContentInstance);
 
                                                         // Copy locations from old content to new content
                                                         var newContentLocation = oldContentInstance.locations[0].toJSON();
-                                                        console.log(typeof newContentLocation + " newContentLocation: " + JSON.stringify(newContentLocation));
                                                         if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
                                                             delete newContentLocation.id;
                                                             newCreatedContentInstance.__create__locations(newContentLocation, function (err, copiedLocationInstance) {
@@ -680,7 +851,6 @@ module.exports = function (Collection) {
 
                                                         // Copy schedules from old content to new content
                                                         var newContentSchedule = oldContentInstance.schedules[0].toJSON();
-                                                        console.log(typeof newContentSchedule + " newContentSchedule: " + JSON.stringify(newContentSchedule));
                                                         if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
                                                             delete newContentSchedule.id;
                                                             newCreatedContentInstance.__create__schedules(newContentSchedule, function (err, copiedScheduleInstance) {
@@ -715,7 +885,6 @@ module.exports = function (Collection) {
                                             var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
-                                            console.log('hasParticipant: ' + hasParticipant);
                                             // If this calendar has no participant signed up
                                             if (!hasParticipant) {
                                                 hasOneCalendarCopied = true;
@@ -802,8 +971,6 @@ module.exports = function (Collection) {
                         next(err);
                     }
                     else if (participantInstances !== null && participantInstances.length > 0) {
-                        console.log('Existing participants: ' + JSON.stringify(participantInstances));
-
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
                         // Create a new collection by copying all the data of this collection
@@ -817,7 +984,6 @@ module.exports = function (Collection) {
                         delete newCollection.isNewInstance;
                         newCollection.title = 'Cloned: ' + newCollection.title;
                         newCollection.disableHasOneCreate = true;
-                        console.log('new collection: ' + JSON.stringify(newCollection));
 
                         Collection.create(newCollection, function (err, newCollectionInstance) {
                             if (err) {
@@ -898,7 +1064,6 @@ module.exports = function (Collection) {
                                             var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
-                                            console.log('hasParticipant: ' + hasParticipant);
                                             // If this calendar has no participant signed up
                                             if (!hasParticipant) {
                                                 hasOneCalendarCopied = true;
@@ -998,7 +1163,6 @@ module.exports = function (Collection) {
                         delete newCollection.isNewInstance;
                         newCollection.title = 'Cloned: ' + newCollection.title;
                         newCollection.disableHasOneCreate = true;
-                        console.log('new collection: ' + JSON.stringify(newCollection));
 
                         Collection.create(newCollection, function (err, newCollectionInstance) {
                             if (err) {
@@ -1060,7 +1224,6 @@ module.exports = function (Collection) {
                                             var hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
-                                            console.log('hasParticipant: ' + hasParticipant);
                                             // If this calendar has no participant signed up
                                             if (!hasParticipant) {
                                                 hasOneCalendarCopied = true;
@@ -1162,6 +1325,18 @@ module.exports = function (Collection) {
             ],
             returns: { arg: 'result', type: 'object', root: true },
             http: { path: '/:id/approve', verb: 'post' }
+        }
+    );
+
+    Collection.remoteMethod(
+        'reject',
+        {
+            accepts: [
+                { arg: 'id', type: 'string', required: true },
+                { arg: 'req', type: 'object', http: { source: 'req' } }
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/:id/reject', verb: 'post' }
         }
     );
 

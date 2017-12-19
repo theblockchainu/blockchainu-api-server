@@ -12,15 +12,17 @@
         </div>
         <!-- Title -->
         <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-            Reset your password
+            Your <%= type %> is about to start
         </div>
         <!-- Body -->
         <div>
             <div style="font-size: 17px; margin-top: 25px;">
-                Forgot your password?  It happens to all of us.  Just click the link below and we'll prompt you to create a new one.  Easy breezy.
+                Hey there,
+                <br><br>
+                You excited for your upcoming <%= type %> -- <%= title%> from <%= startDate %> to <%= endDate %> with your teacher <%= owner %>?  Pretty sure they're excited too.  We're just sending you this quick reminder so you'll be 100% ready.
             </div>
             <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-                <a style="color: white; text-decoration: none;" href="<%= resetLink %>">Reset Password</a>
+                <a style="color: white; text-decoration: none;" href="https://dev.peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">View <%= type %></a>
             </div>
         </div>
         <!-- Signature -->
@@ -34,7 +36,7 @@
         <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
             Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
             <br><br>
-            Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+            Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94539
         </div>
     </div>
 </body>

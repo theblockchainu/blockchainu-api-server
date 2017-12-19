@@ -216,7 +216,6 @@ module.exports = function (Peer) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
-                                //console.log(req.headers.origin + '/' + redirect);
                                 fn(null, { result: "success" });
                             }
                             else {
@@ -262,13 +261,13 @@ module.exports = function (Peer) {
                         counter: Date.now()
                     });
                     // Send token in email to user.
-                    var message = { heading: "Verify your email with Peerbuds using OTP: " + verificationToken };
-                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                    var message = { otp: verificationToken };
+                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/verifyEmailAddress.ejs'));
                     var html_body = renderer(message);
                     loopback.Email.send({
                         to: email,
                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                        subject: 'Verify your email with Peerbuds',
+                        subject: 'Verify your email with peerbuds',
                         html: html_body
                     })
                         .then(function (response) {
@@ -299,14 +298,6 @@ module.exports = function (Peer) {
 
     Peer.confirmSmsOTP = function (req, token, fn) {
 
-        // var cookieArray = req.headers.cookie.split(';');
-        // var cookie = '';
-        // for (var i = 0; i < cookieArray.length; i++) {
-        //     if (cookieArray[i].split('=')[0].trim() === 'userId') {
-        //         cookie = cookieArray[i].split('=')[1].trim();
-        //     }
-        // }
-        // var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         var loggedinPeer = Peer.getCookieUserId(req);
 
         //if user is logged in
@@ -359,14 +350,6 @@ module.exports = function (Peer) {
     Peer.sendVerifySms = function (req, phone, fn) {
 
         fn = fn || utils.createPromiseCallback();
-        // var cookieArray = req.headers.cookie.split(';');
-        // var cookie = '';
-        // for (var i = 0; i < cookieArray.length; i++) {
-        //     if (cookieArray[i].split('=')[0].trim() === 'userId') {
-        //         cookie = cookieArray[i].split('=')[1].trim();
-        //     }
-        // }
-        // var loggedinPeer = cookie.split(/[ \:.]+/)[0].substring(4);
         var loggedinPeer = Peer.getCookieUserId(req);
         var formattedPhone = phone.replace(/[^\d]/g, '');
         formattedPhone = '+91' + formattedPhone;
@@ -379,7 +362,7 @@ module.exports = function (Peer) {
 
             var client = new twilio(twilioSid, twilioToken);
 
-            var message = "Verify your phone with Peerbuds using OTP: " + phoneToken;
+            var message = "Verify your phone with peerbuds using OTP: " + phoneToken;
 
             client.messages.create({
                 body: message,
@@ -666,17 +649,17 @@ module.exports = function (Peer) {
                         cb(err);
                     }
                     else {
-                        var message = { heading: "Your Account has been APPROVED!" };
-                        var subject = 'Account Approved';
+                        var message = {};
+                        var subject = 'Account approved';
 
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountApproved.ejs'));
                         var html_body = renderer(message);
 
                         // Send notification to peer
                         peerInstance.__create__notifications({
                             type: "action",
-                            title: "Account Approved!",
-                            description: "Your Peerbuds account has been approved. Add more details now.",
+                            title: "Account approved!",
+                            description: "Your peerbuds account has been approved. Add more details now.",
                             actionUrl: ['console', 'profile', 'edit']
                         }, function (err, notificationInstance) {
                             if (err) {
@@ -701,6 +684,73 @@ module.exports = function (Peer) {
                                                 console.log('email error! - ' + err);
                                             });
                                         cb(null, { result: 'Account approved. Email sent to Owner.' });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                err = new Error(g.f('Invalid Peer with ID: %s', id));
+                err.statusCode = 400;
+                err.code = 'INVALID_PEER';
+                cb(err);
+            }
+
+        });
+    };
+
+    Peer.reject = function (id, req, cb) {
+        // Find the collection by given ID
+        Peer.findById(id, function (err, peerInstance) {
+            if (!err && peerInstance !== null) {
+                var userId = peerInstance.toJSON().id;
+                peerInstance.accountVerified = false;
+                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function (err, newpeerInstance) {
+                    if (err) {
+                        console.log(err);
+                        err = new Error(g.f('Error updating Peer.'));
+                        err.statusCode = 400;
+                        err.code = 'DB_ERROR';
+                        cb(err);
+                    }
+                    else {
+                        var message = {};
+                        var subject = 'Account rejected';
+
+                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountRejected.ejs'));
+                        var html_body = renderer(message);
+
+                        // Send notification to peer
+                        peerInstance.__create__notifications({
+                            type: "action",
+                            title: "Account approved!",
+                            description: "Your peerbuds account was rejected. Edit your details and re-submit.",
+                            actionUrl: ['console', 'profile', 'verification']
+                        }, function (err, notificationInstance) {
+                            if (err) {
+                                cb(err);
+                            }
+                            else {
+                                notificationInstance.actor.add(peerInstance.id, function (err, actorInstance) {
+                                    if (err) {
+                                        cb(err);
+                                    }
+                                    else {
+                                        loopback.Email.send({
+                                            to: peerInstance.email,
+                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                            subject: subject,
+                                            html: html_body
+                                        })
+                                            .then(function (response) {
+                                                console.log('email sent! - ' + response);
+                                            })
+                                            .catch(function (err) {
+                                                console.log('email error! - ' + err);
+                                            });
+                                        cb(null, { result: 'Account rejected. Email sent to Owner.' });
                                     }
                                 });
                             }
@@ -1093,12 +1143,24 @@ module.exports = function (Peer) {
             }
         );
 
+        PeerModel.remoteMethod(
+            'reject',
+            {
+                accepts: [
+                    { arg: 'id', type: 'string', required: true },
+                    { arg: 'req', type: 'object', http: { source: 'req' } }
+                ],
+                returns: { arg: 'result', type: 'object', root: true },
+                http: { path: '/:id/reject', verb: 'post' }
+            }
+        );
+
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
         });
 
         return PeerModel;
-    }
+    };
 
     /*!
      * Setup the base user.

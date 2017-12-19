@@ -6,6 +6,11 @@
     "validateUpsert": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "messages"
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
@@ -23,15 +28,22 @@
     "messages": {
       "type": "hasMany",
       "model": "message",
-      "foreignKey": "targetId",
+      "foreignKey": "sourceId",
       "through": "room_has_message",
-      "keyThrough": "sourceId"
+      "keyThrough": "targetId"
     },
-    "peers": {
+    "participants": {
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "targetId",
       "through": "peer_has_joinedroom",
+      "keyThrough": "sourceId"
+    },
+    "collection": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_room",
       "keyThrough": "sourceId"
     }
   },

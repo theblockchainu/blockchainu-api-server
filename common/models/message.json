@@ -6,6 +6,12 @@
     "validateUpsert": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "deliveryReceipts",
+        "readReceipts"
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
@@ -14,11 +20,15 @@
     "GlobalUtils": {}
   },
   "properties": {
-    "content": {
+    "text": {
       "type": "string"
     },
-    "posted_on": {
-      "type": "date"
+    "type": {
+      "type": "string",
+      "default": "user"
+    },
+    "mediaUrl": {
+      "type": "string"
     }
   },
   "validations": [],
@@ -28,6 +38,27 @@
       "model": "peer",
       "foreignKey": "sourceId",
       "through": "message_has_owner",
+      "keyThrough": "targetId"
+    },
+    "room": {
+      "type": "hasMany",
+      "model": "room",
+      "foreignKey": "targetId",
+      "through": "room_has_message",
+      "keyThrough": "sourceId"
+    },
+    "deliveryReceipts": {
+      "type": "hasMany",
+      "model": "delivery",
+      "foreignKey": "sourceId",
+      "through": "message_has_deliveryreceipt",
+      "keyThrough": "targetId"
+    },
+    "readReceipts": {
+      "type": "hasMany",
+      "model": "read",
+      "foreignKey": "sourceId",
+      "through": "message_has_readreceipt",
       "keyThrough": "targetId"
     }
   },

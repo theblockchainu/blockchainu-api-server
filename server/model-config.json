@@ -452,5 +452,33 @@
   "peer_has_socketconnection": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "delivery": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "read": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "delivery_has_peer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "read_has_peer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "message_has_deliveryreceipt": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "message_has_readreceipt": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_room": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
