@@ -175,7 +175,7 @@ module.exports = function setupCron(server) {
                                });
 
                                // Send email to teacher asking to review all students
-                               var message = { type: collection.type, collectionId: collection.id, calendarId: calendar.id};
+                               var message = { type: collection.type, title: collection.title, collectionId: collection.id, calendarId: calendar.id};
                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/reviewReminderEmailTeacher.ejs'));
                                var html_body = renderer(message);
                                loopback.Email.send({
