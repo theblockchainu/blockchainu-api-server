@@ -412,7 +412,29 @@ module.exports = function (Collection) {
                                                         collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
                                                            if (!err) {
                                                                console.log('New chat room created for this collection');
-                                                               cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                               // Add teacher to the collection's new chat room
+                                                               newRoomInstance.__link__participants(ownerInstance.id, function(err, linkedParticipantInstance) {
+                                                                   if (!err) {
+                                                                       console.log('Added teacher to chat room');
+                                                                       // Add a new system message about new participant
+                                                                       var messageObject = {
+                                                                           text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
+                                                                           type: 'system'
+                                                                       };
+                                                                       newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
+                                                                           if (!err) {
+                                                                               Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+                                                                               cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                                           }
+                                                                           else {
+                                                                               cb(new Error('Could not create system message'));
+                                                                           }
+                                                                       });
+                                                                   }
+                                                                   else {
+                                                                       cb(err);
+                                                                   }
+                                                               });
                                                            }
                                                            else {
                                                                cb(err);
