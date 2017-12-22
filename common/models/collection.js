@@ -423,7 +423,7 @@ module.exports = function (Collection) {
                                                                        };
                                                                        newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
                                                                            if (!err) {
-                                                                               Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+                                                                               Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
                                                                                cb(null, { result: 'Collection approved. Email sent to owner.' });
                                                                            }
                                                                            else {
