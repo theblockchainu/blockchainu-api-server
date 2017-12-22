@@ -12,8 +12,8 @@ module.exports = function(Emailsubscription) {
         if (!email) return next();
 
         var message, subject;
-        message = { heading: "Thank you for subscribing to peerbuds notifications" };
-        subject = 'We have received your request to be notified when Peerbuds goes live. Our team is working super hard to change how education is gained and shared. We will keep you notified as our we move closer to sharing this vision with the world. \n\nPeerbuds Team \nSilicon Valley';
+        message = { heading: "We have received your request to be notified when Peerbuds goes live. Our team is working super hard to change how education is gained and shared. We will keep you notified as our we move closer to sharing this vision with the world. \n\nPeerbuds Team \nSilicon Valley" };
+        subject = 'Thank you for subscribing to Peerbuds';
 
         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
         var html_body = renderer(message);

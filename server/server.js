@@ -71,8 +71,8 @@ var originsWhitelist = [
     'null',
     'localhost:9090',      //frontend url for development
     'localhost:8080',      //frontend url for development
-    'http://www.peedbuds.com',
-    'http://www.dev.peedbuds.com'
+    'https://www.peedbuds.com',
+    'https://www.dev.peedbuds.com'
 ];
 var corsOptions = {
     origin: function (origin, callback) {

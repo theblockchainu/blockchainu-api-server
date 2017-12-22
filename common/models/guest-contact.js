@@ -13,8 +13,8 @@ module.exports = function(Guestcontact) {
         if (!email) return next();
 
         var message, subject;
-        message = { heading: "Thanks for reaching out" };
-        subject = 'Hi '+ name +', \nWe have received your query and will get back to you with the best possible response at the earliest. \n\nPeerbuds Team \nSilicon Valley';
+        message = { heading: 'Hi '+ name +', \nWe have received your query and will get back to you with the best possible response at the earliest. \n\nPeerbuds Team \nSilicon Valley'};
+        subject = 'Thanks for reaching out';
 
         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
         var html_body = renderer(message);
