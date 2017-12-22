@@ -104,45 +104,41 @@ module.exports = function (Room) {
         // On adding a participant, add a new system message that the user joined
         var loggedinPeer = Room.app.models.peer.getCookieUserId(ctx.req);
         if (loggedinPeer) {
-            this.createJoinedMessage(ctx, loggedinPeer, linkInstance.sourceId);
+            var messagePeer = linkInstance.sourceId;
+            Room.app.models.peer.findById(messagePeer, {'include': 'profiles'}, function(err, participantInstance) {
+                if (!err) {
+                    var messageText = '';
+                    if (loggedinPeer === ctx.req.params.fk) {
+                        // User is deleting himself
+                        messageText = participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' joined';
+                    }
+                    else {
+                        // User was removed by teacher
+                        messageText = 'Teacher added ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name;
+                    }
+                    var message = {
+                        text: messageText,
+                        type: 'system'
+                    };
+                    var roomInstance = ctx.instance;
+                    roomInstance.__create__messages(message, function(err, newMessageInstance) {
+                        if (!err) {
+                            Room.app.io.in(ctx.req.params.id).emit('message', newMessageInstance.toJSON());
+                            next();
+                        }
+                        else {
+                            next(new Error('Could not create system message'));
+                        }
+                    });
+                }
+                else {
+                    next(err);
+                }
+            });
         }
         else {
             next(new Error('Could not find logged in peer ID'));
         }
     });
-
-
-    Room.createJoinedMessage = function(ctx, loggedInPeer, messagePeer) {
-        Room.app.models.peer.findById(messagePeer, {'include': 'profiles'}, function(err, participantInstance) {
-            if (!err) {
-                var messageText = '';
-                if (loggedinPeer === ctx.req.params.fk) {
-                    // User is deleting himself
-                    messageText = participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' joined';
-                }
-                else {
-                    // User was removed by teacher
-                    messageText = 'Teacher added ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name;
-                }
-                var message = {
-                    text: messageText,
-                    type: 'system'
-                };
-                var roomInstance = ctx.instance;
-                roomInstance.__create__messages(message, function(err, newMessageInstance) {
-                    if (!err) {
-                        Room.app.io.in(ctx.req.params.id).emit('message', newMessageInstance.toJSON());
-                        next();
-                    }
-                    else {
-                        next(new Error('Could not create system message'));
-                    }
-                });
-            }
-            else {
-                next(err);
-            }
-        });
-    }
 
 };
