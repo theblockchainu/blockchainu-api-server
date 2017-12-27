@@ -1,0 +1,39 @@
+{
+  "name": "community_has_bookmark",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "community",
+    "targetModel": "bookmark"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "community": {
+      "type": "belongsTo",
+      "model": "community",
+      "foreignKey": "sourceId"
+    },
+    "bookmark": {
+      "type": "belongsTo",
+      "model": "bookmark",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

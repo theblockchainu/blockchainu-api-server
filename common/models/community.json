@@ -1,45 +1,205 @@
 {
   "name": "community",
   "base": "PersistedModel",
-  "idInjection": true,
+  "idInjection": false,
   "options": {
     "validateUpsert": true
   },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "comments",
+        "bookmarks",
+        "views",
+        "questions",
+        "links"
+      ]
+    },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        }
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
       "required": false
     },
-    "GlobalUtils": {}
+    "GlobalUtils": {
+      "relationName": [
+        "participants"
+      ]
+    }
   },
   "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "type": {
+      "type": "string"
+    },
     "title": {
       "type": "string"
     },
-    "bio_text": {
+    "stage": {
       "type": "string"
     },
-    "bio_image": {
+    "language": {
+      "type": [
+        "string"
+      ]
+    },
+    "headline": {
       "type": "string"
     },
-    "bio_video": {
+    "description": {
       "type": "string"
     },
-    "privacy": {
+    "prerequisites": {
       "type": "string"
     },
-    "hasBilling": {
-      "type": "boolean"
+    "videoUrls": {
+      "type": [
+        "string"
+      ]
+    },
+    "imageUrls": {
+      "type": [
+        "string"
+      ]
+    },
+    "price": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "cancellationPolicy": {
+      "type": "string"
+    },
+    "ageLimit": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "isApproved": {
+      "type": "boolean",
+      "default": false
+    },
+    "approvedBy": {
+      "type": "string"
+    },
+    "isCanceled": {
+      "type": "boolean",
+      "default": false
+    },
+    "canceledBy": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "default": "draft"
+    },
+    "submittedAt": {
+      "type": "date"
     }
   },
   "validations": [],
   "relations": {
-    "members": {
+    "participants": {
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "sourceId",
       "through": "community_has_member",
+      "keyThrough": "targetId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "view",
+      "foreignKey": "sourceId",
+      "through": "community_has_view",
+      "keyThrough": "targetId"
+    },
+    "topics": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "community_has_topic",
+      "keyThrough": "targetId"
+    },
+    "owners": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_community",
+      "keyThrough": "sourceId"
+    },
+    "invites": {
+      "type": "hasMany",
+      "model": "peer_invite",
+      "foreignKey": "sourceId",
+      "through": "community_has_invite",
+      "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "community_has_comment",
+      "keyThrough": "targetId"
+    },
+    "bookmarks": {
+      "type": "hasMany",
+      "model": "bookmark",
+      "foreignKey": "sourceId",
+      "through": "community_has_bookmark",
+      "keyThrough": "targetId"
+    },
+    "payments": {
+      "type": "hasMany",
+      "model": "transaction",
+      "foreignKey": "sourceId",
+      "through": "community_has_payment",
+      "keyThrough": "targetId"
+    },
+    "payoutrules": {
+      "type": "hasMany",
+      "model": "payoutrule",
+      "foreignKey": "sourceId",
+      "through": "community_has_payoutrule",
+      "keyThrough": "targetId"
+    },
+    "rooms": {
+      "type": "hasMany",
+      "model": "room",
+      "foreignKey": "sourceId",
+      "through": "community_has_room",
+      "keyThrough": "targetId"
+    },
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "community_has_collection",
+      "keyThrough": "targetId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "sourceId",
+      "through": "community_has_question",
+      "keyThrough": "targetId"
+    },
+    "links": {
+      "type": "hasMany",
+      "model": "link",
+      "foreignKey": "sourceId",
+      "through": "community_has_link",
       "keyThrough": "targetId"
     }
   },

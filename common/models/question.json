@@ -1,0 +1,103 @@
+{
+  "name": "question",
+  "base": "PersistedModel",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "comments",
+        "upvotes",
+        "views",
+        "downvotes",
+        "flags",
+        "answers"
+      ]
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_question",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "sourceId",
+      "through": "question_has_answer",
+      "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "question_has_comment",
+      "keyThrough": "targetId"
+    },
+    "upvotes": {
+      "type": "hasMany",
+      "model": "upvote",
+      "foreignKey": "sourceId",
+      "through": "question_has_upvote",
+      "keyThrough": "targetId"
+    },
+    "downvotes": {
+      "type": "hasMany",
+      "model": "downvote",
+      "foreignKey": "sourceId",
+      "through": "question_has_downvote",
+      "keyThrough": "targetId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "view",
+      "foreignKey": "sourceId",
+      "through": "question_has_view",
+      "keyThrough": "targetId"
+    },
+    "followers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "question_has_follower",
+      "keyThrough": "targetId"
+    },
+    "flags": {
+      "type": "hasMany",
+      "model": "flag",
+      "foreignKey": "sourceId",
+      "through": "question_has_flag",
+      "keyThrough": "targetId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_question",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

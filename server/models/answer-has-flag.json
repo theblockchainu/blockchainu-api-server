@@ -1,0 +1,39 @@
+{
+  "name": "answer_has_flag",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "answer",
+    "targetModel": "flag"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "answer": {
+      "type": "belongsTo",
+      "model": "answer",
+      "foreignKey": "sourceId"
+    },
+    "flag": {
+      "type": "belongsTo",
+      "model": "flag",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

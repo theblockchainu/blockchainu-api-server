@@ -286,6 +286,34 @@
       "foreignKey": "targetId",
       "through": "delivery_has_peer",
       "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "sourceId",
+      "through": "peer_has_question",
+      "keyThrough": "targetId"
+    },
+    "followingQuestions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_follower",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "sourceId",
+      "through": "peer_has_answer",
+      "keyThrough": "targetId"
+    },
+    "links": {
+      "type": "hasMany",
+      "model": "link",
+      "foreignKey": "sourceId",
+      "through": "peer_has_link",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

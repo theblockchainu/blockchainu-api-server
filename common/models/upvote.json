@@ -48,6 +48,20 @@
       "foreignKey": "targetId",
       "through": "submission_has_upvote",
       "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_upvote",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "targetId",
+      "through": "answer_has_upvote",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

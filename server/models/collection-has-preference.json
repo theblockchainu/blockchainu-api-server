@@ -1,0 +1,39 @@
+{
+  "name": "collection_has_preference",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "collection",
+    "targetModel": "preference"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collection": {
+      "type": "belongsTo",
+      "model": "collection",
+      "foreignKey": "sourceId"
+    },
+    "preference": {
+      "type": "belongsTo",
+      "model": "preference",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

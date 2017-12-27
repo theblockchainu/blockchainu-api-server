@@ -35,6 +35,20 @@
       "foreignKey": "targetId",
       "through": "peer_has_flag",
       "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_flag",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "targetId",
+      "through": "answer_has_flag",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

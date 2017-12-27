@@ -35,6 +35,13 @@
       "foreignKey": "targetId",
       "through": "peer_has_transaction",
       "keyThrough": "sourceId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_payment",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -466,7 +466,59 @@ module.exports = function (Peer) {
                 }
             });
         } else {
-            err = new Error(g.f('Invalid Data'));
+            var err = new Error(g.f('Invalid Data'));
+            err.statusCode = 400;
+            err.code = 'INVALID_DATA';
+            cb(err);
+        }
+
+    };
+
+    Peer.changePassword = function (options, cb) {
+        cb = cb || utils.createPromiseCallback();
+        if (options.userId && options.oldPassword && options.newPassword) {
+            console.log('resetting password ');
+            try {
+                options.newPassword = this.hashPassword(options.newPassword);
+                options.oldPassword = this.hashPassword(options.oldPassword);
+            } catch (err) {
+                cb(err);
+            }
+            console.log('Finding Model with userId' + options.userId);
+            this.findOne({
+                where: {
+                    id: options.userId
+                }
+            }, (err, user) => {
+                if (user) {
+                    console.log('User Found!');
+                    if (options.oldPasword === user.password) {
+                        console.log('Verification Successful');
+                        user.updateAttributes({
+                            "password": options.newPassword,
+                            "verificationToken": '',
+                            "verificationTokenTime": ''
+                        });
+                        cb(null, {
+                            'message': 'Password changed',
+                            'success': true
+                        });
+                    } else {
+                        err = new Error(g.f('Invalid password'));
+                        err.statusCode = 400;
+                        err.code = 'INVALID_PASSWORD';
+                        cb(err);
+                    }
+
+                } else {
+                    err = new Error(g.f('User not found'));
+                    err.statusCode = 404;
+                    err.code = 'USER_NOT_FOUND';
+                    cb(err);
+                }
+            });
+        } else {
+            var err = new Error(g.f('Invalid Data'));
             err.statusCode = 400;
             err.code = 'INVALID_DATA';
             cb(err);
@@ -1104,6 +1156,18 @@ module.exports = function (Peer) {
                 ],
                 returns: { arg: 'response', type: 'object', root: true },
                 http: { verb: 'post', path: '/resetPassword' }
+            }
+        );
+
+        PeerModel.remoteMethod(
+            'changePassword',
+            {
+                description: 'Change password for a user with userId and oldPassword.',
+                accepts: [
+                    { arg: 'options', type: 'object', required: true, http: { source: 'body' } }
+                ],
+                returns: { arg: 'response', type: 'object', root: true },
+                http: { verb: 'post', path: '/changePassword' }
             }
         );
 

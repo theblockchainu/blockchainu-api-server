@@ -1,0 +1,39 @@
+{
+  "name": "peer_has_answer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "peer",
+    "targetModel": "answer"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "answer": {
+      "type": "belongsTo",
+      "model": "answer",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

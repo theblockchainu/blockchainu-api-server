@@ -62,6 +62,27 @@
       "foreignKey": "sourceId",
       "through": "view_has_viewer",
       "keyThrough": "targetId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_view",
+      "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_view",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "targetId",
+      "through": "answer_has_view",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -1,0 +1,39 @@
+{
+  "name": "community_has_payoutrule",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "community",
+    "targetModel": "payoutrule"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "community": {
+      "type": "belongsTo",
+      "model": "community",
+      "foreignKey": "sourceId"
+    },
+    "payoutrule": {
+      "type": "belongsTo",
+      "model": "payoutrule",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

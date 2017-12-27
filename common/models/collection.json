@@ -10,8 +10,6 @@
       "relationName": [
         "reviews",
         "comments",
-        "upvotes",
-        "downvotes",
         "bookmarks",
         "views"
       ]
@@ -234,6 +232,41 @@
       "model": "room",
       "foreignKey": "sourceId",
       "through": "collection_has_room",
+      "keyThrough": "targetId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_collection",
+      "keyThrough": "sourceId"
+    },
+    "preferences": {
+      "type": "hasMany",
+      "model": "preference",
+      "foreignKey": "sourceId",
+      "through": "collection_has_preference",
+      "keyThrough": "targetId"
+    },
+    "packages": {
+      "type": "hasMany",
+      "model": "package",
+      "foreignKey": "sourceId",
+      "through": "collection_has_package",
+      "keyThrough": "targetId"
+    },
+    "availability": {
+      "type": "hasMany",
+      "model": "availability",
+      "foreignKey": "sourceId",
+      "through": "collection_has_availability",
+      "keyThrough": "targetId"
+    },
+    "provisions": {
+      "type": "hasMany",
+      "model": "provision",
+      "foreignKey": "sourceId",
+      "through": "collection_has_provision",
       "keyThrough": "targetId"
     }
   },

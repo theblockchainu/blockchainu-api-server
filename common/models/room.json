@@ -45,6 +45,13 @@
       "foreignKey": "targetId",
       "through": "collection_has_room",
       "keyThrough": "sourceId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_room",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -301,7 +301,7 @@ module.exports = function setupCron(server) {
                                                         participantInstances.forEach(participantInstance => {
                                                             console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
                                                             // Send email to student
-                                                            var message = { title: content.title, time: startDate.format('hh:mm a'), collectionId: collection.id, calendarId: calendar.id, contentId: content.id};
+                                                            var message = { title: content.title, time: startDate.format('hh:mm a'), type: collection.type, collectionId: collection.id, calendarId: calendar.id, contentId: content.id};
                                                             var renderer;
                                                             if (content.type === 'online') {
                                                                 renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));

@@ -1,0 +1,39 @@
+{
+  "name": "answer_has_view",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "answer",
+    "targetModel": "view"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "answer": {
+      "type": "belongsTo",
+      "model": "answer",
+      "foreignKey": "sourceId"
+    },
+    "view": {
+      "type": "belongsTo",
+      "model": "view",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

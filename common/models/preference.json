@@ -1,0 +1,41 @@
+{
+  "name": "preference",
+  "base": "PersistedModel",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "bookingProcess": {
+      "type": "string",
+      "default": "auto"
+    },
+    "customUrl": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_preference",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

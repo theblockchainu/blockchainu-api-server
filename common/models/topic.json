@@ -62,6 +62,13 @@
       "foreignKey": "targetId",
       "through": "submission_has_topic",
       "keyThrough": "sourceId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_topic",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -32,7 +32,15 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_invite",
+      "keyThrough": "sourceId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

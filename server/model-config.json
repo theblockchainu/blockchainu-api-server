@@ -480,5 +480,157 @@
   "collection_has_room": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "question": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "answer": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "link": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "package": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "preference": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "provision": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "availability": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "community_has_view": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_topic": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_invite": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_bookmark": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_payment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_payoutrule": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_room": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_question": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "community_has_link": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_question": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_answer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_downvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_view": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_follower": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "question_has_flag": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_answer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "answer_has_comment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "answer_has_upvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "answer_has_downvote": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "answer_has_view": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "answer_has_flag": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_link": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_preference": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_package": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_availability": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "collection_has_provision": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_community": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

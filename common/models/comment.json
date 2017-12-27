@@ -73,6 +73,27 @@
       "foreignKey": "sourceId",
       "through": "comment_has_upvote",
       "keyThrough": "targetId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_comment",
+      "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_comment",
+      "keyThrough": "sourceId"
+    },
+    "answers": {
+      "type": "hasMany",
+      "model": "answer",
+      "foreignKey": "targetId",
+      "through": "answer_has_comment",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

@@ -1,0 +1,39 @@
+{
+  "name": "peer_has_community",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "peer",
+    "targetModel": "community"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "community": {
+      "type": "belongsTo",
+      "model": "community",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

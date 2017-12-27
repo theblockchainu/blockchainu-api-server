@@ -1,0 +1,56 @@
+{
+  "name": "package",
+  "base": "PersistedModel",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "type": {
+      "type": "string",
+      "default": "paid"
+    },
+    "price": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "duration": {
+      "type": "number",
+      "default": 1
+    },
+    "sessionCount": {
+      "type": "number",
+      "default": 1
+    },
+    "cancellationPolicy": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_package",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

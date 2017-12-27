@@ -42,6 +42,13 @@
       "foreignKey": "targetId",
       "through": "collection_has_payoutrule",
       "keyThrough": "sourceId"
+    },
+    "communities": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "targetId",
+      "through": "community_has_payoutrule",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
