@@ -1,0 +1,39 @@
+{
+  "name": "peer_has_content",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "peer",
+    "targetModel": "content"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "content": {
+      "type": "belongsTo",
+      "model": "content",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -314,6 +314,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_link",
       "keyThrough": "targetId"
+    },
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "sourceId",
+      "through": "peer_has_content",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
