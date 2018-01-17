@@ -34,7 +34,15 @@
       "updatedAt": "updatedAt",
       "required": false
     },
-    "GlobalUtils": {}
+    "GlobalUtils": {},
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "availability",
+          "hasManyRelation": "availabilities"
+        }
+      ]
+    }
   },
   "properties": {
     "id": {
@@ -72,6 +80,9 @@
     },
     "prerequisites": {
       "type": "string"
+    },
+    "sessionIsApproved": {
+      "type": "boolean"
     }
   },
   "validations": [],
@@ -124,6 +135,20 @@
       "foreignKey": "sourceId",
       "through": "content_has_rsvp",
       "keyThrough": "targetId"
+    },
+    "availabilities": {
+      "type": "hasMany",
+      "model": "availability",
+      "foreignKey": "sourceId",
+      "through": "content_has_availability",
+      "keyThrough": "targetId"
+    },
+    "peers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_content",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

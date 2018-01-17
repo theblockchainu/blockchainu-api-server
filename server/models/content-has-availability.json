@@ -1,0 +1,39 @@
+{
+  "name": "content_has_availability",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "content",
+    "targetModel": "availability"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "content": {
+      "type": "belongsTo",
+      "model": "content",
+      "foreignKey": "sourceId"
+    },
+    "availability": {
+      "type": "belongsTo",
+      "model": "availability",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

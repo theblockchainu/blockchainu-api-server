@@ -632,5 +632,13 @@
   "peer_has_community": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_availability": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_content": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
