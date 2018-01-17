@@ -1,4 +1,6 @@
 var CONTAINERS_URL = '/api/containers/';
+var fs = require('fs');
+const path = require("path");
 module.exports = function(Media) {
 
     Media.upload = function (ctx,options,cb) {
@@ -48,6 +50,23 @@ module.exports = function(Media) {
         }
     };
 
+    Media.uploadStream = function (ctx,options,cb) {
+        if(!options) options = {};
+        ctx.req.params.container = 'peerbuds-dev1290';
+        var loggedinPeer = Media.getCookieUserId(ctx.req);
+        if(loggedinPeer) {
+            var uploadStream = Media.app.models.container.uploadStream(ctx.req.params.container,ctx.req.params.filename,options,function () {});
+            console.log(Object.keys(ctx.req));
+            var base64Data = ctx.req.body.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+            fs.createReadStream(base64Data).pipe(uploadStream);
+            console.log('Success with piping read steam to S3');
+            cb(null, {});
+        }
+        else {
+            cb(new Error('Requested API not allowed for unauthenticated requests.'));
+        }
+    };
+
     Media.getCookieUserId = function (req) {
 
         var cookieArray = req.headers.cookie.split(';');
@@ -64,6 +83,21 @@ module.exports = function(Media) {
         'upload',
         {
             description: 'Uploads a file',
+            accepts: [
+                { arg: 'ctx', type: 'object', http: { source:'context' } },
+                { arg: 'options', type: 'object', http:{ source: 'query'} }
+            ],
+            returns: {
+                arg: 'fileObject', type: 'object', root: true
+            },
+            http: {verb: 'post'}
+        }
+    );
+
+    Media.remoteMethod(
+        'uploadStream',
+        {
+            description: 'Uploads a file stream',
             accepts: [
                 { arg: 'ctx', type: 'object', http: { source:'context' } },
                 { arg: 'options', type: 'object', http:{ source: 'query'} }

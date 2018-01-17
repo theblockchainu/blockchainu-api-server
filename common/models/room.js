@@ -55,6 +55,7 @@ module.exports = function (Room) {
 
     Room.afterRemote('prototype.__create__messages', function (ctx, newInstance, next) {
         // New message received. Send on socket to room.
+        console.log('sending socket msg to room id: ' + ctx.req.params.id);
         Room.app.io.in(ctx.req.params.id).emit('message', newInstance);
         next();
     });

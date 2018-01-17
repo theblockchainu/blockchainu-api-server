@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "question",
-    "targetModel": "follower"
+    "targetModel": "peer"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "question",
       "foreignKey": "sourceId"
     },
-    "follower": {
+    "peer": {
       "type": "belongsTo",
-      "model": "follower",
+      "model": "peer",
       "foreignKey": "targetId"
     }
   },
