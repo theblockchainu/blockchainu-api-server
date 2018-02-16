@@ -688,7 +688,7 @@ module.exports = function (Peer) {
 
     Peer.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function (err, peerInstance) {
+        Peer.findById(id, {"include": ["socketconnections"]}, function (err, peerInstance) {
             if (!err && peerInstance !== null) {
                 var userId = peerInstance.toJSON().id;
                 peerInstance.accountVerified = true;
@@ -735,6 +735,16 @@ module.exports = function (Peer) {
                                             .catch(function (err) {
                                                 console.log('email error! - ' + err);
                                             });
+                                        // send out a socket notification to set a cookie for accountApproved
+                                        if (peerInstance.toJSON().socketconnections !== null && peerInstance.toJSON().socketconnections.length > 0) {
+                                            peerInstance.toJSON().socketconnections.forEach(socketconnection => {
+                                                console.log('sending cookie update to :' + socketconnection.socketId);
+                                                var cookie = {
+                                                    accountApproved: 'true'
+                                                };
+                                                Peer.app.io.to(socketconnection.socketId).emit("cookie", cookie);
+                                            });
+                                        }
                                         cb(null, { result: 'Account approved. Email sent to Owner.' });
                                     }
                                 });

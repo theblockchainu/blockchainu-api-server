@@ -50,6 +50,7 @@
     "passport-oauth2": "^1.1.2",
     "passport-twitter": "^1.0.0",
     "path": "^0.12.7",
+    "raven-js": "^3.22.3",
     "serve-favicon": "^2.0.1",
     "socket.io": "^2.0.3",
     "socketio-auth": "^0.1.0",
