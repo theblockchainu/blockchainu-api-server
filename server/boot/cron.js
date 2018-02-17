@@ -89,6 +89,18 @@ module.exports = function setupCron(server) {
             });
         });
 
+        // Index all topics
+        server.models.community.find(function (err, communityInstances) {
+            makebulk(communityInstances, 'community', 'type', function(response){
+                console.log("Indexing Community: " + JSON.stringify(response));
+                if(response.length > 0) {
+                    indexall(response, 'community', function(response){
+                        console.log(response);
+                    });
+                }
+            });
+        });
+
         // Index all contacts
         server.models.contact.find(function (err, contactInstances) {
             makebulk(contactInstances, 'contact', 'provider', function(response){
