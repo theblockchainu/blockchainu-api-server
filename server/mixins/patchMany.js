@@ -18,7 +18,7 @@ module.exports = function (Model, options) {
                                     console.log(err);
                                     cb(err);
                                 } else {
-                                    console.log(instanceData);
+                                    //console.log(instanceData);
                                 }
                             });
                         }, this);
@@ -44,7 +44,7 @@ module.exports = function (Model, options) {
                                     console.log(err);
                                     errorIds.push(targetId);
                                 } else {
-                                    console.log(instanceData);
+                                    //console.log(instanceData);
                                 }
                             });
                         }, this);

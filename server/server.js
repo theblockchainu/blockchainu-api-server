@@ -93,11 +93,9 @@ boot(app, __dirname, function (err) {
 });
 
 // to support JSON-encoded bodies
-app.middleware('parse', bodyParser.json());
+app.middleware('parse', bodyParser.json({limit: '50mb'}));
 // to support URL-encoded bodies
-app.middleware('parse', bodyParser.urlencoded({
-    extended: true,
-}));
+app.middleware('parse', bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 // The access token is only available after boot
 app.middleware('auth', loopback.token({
@@ -242,7 +240,7 @@ app.post('/signup', function (req, res, next) {
                 });
             }
             if (accessToken) {
-                console.log("Access token: " + JSON.stringify(accessToken));
+                //console.log("Access token: " + JSON.stringify(accessToken));
                 // Passport exposes a login() function on req (also aliased as logIn())
                 // that can be used to establish a login session. This function is
                 // primarily used when users sign up, during which req.login() can
@@ -305,7 +303,7 @@ app.post('/signup', function (req, res, next) {
         console.log('Creating Profile Node');
         user.updateProfileNode(profile, profileObject, user, function (err, user, profileNode) {
             if (!err) {
-                console.log(user);
+                //console.log(user);
                 user.currency = profileNode.currency;
                 user.timezone = profileNode.timezone;
             } else {
@@ -340,13 +338,13 @@ app.post('/signup', function (req, res, next) {
                             'reason': 'Err: ' + err
                         });
                     } else {
-                        console.log("User is: " + JSON.stringify(user));
+                        //console.log("User is: " + JSON.stringify(user));
 
                         setPassword(newUser.password);
 
                         var stripeTransaction = app.models.transaction;
                         stripeTransaction.createCustomer(user, function (err, data) {
-                            console.log("Stripe Customer : " + JSON.stringify(data));
+                            //console.log("Stripe Customer : " + JSON.stringify(data));
                         });
                         console.log("NEW USER ACCOUNT CREATED");
                         User.dataSource.connector.execute(
@@ -386,14 +384,14 @@ app.post('/signup', function (req, res, next) {
 
 app.post('/convertCurrency', function(req, res, next) {
     var access_key = app.get('currencyLayerKey');
-    console.log(access_key);
+    //console.log(access_key);
     unirest.get('http://apilayer.net/api/convert')
         .query('access_key=' + access_key)
         .query('from=' + req.body.from)
         .query('to=' + req.body.to)
         .query('amount=' + req.body.amount)
         .end(function (response) {
-            console.log(response.body);
+            //console.log(response.body);
             res.json(response.body);
         });
 });

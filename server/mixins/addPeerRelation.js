@@ -26,7 +26,7 @@ module.exports = function (Model, options) {
                                 console.log("Unable to add peer to " + element);
                                 console.log(err);
                             } else {
-                                console.log(addedinstance);
+                                //console.log(addedinstance);
                                 console.log("Peer Instance Added to " + element);
                             }
                         });

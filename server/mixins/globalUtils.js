@@ -7,11 +7,11 @@ module.exports = function (Model, options) {
             var methodName = 'prototype.__link__' + relation;
 
             Model.afterRemote(methodName, function (ctx, newInstance, next) {
-                console.log('linking newInstance: ' + JSON.stringify(newInstance));
+                //console.log('linking newInstance: ' + JSON.stringify(newInstance));
 
                 // get the data from req body and add those properties to created relation.
                 if(ctx.req.body !== null) {
-                    console.log(JSON.stringify(ctx.req.body));
+                    //console.log(JSON.stringify(ctx.req.body));
                     var inputBody = ctx.req.body;
                     var inputBodyKeys = Object.keys(inputBody);
                     var hasAdditionalKeys = false;

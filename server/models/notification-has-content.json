@@ -1,18 +1,17 @@
 {
-  "name": "peer_has_content",
+  "name": "notification_has_content",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
+    "sourceModel": "notification",
     "targetModel": "content"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "id": true
+      "type": "string"
     },
     "sourceId": {
       "type": "string"
@@ -23,9 +22,9 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "notification": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "notification",
       "foreignKey": "sourceId"
     },
     "content": {

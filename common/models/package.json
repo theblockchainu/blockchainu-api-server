@@ -49,6 +49,13 @@
       "foreignKey": "targetId",
       "through": "collection_has_package",
       "keyThrough": "sourceId"
+    },
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "targetId",
+      "through": "content_has_package",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

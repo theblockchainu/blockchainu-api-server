@@ -343,16 +343,17 @@ module.exports = function (Peer) {
      *
      * @param req
      * @param phone
+     * @param countryCode
      * @param fn
      * @callback {Function} callback
      * @promise
      */
-    Peer.sendVerifySms = function (req, phone, fn) {
+    Peer.sendVerifySms = function (req, phone, countryCode, fn) {
 
         fn = fn || utils.createPromiseCallback();
         var loggedinPeer = Peer.getCookieUserId(req);
         var formattedPhone = phone.replace(/[^\d]/g, '');
-        formattedPhone = '+91' + formattedPhone;
+        formattedPhone = '+' + countryCode + formattedPhone;
         //if user is logged in
         if (loggedinPeer) {
             // Generate new hex token for sms
@@ -362,7 +363,7 @@ module.exports = function (Peer) {
 
             var client = new twilio(twilioSid, twilioToken);
 
-            var message = "Verify your phone with peerbuds using OTP: " + phoneToken;
+            var message = "Verify your mobile phone with Peerbuds using code: " + phoneToken;
 
             client.messages.create({
                 body: message,
@@ -374,12 +375,13 @@ module.exports = function (Peer) {
                     fn(err);
                 }
                 else {
-                    console.log(message);
+                    //console.log(message);
                     var User = app.models.peer;
-                    User.findById(loggedinPeer, function (err, peerInstance) {
+                    User.findById(loggedinPeer, {include: {profiles: 'phone_numbers'}}, function (err, peerInstance) {
                         if (err) {
                             cb(err);
                         } else {
+                            var phoneNumber = peerInstance.profiles[0].phone_numbers[0];
                             peerInstance.phoneVerificationToken = phoneToken;
                             peerInstance.phoneVerified = false;
                             User.upsert(peerInstance, function (err, modifiedPeerInstance) {
@@ -928,7 +930,7 @@ module.exports = function (Peer) {
             if (err) {
                 cb(err);
             } else {
-                console.log(modelInstance);
+                //console.log(modelInstance);
                 if (modelInstance) {
                     modelInstance.profiles((err, instances) => {
                         if (err) {
@@ -1028,13 +1030,61 @@ module.exports = function (Peer) {
         if (!Array.isArray(userIds) || !userIds.length)
             return process.nextTick(cb);
 
-        console.log(userIds);
+        //console.log(userIds);
         /*Peer.dataSource.connector.execute(
             "match (:peer {id:'"+ctx.where.id+"'})-[:hasToken]->(token:UserToken) DETACH DELETE token",
             cb
         );*/
 
     };
+
+    Peer.afterRemote('prototype.__create__reviewsAboutYou', function (ctx, newReviewInstance, next) {
+        // A new review was created. Send email to teacher who got review
+        var loggedinPeer = Peer.getCookieUserId(ctx.req);
+        if (loggedinPeer) {
+            Peer.findById(ctx.instance.id, {include: 'profiles'}, function (err, reviewedPeerInstance) {
+                if (!err) {
+                    Peer.app.models.collection.findById(newReviewInstance.collectionId, function(err, reviewedCollectionInstance) {
+                       if (!err) {
+                           Peer.findById(loggedinPeer, {include: 'profiles'}, function (err, reviewerInstance) {
+                              if (!err) {
+                                  // Send token in email to user.
+                                  var message = { reviewedPeerName: reviewedPeerInstance.toJSON().profiles[0].first_name, reviewerName: reviewerInstance.toJSON().profiles[0].first_name + ' ' + reviewerInstance.toJSON().profiles[0].last_name, reviewScore: newReviewInstance.score, reviewDesc: newReviewInstance.description, collectionTitle: reviewedCollectionInstance.title };
+                                  var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newReviewToTeacher.ejs'));
+                                  var html_body = renderer(message);
+                                  loopback.Email.send({
+                                      to: ctx.instance.email,
+                                      from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                      subject: 'You have a new review',
+                                      html: html_body
+                                  })
+                                      .then(function (response) {
+                                          console.log('email sent! - ' + response);
+                                      })
+                                      .catch(function (err) {
+                                          console.log('email error! - ' + err);
+                                      });
+                                  next();
+                              }
+                              else {
+                                  next(new Error('Could not find reviewer details'));
+                              }
+                           });
+                       }
+                       else {
+                           next(new Error('Could not find reviewed collection'));
+                       }
+                    });
+                }
+                else {
+                    next(new Error('Could not find reviewed peer details'));
+                }
+            });
+        }
+        else {
+            next(new Error('Could not find logged in peer ID'));
+        }
+    });
 
 
     Peer.getCookieUserId = function (req) {
@@ -1150,7 +1200,8 @@ module.exports = function (Peer) {
                 description: 'Send a Verification SMS to user phone with OTP',
                 accepts: [
                     { arg: 'req', type: 'object', http: { source: 'req' } },
-                    { arg: 'phone', type: 'string', required: true }
+                    { arg: 'phone', type: 'string', required: true },
+                    { arg: 'countryCode', type: 'string', required: true }
                 ],
                 returns: { arg: 'result', type: 'object', root: true },
                 http: { verb: 'post', path: '/sendVerifySms' }

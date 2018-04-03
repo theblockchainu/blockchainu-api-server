@@ -41,7 +41,7 @@ require('util').inherits(GoogleExtension, require('events').EventEmitter);
 GoogleExtension.prototype.getContacts = function (accessToken, cb) {
     var deferred = Q.defer();
     var method = 'connections';
-    console.log(accessToken);
+    //console.log(accessToken);
     var url = this.graph_api_url.concat('people/me').concat('/'.concat(method)).concat('?personFields=names,photos&access_token='.concat(accessToken));
     request(url, function (e, res, body) {
         if (e) {
@@ -51,7 +51,7 @@ GoogleExtension.prototype.getContacts = function (accessToken, cb) {
         } else {
             if (res.statusCode == 200) {
                 var bodyJSON = bignumJSON.parse(body);
-                console.log(bodyJSON);
+                //console.log(bodyJSON);
                 if (!bodyJSON.error) {
                     if(bodyJSON.hasOwnProperty('connections'))
                         deferred.resolve(bodyJSON.connections);

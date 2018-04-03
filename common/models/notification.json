@@ -68,6 +68,13 @@
       "foreignKey": "sourceId",
       "through": "notification_has_collection",
       "keyThrough": "targetId"
+    },
+    "content": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "sourceId",
+      "through": "notification_has_content",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -13,9 +13,9 @@ module.exports = function (Currency) {
 
             if (currencies.hasOwnProperty(currCode)) {
 
-                console.log(index);
+                //console.log(index);
                 var currency = currencies[currCode];
-                console.log(currency);
+                //console.log(currency);
 
                 Currency.app.models.currency.create(currency, function (err, newCurrencyInstance) {
                     if (!err) {

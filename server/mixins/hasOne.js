@@ -21,7 +21,7 @@ module.exports = function (Model, options) {
                                         console.log(err);
                                         next(err);
                                     } else {
-                                        console.log(createdInstance);
+                                        //console.log(createdInstance);
                                         next();
                                     }
                                 });
@@ -74,7 +74,7 @@ module.exports = function (Model, options) {
                     cb(err);
                 } else {
                     if (modelInstance) {
-                        console.log(modelInstance);
+                        //console.log(modelInstance);
                         var relatedTo = modelInstance[relation];
                         relatedTo(function (err, instances) {
                             if (err) {

@@ -20,13 +20,13 @@ module.exports = function (Collection) {
                         topicInstances.forEach(topicInstance => {
                             participantUserInstance.__link__topicsLearning(topicInstance.id, function(err1, linkedTopicInstance) {
                                 if (!err1) {
-                                    console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
+                                    //console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
                                 }
                                 else {
                                     console.log(err1);
                                 }
                             });
-                        });
+                        })
                     }
                     else {
                         console.log(err);
@@ -138,6 +138,66 @@ module.exports = function (Collection) {
             }
         });
     });
+
+    Collection.afterRemote('prototype.__create__comments', function (ctx, newCommentInstance, next) {
+        // Send email to all students if an announcement is made by the teacher
+        if (newCommentInstance.toJSON().isAnnouncement) {
+            var loggedinPeer = Collection.getCookieUserId(ctx.req);
+            if (loggedinPeer) {
+                Collection.findById(ctx.instance.id, {include: [{'participants': 'profiles'}, 'owners']}, function (err, collectionInstance) {
+                    if (!err) {
+                        Collection.app.models.peer.findById(collectionInstance.toJSON().owners[0].id, {include: 'profiles'}, function(err, collectionOwnerInstance) {
+                            if (!err) {
+                                collectionInstance.toJSON().participants.forEach(participant => {
+                                    // Send email to every participant
+                                    var message = { studentName: participant.profiles[0].first_name, teacherName: collectionOwnerInstance.toJSON().profiles[0].first_name + ' ' + collectionOwnerInstance.toJSON().profiles[0].last_name, announcement: newCommentInstance.description, collectionTitle: collectionInstance.toJSON().title};
+                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newAnnouncementToStudents.ejs'));
+                                    var html_body = renderer(message);
+                                    loopback.Email.send({
+                                        to: participant.email,
+                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        subject: 'New announcement from teacher',
+                                        html: html_body
+                                    })
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
+                                    next();
+                                });
+                            }
+                            else {
+                                next(new Error('Could not find collection owner'));
+                            }
+                        });
+                    }
+                    else {
+                        next(new Error('Could not find collection'));
+                    }
+                });
+            }
+            else {
+                next(new Error('Could not find logged in peer ID'));
+            }
+        }
+        else {
+            next();
+        }
+    });
+
+    Collection.getCookieUserId = function (req) {
+
+        var cookieArray = req.headers.cookie.split(';');
+        var cookie = '';
+        for (var i = 0; i < cookieArray.length; i++) {
+            if (cookieArray[i].split('=')[0].trim() === 'userId') {
+                cookie = cookieArray[i].split('=')[1].trim();
+            }
+        }
+        return cookie.split(/[ \:.]+/)[0].substring(4);
+    };
 
     Collection.afterRemote('prototype.__unlink__participants', function (ctx, next1) {
         // Participant canceled collection. Notify collection owner.
@@ -287,6 +347,9 @@ module.exports = function (Collection) {
                     case 'experience':
                         subject = 'Experience submitted for review';
                         break;
+	                case 'session':
+		                subject = 'Account submitted for peer session review';
+		                break;
                     default:
                         subject = 'Collection submitted for review';
                         break;
@@ -365,31 +428,47 @@ module.exports = function (Collection) {
                     }
                     else {
                         var message = '', subject = '';
+                        var title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
                             case 'workshop':
                                 subject = 'Workshop Approved';
+                                title = 'Workshop Approved!';
+                                description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Approved';
+	                            title = 'Experience Approved!';
+	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
                                 break;
+	                        case 'session':
+		                        subject = 'Account Approved for Peer Sessions';
+		                        title = 'Account Approved for Peer Sessions!';
+		                        description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
+		                        break;
                             default:
                                 subject = 'Collection Approved';
+                                title = 'Collection Approved!';
+	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
                                 break;
                         }
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
                         var html_body = renderer(message);
 
-                        // Send email to owner of this workshop
+                        // Send email to owner of this collection
                         Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
 
                             if (!err) {
                                 // Send notification to owner
                                 ownerInstance.__create__notifications({
                                     type: "action",
-                                    title: collectionInstance.type + " Approved!",
-                                    description: "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.",
-                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","16"]
+                                    title: title,
+                                    description: description,
+                                    actionUrl: actionUrl
                                 }, function(err, notificationInstance) {
                                     if(err) {
                                         cb(err);
@@ -405,41 +484,46 @@ module.exports = function (Collection) {
                                                         cb(err);
                                                     }
                                                     else {
-                                                        // Create a new chat room for this collection
-                                                        var roomValue =  {
-                                                            name: collectionInstance.title
-                                                        };
-                                                        collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
-                                                           if (!err) {
-                                                               console.log('New chat room created for this collection');
-                                                               // Add teacher to the collection's new chat room
-                                                               newRoomInstance.__link__participants(ownerInstance.id, function(err, linkedParticipantInstance) {
-                                                                   if (!err) {
-                                                                       console.log('Added teacher to chat room');
-                                                                       // Add a new system message about new participant
-                                                                       var messageObject = {
-                                                                           text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
-                                                                           type: 'system'
-                                                                       };
-                                                                       newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
-                                                                           if (!err) {
-                                                                               Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
-                                                                               cb(null, { result: 'Collection approved. Email sent to owner.' });
-                                                                           }
-                                                                           else {
-                                                                               cb(new Error('Could not create system message'));
-                                                                           }
-                                                                       });
-                                                                   }
-                                                                   else {
-                                                                       cb(err);
-                                                                   }
-                                                               });
-                                                           }
-                                                           else {
-                                                               cb(err);
-                                                           }
-                                                        });
+                                                        if (collectionInstance.type === 'session') {
+	                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                        }
+                                                        else {
+	                                                        // Create a new chat room for this collection
+	                                                        var roomValue =  {
+		                                                        name: collectionInstance.title
+	                                                        };
+	                                                        collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
+		                                                        if (!err) {
+			                                                        console.log('New chat room created for this collection');
+			                                                        // Add teacher to the collection's new chat room
+			                                                        newRoomInstance.__link__participants(ownerInstance.id, function(err, linkedParticipantInstance) {
+				                                                        if (!err) {
+					                                                        console.log('Added teacher to chat room');
+					                                                        // Add a new system message about new participant
+					                                                        var messageObject = {
+						                                                        text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
+						                                                        type: 'system'
+					                                                        };
+					                                                        newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
+						                                                        if (!err) {
+							                                                        Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
+							                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
+						                                                        }
+						                                                        else {
+							                                                        cb(new Error('Could not create system message'));
+						                                                        }
+					                                                        });
+				                                                        }
+				                                                        else {
+					                                                        cb(err);
+				                                                        }
+			                                                        });
+		                                                        }
+		                                                        else {
+			                                                        cb(err);
+		                                                        }
+	                                                        });
+                                                        }
                                                     }
                                                 });
                                             }
@@ -497,17 +581,33 @@ module.exports = function (Collection) {
                     }
                     else {
                         var message = '', subject = '';
+                        var title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
-                            case 'workshop':
-                                subject = 'Workshop rejected';
-                                break;
-                            case 'experience':
-                                subject = 'Experience rejected';
-                                break;
-                            default:
-                                subject = 'Collection rejected';
-                                break;
+	                        case 'workshop':
+		                        subject = 'Workshop Rejected';
+		                        title = 'Workshop Rejected!';
+		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
+		                        break;
+	                        case 'experience':
+		                        subject = 'Experience Rejected';
+		                        title = 'Experience Rejected!';
+		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
+		                        break;
+	                        case 'session':
+		                        subject = 'Account Rejected for Peer Sessions';
+		                        title = 'Account Rejected for Peer Sessions!';
+		                        description = "Your account has been rejected for peer sessions. Edit your details and submit again.";
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
+		                        break;
+	                        default:
+		                        subject = 'Collection Rejected';
+		                        title = 'Collection Rejected!';
+		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
+		                        break;
                         }
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
                         var html_body = renderer(message);
@@ -519,9 +619,9 @@ module.exports = function (Collection) {
                                 // Send notification to owner
                                 ownerInstance.__create__notifications({
                                     type: "action",
-                                    title: collectionInstance.type + " rejected!",
-                                    description: "%collectionType% %collectionName% has been rejected. Edit your details and submit again.",
-                                    actionUrl: [collectionInstance.type,collectionInstance.id,"edit","13"]
+                                    title: title,
+                                    description: description,
+                                    actionUrl: actionUrl
                                 }, function(err, notificationInstance) {
                                     if(err) {
                                         cb(err);

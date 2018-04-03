@@ -640,5 +640,17 @@
   "peer_has_content": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_package": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_payment": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "notification_has_content": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

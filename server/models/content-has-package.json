@@ -1,13 +1,10 @@
 {
-  "name": "peer_has_content",
+  "name": "content_has_package",
   "base": "PersistedModel",
   "idInjection": true,
-  "options": {
-    "validateUpsert": true
-  },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "content"
+    "sourceModel": "content",
+    "targetModel": "package"
   },
   "properties": {
     "id": {
@@ -23,14 +20,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
-      "type": "belongsTo",
-      "model": "peer",
-      "foreignKey": "sourceId"
-    },
     "content": {
       "type": "belongsTo",
       "model": "content",
+      "foreignKey": "sourceId"
+    },
+    "package": {
+      "type": "belongsTo",
+      "model": "package",
       "foreignKey": "targetId"
     }
   },

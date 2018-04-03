@@ -44,10 +44,10 @@ module.exports = function setupCron(server) {
         // Index all peers
         server.models.peer.find({include: 'profiles'}, function (err, peerInstances) {
             makebulk(peerInstances, 'peer', 'none', function(response){
-                console.log("Indexing Peers: " + JSON.stringify(response));
+                //console.log("Indexing Peers: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'peer', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -56,10 +56,10 @@ module.exports = function setupCron(server) {
         // Index all collections
         server.models.collection.find(function (err, collectionInstances) {
             makebulk(collectionInstances, 'collection', 'type', function(response){
-                console.log("Indexing Collections: " + JSON.stringify(response));
+                //console.log("Indexing Collections: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'collection', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -68,10 +68,10 @@ module.exports = function setupCron(server) {
         // Index all contents
         server.models.content.find(function (err, contentInstance) {
             makebulk(contentInstance, 'content', 'type', function(response){
-                console.log("Indexing Contents: " + JSON.stringify(response));
+                //console.log("Indexing Contents: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'content', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -80,10 +80,10 @@ module.exports = function setupCron(server) {
         // Index all topics
         server.models.topic.find(function (err, topicInstances) {
             makebulk(topicInstances, 'topic', 'none', function(response){
-                console.log("Indexing Topics: " + JSON.stringify(response));
+                //console.log("Indexing Topics: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'topic', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -92,10 +92,10 @@ module.exports = function setupCron(server) {
         // Index all topics
         server.models.community.find(function (err, communityInstances) {
             makebulk(communityInstances, 'community', 'type', function(response){
-                console.log("Indexing Community: " + JSON.stringify(response));
+                //console.log("Indexing Community: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'community', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -104,10 +104,10 @@ module.exports = function setupCron(server) {
         // Index all contacts
         server.models.contact.find(function (err, contactInstances) {
             makebulk(contactInstances, 'contact', 'provider', function(response){
-                console.log("Indexing Contacts: " + JSON.stringify(response));
+                //console.log("Indexing Contacts: " + JSON.stringify(response));
                 if(response.length > 0) {
                     indexall(response, 'contact', function(response){
-                        console.log(response);
+                        //console.log(response);
                     });
                 }
             });
@@ -123,7 +123,7 @@ module.exports = function setupCron(server) {
     // Runs once every 24 hours
     var collectionCompleteCron = new CronJob('00 00 00 * * *',
         function() {
-            server.models.collection.find({'where': {'status': 'active'}, 'include': ['calendars', 'participants', {'owners': 'profiles'}]}, function(err, collectionInstances){
+            server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': ['calendars', 'participants', {'owners': 'profiles'}]}, function(err, collectionInstances){
                collectionInstances.forEach(collection => {
                    if (collection.toJSON().calendars !== undefined) {
                        collection.toJSON().calendars.forEach(calendar => {
@@ -282,7 +282,7 @@ module.exports = function setupCron(server) {
     // Runs once every 10 minutes
     var upcomingActivityCron = new CronJob('00 */10 * * * *',
         function() {
-            server.models.collection.find({'where': {'status': 'active'}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': 'profiles'}]}, function(err, collectionInstances){
+            server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': 'profiles'}]}, function(err, collectionInstances){
                 collectionInstances.forEach(collection => {
                     if (collection.calendars !== undefined) {
                         collection.toJSON().calendars.forEach(calendar => {
@@ -305,7 +305,7 @@ module.exports = function setupCron(server) {
                                             endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
                                             endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
                                             endDate.seconds('00');
-                                            console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
+                                            //console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
                                             if ((content.type !== 'video') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
                                                 // Upcoming online session starts in 1 hour. Send notification and email to all participants
                                                 collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){

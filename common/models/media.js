@@ -36,7 +36,7 @@ module.exports = function(Media) {
                                    cb(err);
                                }
                                else {
-                                   console.log(addedPeerInstance);
+                                   //console.log(addedPeerInstance);
                                    cb(null, obj);
                                }
                             });
@@ -56,7 +56,7 @@ module.exports = function(Media) {
         var loggedinPeer = Media.getCookieUserId(ctx.req);
         if(loggedinPeer) {
             var uploadStream = Media.app.models.container.uploadStream(ctx.req.params.container,ctx.req.params.filename,options,function () {});
-            console.log(Object.keys(ctx.req));
+            //console.log(Object.keys(ctx.req));
             var base64Data = ctx.req.body.replace(/^data:([A-Za-z-+/]+);base64,/, '');
             fs.createReadStream(base64Data).pipe(uploadStream);
             console.log('Success with piping read steam to S3');

@@ -10,7 +10,7 @@ module.exports = function (Timezone) {
             if (err) {
                 cb(err);
             } else {
-                console.log(timezoneInstances);
+                //console.log(timezoneInstances);
                 cb(null, timezoneInstances);
             }
         });

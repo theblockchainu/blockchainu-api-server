@@ -7,7 +7,7 @@ module.exports = function (Country) {
 
         var countries = require("../../countries.json");
         console.log("Adding country instance");
-        console.log(countries);
+        //console.log(countries);
         countries.forEach(function (country) {
 
             var newCountry = {};
@@ -20,7 +20,7 @@ module.exports = function (Country) {
             newCountry.latlng = country.latlng;
             newCountry.area = country.area;
 
-            console.log(newCountry);
+            //console.log(newCountry);
             Country.app.models.country.create(newCountry, function (err, newCountryInstance) {
                 if (err) {
                     cb(err);

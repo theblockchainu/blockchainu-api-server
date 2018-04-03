@@ -82,7 +82,12 @@
       "type": "string"
     },
     "sessionIsApproved": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
+    },
+    "sessionIsRejected": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],
@@ -143,11 +148,32 @@
       "through": "content_has_availability",
       "keyThrough": "targetId"
     },
+    "packages": {
+      "type": "hasMany",
+      "model": "package",
+      "foreignKey": "sourceId",
+      "through": "content_has_package",
+      "keyThrough": "targetId"
+    },
+    "payments": {
+      "type": "hasMany",
+      "model": "transaction",
+      "foreignKey": "sourceId",
+      "through": "content_has_payment",
+      "keyThrough": "targetId"
+    },
     "peers": {
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "targetId",
       "through": "peer_has_content",
+      "keyThrough": "sourceId"
+    },
+    "notifications": {
+      "type": "hasMany",
+      "model": "notification",
+      "foreignKey": "targetId",
+      "through": "notification_has_content",
       "keyThrough": "sourceId"
     }
   },

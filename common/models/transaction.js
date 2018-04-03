@@ -3,6 +3,7 @@ var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
 var stripe = require('stripe')(stripeKey);
 var path = require('path');
+var moment = require('moment');
 var loopback = require('../../node_modules/loopback/lib/loopback');
 
 module.exports = function (Transaction) {
@@ -344,9 +345,9 @@ module.exports = function (Transaction) {
                     charge.outcome = JSON.stringify(charge.outcome);
                     charge.created = currTime;
                     charge.modified = currTime;
-                    console.log(JSON.stringify(charge));
+                    //console.log(JSON.stringify(charge));
 
-                    Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
+                    Transaction.app.models.peer.findById(loggedinPeer, {'include': 'profiles'}, function (err, peerInstance) {
                         if (!err && peerInstance !== null) {
                             peerInstance.transactions.create(charge, function (err, chargeInstance) {
                                 if (err) {
@@ -364,6 +365,50 @@ module.exports = function (Transaction) {
                                             });
                                         });
                                     }
+	                                // Link collection to payment
+	                                else if (chargeItem === 'content') {
+		                                Transaction.app.models.content.findById(chargeItemId, {'include': [{'collections' : {'owners': 'profiles'}}, 'packages', 'availabilities']}, function (err, content) {
+			                                content.__link__payments(chargeInstance, function (err, contentPaymentInstance) {
+				                                if (!err && contentPaymentInstance !== null) {
+					                                console.log('Payment made for content');
+					                                // Send confirmation email to teacher
+					                                var availabilityInstances = content.toJSON().availabilities.sort((a, b) => (moment(a.startDateTime).isAfter(moment(b.startDateTime)) ? 1 : -1));
+					                                var formattedDate = moment(availabilityInstances[0].startDateTime).format('Do MMM');
+					                                var startTime = moment(availabilityInstances[0].startDateTime).format('h:mm a');
+					                                var endTime = moment(availabilityInstances[availabilityInstances.length - 1].startDateTime).add(60, 'minutes').format('h:mm a');
+					                                var message = {studentName: peerInstance.toJSON().profiles[0].first_name + ' ' + peerInstance.toJSON().profiles[0].last_name, amount: reqObj.amount / 100, currency: reqObj.currency, formattedDate: formattedDate, startTime: startTime, endTime: endTime};
+					                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSessionConfirmationTeacher.ejs'));
+					                                var html_body = renderer(message);
+					                                loopback.Email.send({
+						                                to: content.toJSON().collections[0].owners[0].email,
+						                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+						                                subject: 'Session with ' + peerInstance.toJSON().profiles[0].first_name + ' is confirmed!',
+						                                html: html_body
+					                                })
+							                                .then(function (response) {
+								                                console.log('email sent to teacher confirming session! - ');
+							                                })
+							                                .catch(function (err) {
+								                                console.log('email error! - ' + err);
+							                                });
+					                                
+					                                // Create notification for teacher
+                                                    var Notification = app.models.notification;
+					                                var notifData = {
+						                                type: "action",
+						                                title: "Session Confirmed!",
+						                                description: "Your peer session with %username% on %sessionDate% for %sessionHours% is now confirmed. We have received payment.",
+						                                actionUrl: ["console","teaching","sessions"]
+					                                };
+                                                    Notification.createNotification(content.toJSON().collections[0].owners[0].id, peerInstance.id, notifData, 'content', content.id, function(err, notificationInstance) {
+                                                        if (!err) {
+	                                                        console.log('Sent notification to teacher about confirmed session');
+                                                        }
+                                                    });
+				                                }
+			                                });
+		                                });
+	                                }
                                     // Send receipt email to user
                                     var message = { cardBrand: chargeSourceJson.brand, cardLast4: chargeSourceJson.last4, cardName: chargeSourceJson.name, amount: reqObj.amount / 100, currency: reqObj.currency, chargeId: chargeInstance.id};
                                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/paymentReceipt.ejs'));
@@ -375,7 +420,7 @@ module.exports = function (Transaction) {
                                         html: html_body
                                     })
                                         .then(function (response) {
-                                            console.log('email sent! - ');
+                                            console.log('email sent to student for receipt! - ');
                                         })
                                         .catch(function (err) {
                                             console.log('email error! - ' + err);
