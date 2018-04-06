@@ -44,6 +44,13 @@
       "foreignKey": "sourceId",
       "through": "reply_has_upvote",
       "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "targetId",
+      "through": "comment_has_reply",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

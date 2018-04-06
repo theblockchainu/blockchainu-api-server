@@ -56,8 +56,24 @@ module.exports = function (Room) {
     Room.afterRemote('prototype.__create__messages', function (ctx, newInstance, next) {
         // New message received. Send on socket to room.
         console.log('sending socket msg to room id: ' + ctx.req.params.id);
-        Room.app.io.in(ctx.req.params.id).emit('message', newInstance);
-        next();
+	    var loggedinPeer = Room.app.models.peer.getCookieUserId(ctx.req);
+	    if (loggedinPeer) {
+		    Room.app.models.peer.findById(loggedinPeer, {'include': 'profiles'}, function (err, peerInstance) {
+			    if (!err) {
+			        newInstance = newInstance.toJSON();
+			        newInstance['peer'] = [];
+				    newInstance['peer'].push(peerInstance.toJSON());
+				    newInstance['roomId'] = ctx.instance.id;
+				    Room.app.io.in(ctx.req.params.id).emit('message', newInstance);
+				    next();
+			    } else {
+			        next(err);
+			    }
+		    });
+	    }
+	    else {
+		    next(new Error('Could not find logged in peer ID'));
+        }
     });
 
     Room.afterRemote('prototype.__delete__participants', function (ctx, unlinkInstance, next) {
@@ -110,12 +126,16 @@ module.exports = function (Room) {
                 if (!err) {
                     var messageText = '';
                     if (loggedinPeer === ctx.req.params.fk) {
-                        // User is deleting himself
+                        // User is adding himself
                         messageText = participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' joined';
                     }
                     else {
-                        // User was removed by teacher
-                        messageText = 'Teacher added ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name;
+                        // User was added by teacher
+                        if (ctx.instance.type === 'group') {
+	                        messageText = 'Teacher added ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name;
+                        } else {
+	                        messageText = participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' joined';
+                        }
                     }
                     var message = {
                         text: messageText,

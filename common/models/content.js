@@ -76,6 +76,67 @@ module.exports = function (Content) {
 		});
 	});
 	
+	
+	Content.afterRemote('prototype.__create__rsvps', function(ctx, rsvpInstance, next) {
+		var contentInstance = ctx.instance;
+		var loggedinUser = Content.getCookieUserId(ctx.req);
+		if (loggedinUser) {
+			console.log('Adding RSVP to content');
+			contentInstance.__get__collections({"include": "owners"}, function (err, collectionInstances) {
+				if (!err) {
+					Content.app.models.peer.findById(loggedinUser, {'include': 'profiles'}, function (err, loggedinPeerInstance) {
+						if (!err) {
+							// Send email to teacher about new RSVP request
+							var incomingCollectionInstance = collectionInstances[0];
+							// Send email to teacher
+							var message = {studentName: loggedinPeerInstance.toJSON().profiles[0].first_name + ' ' + loggedinPeerInstance.toJSON().profiles[0].last_name, contentTitle: contentInstance.toJSON().title, collectionTitle: incomingCollectionInstance.toJSON().title, collectionType: incomingCollectionInstance.toJSON().type, collectionId: incomingCollectionInstance.toJSON().id};
+							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newRsvpTeacher.ejs'));
+							var html_body = renderer(message);
+							loopback.Email.send({
+								to: incomingCollectionInstance.toJSON().owners[0].email,
+								from: 'Peerbuds <noreply@mx.peerbuds.com>',
+								subject: 'New RSVP for activity',
+								html: html_body
+							})
+									.then(function (response) {
+										console.log('email sent! - ');
+									})
+									.catch(function (err) {
+										console.log('email error! - ' + err);
+									});
+							
+							// Create notification
+							var Notification = app.models.notification;
+							var notifData = {
+								type: "action",
+								title: "New RSVP for activity!",
+								description: "%username% has RSVP'd for your in-person activity.",
+								actionUrl: [incomingCollectionInstance.toJSON().type,incomingCollectionInstance.toJSON().id]
+							};
+							Notification.createNotification(incomingCollectionInstance.toJSON().owners[0].id, loggedinPeerInstance.toJSON().id, notifData, 'content', contentInstance.id, function (err, notificationInstance) {
+								if (!err) {
+									console.log(notificationInstance);
+								}
+								else {
+									console.log(err);
+								}
+							});
+							next();
+						} else {
+							next(new Error('Could not find peer instance'));
+						}
+					})
+				}
+				else {
+					console.log('Could not send email to teacher for new session');
+					next(err);
+				}
+			});
+		} else {
+			next(new Error('Could not find user from cookie'));
+		}
+	});
+	
 	Content.afterRemote('prototype.patchAttributes', function(ctx, newInstance, next) {
 		var contentInstance = ctx.instance;
 		console.log('Updating content to mark it approved or rejected');
@@ -185,5 +246,17 @@ module.exports = function (Content) {
 			next();
 		}
 	});
+	
+	Content.getCookieUserId = function (req) {
+		
+		var cookieArray = req.headers.cookie.split(';');
+		var cookie = '';
+		for (var i = 0; i < cookieArray.length; i++) {
+			if (cookieArray[i].split('=')[0].trim() === 'userId') {
+				cookie = cookieArray[i].split('=')[1].trim();
+			}
+		}
+		return cookie.split(/[ \:.]+/)[0].substring(4);
+	};
 
 };

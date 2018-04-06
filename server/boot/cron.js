@@ -112,6 +112,15 @@ module.exports = function setupCron(server) {
                 }
             });
         });
+			
+	    // Index all questions
+	    server.models.question.find(function (err, questionInstances) {
+		    makebulk(questionInstances, 'question', 'none', function(response){
+			    if(response.length > 0) {
+				    indexall(response, 'question', function(response){});
+			    }
+		    });
+	    });
 
     }, function() {
         // Callback function when job ends.

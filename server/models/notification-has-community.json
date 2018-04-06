@@ -1,0 +1,38 @@
+{
+  "name": "notification_has_community",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "notification",
+    "targetModel": "community"
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "notification": {
+      "type": "belongsTo",
+      "model": "notification",
+      "foreignKey": "sourceId"
+    },
+    "community": {
+      "type": "belongsTo",
+      "model": "community",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

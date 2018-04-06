@@ -254,11 +254,13 @@ app.post('/signup', function (req, res, next) {
                     }
                     res.cookie('access_token', accessToken[0].token.properties.id, {
                         signed: req.signedCookies ? true : false,
+                        domain: app.get('cookieDomain'),
                         maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
                     if (user.accountVerified !== undefined) {
                         res.cookie('accountApproved', user.accountVerified.toString(), {
                             signed: req.signedCookies ? true : false,
+	                        domain: app.get('cookieDomain'),
                             maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                         });
                     }
@@ -266,6 +268,7 @@ app.post('/signup', function (req, res, next) {
                         res.cookie('currency', user.currency.toString(),
                             {
                                 signed: req.signedCookies ? true : false,
+	                            domain: app.get('cookieDomain'),
                                 // maxAge is in ms
                                 maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
                             });
@@ -274,12 +277,14 @@ app.post('/signup', function (req, res, next) {
                         res.cookie('timezone', user.timezone.toString(),
                             {
                                 signed: req.signedCookies ? true : false,
+	                            domain: app.get('cookieDomain'),
                                 // maxAge is in ms
                                 maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
                             });
                     }
                     res.cookie('userId', user.id.toString(), {
                         signed: req.signedCookies ? true : false,
+	                    domain: app.get('cookieDomain'),
                         maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
                     return res.redirect(returnTo);

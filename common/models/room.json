@@ -21,6 +21,10 @@
   "properties": {
     "name": {
       "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "default": "group"
     }
   },
   "validations": [],

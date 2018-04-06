@@ -652,5 +652,9 @@
   "notification_has_content": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "notification_has_community": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

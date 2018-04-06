@@ -75,6 +75,13 @@
       "foreignKey": "sourceId",
       "through": "notification_has_content",
       "keyThrough": "targetId"
+    },
+    "community": {
+      "type": "hasMany",
+      "model": "community",
+      "foreignKey": "sourceId",
+      "through": "notification_has_community",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

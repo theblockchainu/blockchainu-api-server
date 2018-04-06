@@ -9,7 +9,8 @@
     "failureRedirect": "/local",
     "failureFlash": true,
     "setAccessToken": true,
-    "json": true
+    "json": true,
+    "domain": "localhost"
   },
   "facebook-login": {
     "provider": "facebook",
@@ -25,7 +26,8 @@
     "failureRedirect": "/login",
     "scope": ["email", "user_friends", "user_likes"],
     "failureFlash": true,
-    "json": false
+    "json": false,
+    "domain": ".peerbuds.com"
   },
   "google-login": {
     "provider": "google",
@@ -43,7 +45,8 @@
     "accessType": "offline",
     "approvalPrompt": "force",
     "passReqToCallback": true,
-    "json": false
+    "json": false,
+    "domain": ".peerbuds.com"
   },
   "twitter-login": {
     "provider": "twitter",
@@ -56,7 +59,8 @@
     "failureRedirect": "/login",
     "consumerKey": "{twitter-consumer-key}",
     "consumerSecret": "{twitter-consumer-secret}",
-    "failureFlash": true
+    "failureFlash": true,
+    "domain": ".peerbuds.com"
   },
   "facebook-link": {
     "provider": "facebook",
@@ -71,7 +75,8 @@
     "scope": ["email", "user_friends", "user_likes"],
     "link": true,
     "failureFlash": true,
-    "session": true
+    "session": true,
+    "domain": ".peerbuds.com"
   },
   "google-link": {
     "provider": "google",
@@ -89,6 +94,7 @@
     "failureFlash": true,
     "accessType": "offline",
     "approvalPrompt": "force",
-    "session": true
+    "session": true,
+    "domain": ".peerbuds.com"
   }
 }
