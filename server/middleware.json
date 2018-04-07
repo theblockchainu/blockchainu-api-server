@@ -31,7 +31,14 @@
     }
   },
   "session": {},
-  "auth": {},
+  "auth": {
+    "loopback#token": {
+      "params": {
+        "cookies": ["access_token"],
+        "model": "UserToken"
+      }
+    }
+  },
   "parse": {},
   "routes": {
     "loopback#rest": {

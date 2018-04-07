@@ -84,7 +84,6 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-
 // Bootstrap the application, configure models, datasources and middleware.
 // Sub-apps like REST API are mounted via boot scripts.
 boot(app, __dirname, function (err) {

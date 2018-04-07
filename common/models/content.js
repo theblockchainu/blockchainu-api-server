@@ -113,7 +113,7 @@ module.exports = function (Content) {
 								description: "%username% has RSVP'd for your in-person activity.",
 								actionUrl: [incomingCollectionInstance.toJSON().type,incomingCollectionInstance.toJSON().id]
 							};
-							Notification.createNotification(incomingCollectionInstance.toJSON().owners[0].id, loggedinPeerInstance.toJSON().id, notifData, 'content', contentInstance.id, function (err, notificationInstance) {
+							Notification.createNotification(incomingCollectionInstance.toJSON().owners[0].id, loggedinPeerInstance.toJSON().id, notifData, 'collection', incomingCollectionInstance.toJSON().id, function (err, notificationInstance) {
 								if (!err) {
 									console.log(notificationInstance);
 								}
