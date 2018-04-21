@@ -57,6 +57,12 @@
       "type": "string",
       "required": true
     },
+    "ethAddress": {
+      "type": "string"
+    },
+    "ethKeyStore": {
+      "type": "string"
+    },
     "email": {
       "type": "string"
     },
