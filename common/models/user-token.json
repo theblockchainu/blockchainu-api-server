@@ -27,10 +27,12 @@
   },
   "validations": [],
   "relations": {
-    "user": {
-      "type": "belongsTo",
-      "model": "User",
-      "foreignKey": "userId"
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_token",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

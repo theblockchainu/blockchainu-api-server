@@ -84,7 +84,7 @@ var corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
+var cookieDomain = app.get('cookieDomain');
 // to support JSON-encoded bodies
 app.middleware('parse', bodyParser.json({limit: '50mb'}));
 // to support URL-encoded bodies
@@ -93,8 +93,9 @@ app.middleware('parse', bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.middleware('session', session({
     secret: "246bace2-38cb-4138-85d9-0ae8160b07c8",
     saveUninitialized: true,
+    resave: true,
     cookie: {
-        domain: app.get('cookieDomain'),
+        domain: cookieDomain,
         httpOnly: false,
         secure: true
     }

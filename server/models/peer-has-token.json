@@ -1,17 +1,18 @@
 {
-  "name": "notification_has_community",
+  "name": "peer_has_token",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "notification",
-    "targetModel": "community"
+    "sourceModel": "peer",
+    "targetModel": "UserToken"
   },
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "id": true
     },
     "sourceId": {
       "type": "string"
@@ -22,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "notification": {
+    "peer": {
       "type": "belongsTo",
-      "model": "notification",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
-    "community": {
+    "userTokens": {
       "type": "belongsTo",
-      "model": "community",
+      "model": "UserToken",
       "foreignKey": "targetId"
     }
   },

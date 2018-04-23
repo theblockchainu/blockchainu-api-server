@@ -103,7 +103,9 @@
     "userTokens": {
       "type": "hasMany",
       "model": "UserToken",
-      "foreignKey": "userId",
+      "foreignKey": "sourceId",
+      "through": "peer_has_token",
+      "keyThrough": "targetId",
       "options": {
         "disableInclude": true
       }

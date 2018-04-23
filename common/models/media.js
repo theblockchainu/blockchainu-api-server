@@ -76,7 +76,8 @@ module.exports = function(Media) {
                 cookie = cookieArray[i].split('=')[1].trim();
             }
         }
-        return cookie.split(/[ \:.]+/)[0].substring(4);
+	    console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
+        return cookie.split(/[ \:.]+/)[0];
     };
 
     Media.remoteMethod(

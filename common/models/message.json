@@ -27,7 +27,9 @@
       "type": "string",
       "default": "user"
     },
-    "localId": "number",
+    "localId": {
+      "type": "number"
+    },
     "mediaUrl": {
       "type": "string"
     }
