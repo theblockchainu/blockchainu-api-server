@@ -73,8 +73,7 @@ var originsWhitelist = [
     'null',
     'localhost:9090',      //frontend url for development
     'localhost:8080',      //frontend url for development
-    'https://www.peedbuds.com',
-    'https://www.dev.peedbuds.com'
+    'https://peedbuds.com'
 ];
 var corsOptions = {
     origin: function (origin, callback) {
@@ -86,41 +85,25 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Bootstrap the application, configure models, datasources and middleware.
-// Sub-apps like REST API are mounted via boot scripts.
-boot(app, __dirname, function (err) {
-    if (err) throw err;
-
-});
-
 // to support JSON-encoded bodies
 app.middleware('parse', bodyParser.json({limit: '50mb'}));
 // to support URL-encoded bodies
 app.middleware('parse', bodyParser.urlencoded({limit: '50mb', extended: true}));
 
-// The access token is only available after boot
-app.middleware('auth', loopback.token({
-    model: app.models.UserToken,
-}));
-
-app.middleware('session:before', cookieParser(app.get('cookieSecret')));
-
 app.middleware('session', session({
-    secret: app.get('cookieParser'),
+    secret: "246bace2-38cb-4138-85d9-0ae8160b07c8",
     saveUninitialized: true,
-    resave: true,
+    cookie: {
+        domain: app.get('cookieDomain'),
+        httpOnly: false,
+        secure: true
+    }
 }));
 
 passportConfigurator.init();
 
 // We need flash messages to see passport errors
 app.use(flash());
-
-passportConfigurator.setupModels({
-    userModel: app.models.peer,
-    userIdentityModel: app.models.userIdentity,
-    userCredentialModel: app.models.userCredential,
-});
 
 for (var s in config) {
     var c = config[s];
@@ -436,6 +419,19 @@ app.get('/auth/logout', function (req, res, next) {
             }
         }
     );
+});
+
+// Bootstrap the application, configure models, datasources and middleware.
+// Sub-apps like REST API are mounted via boot scripts.
+boot(app, __dirname, function (err) {
+	if (err) throw err;
+	
+});
+
+passportConfigurator.setupModels({
+	userModel: app.models.peer,
+	userIdentityModel: app.models.userIdentity,
+	userCredentialModel: app.models.userCredential,
 });
 
 app.start = function (httpOnly) {
