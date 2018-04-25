@@ -268,6 +268,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_provision",
       "keyThrough": "targetId"
+    },
+    "token_payments": {
+      "type": "hasMany",
+      "model": "token_transaction",
+      "foreignKey": "sourceId",
+      "through": "collection_has_token_payment",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

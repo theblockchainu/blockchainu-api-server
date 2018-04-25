@@ -329,6 +329,20 @@
       "foreignKey": "sourceId",
       "through": "peer_has_content",
       "keyThrough": "targetId"
+    },
+    "wallet": {
+      "type": "hasMany",
+      "model": "wallet",
+      "foreignKey": "sourceId",
+      "through": "peer_has_wallet",
+      "keyThrough": "targetId"
+    },
+    "token_transactions": {
+      "type": "hasMany",
+      "model": "token_transaction",
+      "foreignKey": "sourceId",
+      "through": "peer_has_token_transaction",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
