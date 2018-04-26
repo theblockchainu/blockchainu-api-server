@@ -704,5 +704,13 @@
   "assessment_model_has_assessment_rule": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "assessment_na_rule": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "assessment_model_has_assessment_na_rule": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

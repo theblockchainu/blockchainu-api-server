@@ -1,5 +1,5 @@
 {
-  "name": "assessment_model_has_assessment_rule",
+  "name": "assessment_model_has_assessment_na_rule",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "assessment_model",
-    "targetModel": "assessment_rule"
+    "targetModel": "assessment_na_rule"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "assessment_model",
       "foreignKey": "sourceId"
     },
-    "assessment_rule": {
+    "assessment_na_rule": {
       "type": "belongsTo",
-      "model": "assessment_rule",
+      "model": "assessment_na_rule",
       "foreignKey": "targetId"
     }
   },
