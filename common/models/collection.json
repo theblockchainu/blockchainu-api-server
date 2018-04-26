@@ -275,6 +275,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_token_payment",
       "keyThrough": "targetId"
+    },
+    "assessment_models": {
+      "type": "hasMany",
+      "model": "assessment_model",
+      "foreignKey": "sourceId",
+      "through": "collection_has_assessment_model",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
