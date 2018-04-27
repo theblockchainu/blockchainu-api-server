@@ -175,6 +175,13 @@
       "foreignKey": "targetId",
       "through": "notification_has_content",
       "keyThrough": "sourceId"
+    },
+    "token_payments": {
+      "type": "hasMany",
+      "model": "token_transaction",
+      "foreignKey": "sourceId",
+      "through": "content_has_token_payment",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -20,6 +20,11 @@
           "model": "calendar",
           "hasManyRelation": "calendars",
           "autoCreate": true
+        },
+        {
+          "model": "assessment_model",
+          "hasManyRelation": "assessment_models",
+          "autoCreate": true
         }
       ]
     },
@@ -139,6 +144,12 @@
     },
     "repeatUntil": {
       "type": "string"
+    },
+    "academicGyan": {
+      "type": "number"
+    },
+    "nonAcademicGyan": {
+      "type": "number"
     }
   },
   "validations": [],
@@ -267,6 +278,20 @@
       "model": "provision",
       "foreignKey": "sourceId",
       "through": "collection_has_provision",
+      "keyThrough": "targetId"
+    },
+    "token_payments": {
+      "type": "hasMany",
+      "model": "token_transaction",
+      "foreignKey": "sourceId",
+      "through": "collection_has_token_payment",
+      "keyThrough": "targetId"
+    },
+    "assessment_models": {
+      "type": "hasMany",
+      "model": "assessment_model",
+      "foreignKey": "sourceId",
+      "through": "collection_has_assessment_model",
       "keyThrough": "targetId"
     }
   },
