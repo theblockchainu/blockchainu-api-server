@@ -10,12 +10,22 @@
     "failureFlash": true,
     "setAccessToken": true,
     "json": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "facebook-login": {
     "provider": "facebook",
     "module": "passport-facebook",
-    "profileFields": ["about","gender", "link", "locale", "name", "timezone", "verified", "email", "updated_time"],
+    "profileFields": [
+      "about",
+      "gender",
+      "link",
+      "locale",
+      "name",
+      "timezone",
+      "verified",
+      "email",
+      "updated_time"
+    ],
     "clientID": "287639704995097",
     "clientSecret": "9097377e23a5b4d77ae0b2a788263aef",
     "callbackURL": "/auth/facebook/callback",
@@ -24,7 +34,11 @@
     "passReqToCallback": true,
     "successRedirect": "https://peerbuds.com/home/homefeed",
     "failureRedirect": "https://peerbuds.com/login",
-    "scope": ["email", "user_friends", "user_likes"],
+    "scope": [
+      "email",
+      "user_friends",
+      "user_likes"
+    ],
     "failureFlash": true,
     "json": false,
     "domain": ".peerbuds.com"
@@ -40,7 +54,11 @@
     "callbackPath": "/auth/google/callback",
     "successRedirect": "https://peerbuds.com/home/homefeed",
     "failureRedirect": "https://peerbuds.com/login",
-    "scope": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/contacts.readonly"],
+    "scope": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ],
     "failureFlash": true,
     "accessType": "offline",
     "approvalPrompt": "force",
@@ -72,7 +90,11 @@
     "callbackPath": "/link/facebook/callback",
     "successRedirect": "https://peerbuds.com/home/homefeed",
     "failureRedirect": "https://peerbuds.com/login",
-    "scope": ["email", "user_friends", "user_likes"],
+    "scope": [
+      "email",
+      "user_friends",
+      "user_likes"
+    ],
     "link": true,
     "failureFlash": true,
     "session": true,
@@ -89,7 +111,11 @@
     "callbackPath": "/link/google/callback",
     "successRedirect": "https://peerbuds.com/home/homefeed",
     "failureRedirect": "https://peerbuds.com/login",
-    "scope": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/contacts.readonly"],
+    "scope": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ],
     "link": true,
     "failureFlash": true,
     "accessType": "offline",
