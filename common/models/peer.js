@@ -790,7 +790,7 @@ module.exports = function (Peer) {
                         peerInstance.__create__notifications({
                             type: "action",
                             title: "Account approved!",
-                            description: "Your peerbuds account was rejected. Edit your details and re-submit.",
+                            description: "Your peerbuds account was rejected. Please edit your details and re-submit.",
                             actionUrl: ['console', 'profile', 'verification']
                         }, function (err, notificationInstance) {
                             if (err) {

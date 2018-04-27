@@ -113,12 +113,16 @@
     "identities": {
       "type": "hasMany",
       "model": "userIdentity",
-      "foreignKey": "userId"
+      "foreignKey": "sourceId",
+      "through": "peer_has_identity",
+      "keyThrough": "targetId"
     },
     "credentials": {
       "type": "hasMany",
       "model": "userCredential",
-      "foreignKey": "userId"
+      "foreignKey": "sourceId",
+      "through": "peer_has_credential",
+      "keyThrough": "targetId"
     },
     "topicsLearning": {
       "type": "hasMany",

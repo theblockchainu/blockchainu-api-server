@@ -335,7 +335,7 @@ app.post('/signup', function (req, res, next) {
                         stripeTransaction.createCustomer(user, function (err, data) {
                             //console.log("Stripe Customer : " + JSON.stringify(data));
                         });
-	                    Web3.eth.personal.newAccount(newUser.password).then(address => {
+	                    /*Web3.eth.personal.newAccount(newUser.password).then(address => {
 		                    User.dataSource.connector.execute(
 				                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + address + "'",
 				                    function (err, results) {}
@@ -349,7 +349,7 @@ app.post('/signup', function (req, res, next) {
 	                    
 	                    Web3.eth.getAccounts().then(accounts => {
 	                       console.log(accounts);
-                        });
+                        });*/
                         console.log("NEW USER ACCOUNT CREATED");
                         User.dataSource.connector.execute(
                             "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",

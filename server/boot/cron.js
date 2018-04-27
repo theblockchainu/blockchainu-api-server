@@ -289,7 +289,7 @@ module.exports = function setupCron(server) {
     );
 
     // Runs once every 10 minutes
-    var upcomingActivityCron = new CronJob('00 */10 * * * *',
+    var upcomingActivityCron = new CronJob('* */10 * * * *',
         function() {
             server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': 'profiles'}]}, function(err, collectionInstances){
                 collectionInstances.forEach(collection => {
@@ -386,6 +386,69 @@ module.exports = function setupCron(server) {
                     }
                 });
             });
+	        server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': 'session'}]}, 'include': [{'contents': [{'peers': 'profiles'}, 'availabilities', 'packages']}, {'owners': 'profiles'}]}, function(err, collectionInstances){
+		        collectionInstances.forEach(collection => {
+		            if (collection !== undefined && typeof collection === 'object') {
+			            // For every session instance
+                        try {
+	                        collection.toJSON().contents.forEach(sessionInstance => {
+		                        var availabilities = sessionInstance.availabilities;
+		                        var packages = sessionInstance.packages;
+		                        var sessionParticipants = sessionInstance.peers;
+		                        if (sessionInstance.sessionIsApproved && availabilities !== undefined && availabilities.length > 0 && packages !== undefined && packages.length > 0 && sessionParticipants !== undefined && sessionParticipants.length > 0) {
+			                        availabilities = availabilities.sort((calEventa, calEventb) => (moment(calEventa.startDateTime).isAfter(moment(calEventb.startDateTime)) ? 1 : -1));
+			                        var startDateTime = moment(availabilities[0].startDateTime);
+			                        var endDateTime = moment(availabilities[availabilities.length - 1].startDateTime).add(60, 'minutes');
+			                        var now = moment();
+			                        if (startDateTime && endDateTime) {
+				                        // check if it starts in the next 10 minutes??
+				                        if (startDateTime.diff(now, 'minutes') >= 0 && startDateTime.diff(now, 'minutes') < 10) {
+					                        // Upcoming peer session starts in 10 minutes. Send notification and email to student and teacher
+					                        console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);
+					                        // Send email to student
+					                        var message = { date: startDateTime.format('Do MMM, YYYY'), startTime: startDateTime.format('h:mm a'), endTime: endDateTime.format('h:mm a'), teacherName: collection.toJSON().owners[0].profiles[0].first_name + ' ' + collection.toJSON().owners[0].profiles[0].last_name, studentName: sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name};
+					                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderStudent.ejs'));
+					                        var html_body = renderer(message);
+					                        loopback.Email.send({
+						                        to: sessionParticipants[0].email,
+						                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+						                        subject: 'Upcoming peer session with ' + collection.toJSON().owners[0].profiles[0].first_name,
+						                        html: html_body
+					                        })
+							                        .then(function (response) {
+								                        console.log('email sent! - ');
+							                        })
+							                        .catch(function (err) {
+								                        console.log('email error! - ' + err);
+							                        });
+					
+					                        renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderTeacher.ejs'));
+					                        html_body = renderer(message);
+					                        loopback.Email.send({
+						                        to: collection.toJSON().owners[0].email,
+						                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+						                        subject: 'Upcoming peer session with ' + sessionParticipants[0].profiles[0].first_name,
+						                        html: html_body
+					                        })
+							                        .then(function (response) {
+								                        console.log('email sent! - ');
+							                        })
+							                        .catch(function (err) {
+								                        console.log('email error! - ' + err);
+							                        });
+				                        }
+			                        } else {
+				                        console.log("Time Unavailable !");
+			                        }
+		                        } else {
+		                        }
+	                        });
+                        } catch(err) {
+                            console.log(err);
+                        }
+                    }
+		        });
+	        });
         },
         function() {
 
