@@ -307,7 +307,7 @@ module.exports = function (Peer) {
                     fn(err);
                 } else {
                     console.log('Received code: ' + token);
-                    colsole.log('Saved code: ' + user.phoneVerificationToken);
+                    console.log('Saved code: ' + user.phoneVerificationToken);
                     if (user && user.phoneVerificationToken === token) {
                         user.phoneVerificationToken = null;
                         user.phoneVerified = true;
