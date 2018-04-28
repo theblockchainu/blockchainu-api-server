@@ -377,7 +377,7 @@ module.exports = function (Peer) {
                 else {
                     //console.log(message);
                     var User = app.models.peer;
-                    User.findById(loggedinPeer, {include: {profiles: 'phone_numbers'}}, function (err, peerInstance) {
+                    User.findById(loggedinPeer, {}, function (err, peerInstance) {
                         if (err) {
                             fn(err);
                         } else {
