@@ -379,7 +379,7 @@ module.exports = function (Peer) {
                     var User = app.models.peer;
                     User.findById(loggedinPeer, {include: {profiles: 'phone_numbers'}}, function (err, peerInstance) {
                         if (err) {
-                            cb(err);
+                            fn(err);
                         } else {
                             peerInstance.phoneVerificationToken = phoneToken;
                             peerInstance.phoneVerified = false;
