@@ -381,7 +381,6 @@ module.exports = function (Peer) {
                         if (err) {
                             cb(err);
                         } else {
-                            var phoneNumber = peerInstance.profiles[0].phone_numbers[0];
                             peerInstance.phoneVerificationToken = phoneToken;
                             peerInstance.phoneVerified = false;
                             User.upsert(peerInstance, function (err, modifiedPeerInstance) {
