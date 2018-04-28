@@ -1,0 +1,36 @@
+{
+  "name": "content_has_token_payment",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "neo4j": {
+    "sourceModel": "content",
+    "targetModel": "token_transaction"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "content": {
+      "type": "belongsTo",
+      "model": "content",
+      "foreignKey": "sourceId"
+    },
+    "token_transaction": {
+      "type": "belongsTo",
+      "model": "token_transaction",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

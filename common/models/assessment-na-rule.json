@@ -1,0 +1,30 @@
+{
+  "name": "assessment_na_rule",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "value": {
+      "type": "string"
+    },
+    "gyan": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {
+    "assessment_models": {
+      "type": "hasMany",
+      "model": "assessment_model",
+      "foreignKey": "targetId",
+      "through": "assessment_model_has_assessment_na_rule",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -1,0 +1,42 @@
+{
+  "name": "assessment_model",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "style": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_assessment_model",
+      "keyThrough": "sourceId"
+    },
+    "assessment_rules": {
+      "type": "hasMany",
+      "model": "assessment_rule",
+      "foreignKey": "sourceId",
+      "through": "assessment_model_has_assessment_rule",
+      "keyThrough": "targetId"
+    },
+    "assessment_na_rules": {
+      "type": "hasMany",
+      "model": "assessment_na_rule",
+      "foreignKey": "sourceId",
+      "through": "assessment_model_has_assessment_na_rule",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
