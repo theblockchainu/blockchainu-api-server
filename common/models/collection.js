@@ -442,7 +442,7 @@ module.exports = function (Collection) {
                                 subject = 'Experience Approved';
 	                            title = 'Experience Approved!';
 	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
                                 break;
 	                        case 'session':
 		                        subject = 'Account Approved for Peer Sessions';
@@ -454,7 +454,7 @@ module.exports = function (Collection) {
                                 subject = 'Collection Approved';
                                 title = 'Collection Approved!';
 	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
                                 break;
                         }
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
@@ -595,7 +595,7 @@ module.exports = function (Collection) {
 		                        subject = 'Experience Rejected';
 		                        title = 'Experience Rejected!';
 		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","14"];
 		                        break;
 	                        case 'session':
 		                        subject = 'Account Rejected for Peer Sessions';
@@ -607,7 +607,7 @@ module.exports = function (Collection) {
 		                        subject = 'Collection Rejected';
 		                        title = 'Collection Rejected!';
 		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","14"];
 		                        break;
                         }
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));

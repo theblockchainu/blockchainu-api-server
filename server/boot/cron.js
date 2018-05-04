@@ -293,96 +293,100 @@ module.exports = function setupCron(server) {
         function() {
             server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': 'profiles'}]}, function(err, collectionInstances){
                 collectionInstances.forEach(collection => {
-                    if (collection.calendars !== undefined) {
-                        collection.toJSON().calendars.forEach(calendar => {
-                            var collectionCalendarStartDate = moment(calendar.startDate);
-                            var collectionCalendarEndDate = moment(calendar.endDate);
-                            var now = moment();
-                            if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate, collectionCalendarEndDate)) {
-                                // This collection has a currently running calendar
-                                // Check if it has any upcoming activity
-                                collection.toJSON().contents.forEach(content => {
-                                    var schedules = content.schedules;
-                                    var scheduleData = schedules[0];
-                                    if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-                                        var startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
-                                        var endDate = moment(startDate).add(scheduleData.endDay, 'days');
-                                        if (scheduleData.startTime && scheduleData.endTime) {
-                                            startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-                                            startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-                                            startDate.seconds('00');
-                                            endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-                                            endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-                                            endDate.seconds('00');
-                                            //console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
-                                            if ((content.type !== 'video') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
-                                                // Upcoming online session starts in 1 hour. Send notification and email to all participants
-                                                collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
-                                                    if (!err && participantInstances.length > 0) {
-                                                        participantInstances.forEach(participantInstance => {
-                                                            console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
-                                                            // Send email to student
-                                                            var message = { title: content.title, time: startDate.format('hh:mm a'), type: collection.type, collectionId: collection.id, calendarId: calendar.id, contentId: content.id};
-                                                            var renderer;
-                                                            if (content.type === 'online') {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));
-                                                            }
-                                                            else if (content.type === 'project') {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderStudent.ejs'));
-                                                            }
-                                                            else {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderStudent.ejs'));
-                                                            }
-                                                            var html_body = renderer(message);
-                                                            loopback.Email.send({
-                                                                to: participantInstance.email,
-                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                                subject: 'Upcoming ' + content.type + ' session',
-                                                                html: html_body
-                                                            })
-                                                                .then(function (response) {
-                                                                    console.log('email sent! - ');
-                                                                })
-                                                                .catch(function (err) {
-                                                                    console.log('email error! - ' + err);
-                                                                });
-
-                                                            // send email to teacher
-                                                            if (content.type === 'online') {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
-                                                            }
-                                                            else if (content.type === 'project') {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
-                                                            }
-                                                            else {
-                                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
-                                                            }
-                                                            html_body = renderer(message);
-                                                            loopback.Email.send({
-                                                                to: collection.toJSON().owners[0].email,
-                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                                subject: 'Upcoming ' + content.type + ' session',
-                                                                html: html_body
-                                                            })
-                                                                .then(function (response) {
-                                                                    console.log('email sent! - ');
-                                                                })
-                                                                .catch(function (err) {
-                                                                    console.log('email error! - ' + err);
-                                                                });
-                                                        });
-                                                    }
-                                                });
-                                            }
-                                        } else {
-                                            console.log("Time Unavailable !");
-                                        }
-                                    } else {
-                                        console.log("Schedule Days Unavailable");
-                                    }
-                                });
-                            }
-                        });
+                    try {
+	                    if (collection.calendars !== undefined) {
+		                    collection.toJSON().calendars.forEach(calendar => {
+			                    var collectionCalendarStartDate = moment(calendar.startDate);
+			                    var collectionCalendarEndDate = moment(calendar.endDate);
+			                    var now = moment();
+			                    if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate, collectionCalendarEndDate)) {
+				                    // This collection has a currently running calendar
+				                    // Check if it has any upcoming activity
+				                    collection.toJSON().contents.forEach(content => {
+					                    var schedules = content.schedules;
+					                    var scheduleData = schedules[0];
+					                    if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+						                    var startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
+						                    var endDate = moment(startDate).add(scheduleData.endDay, 'days');
+						                    if (scheduleData.startTime && scheduleData.endTime) {
+							                    startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+							                    startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+							                    startDate.seconds('00');
+							                    endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+							                    endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+							                    endDate.seconds('00');
+							                    //console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
+							                    if ((content.type !== 'video') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
+								                    // Upcoming online session starts in 1 hour. Send notification and email to all participants
+								                    collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+									                    if (!err && participantInstances.length > 0) {
+										                    participantInstances.forEach(participantInstance => {
+											                    console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);
+											                    // Send email to student
+											                    var message = { title: content.title, time: startDate.format('hh:mm a'), type: collection.type, collectionId: collection.id, calendarId: calendar.id, contentId: content.id};
+											                    var renderer;
+											                    if (content.type === 'online') {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));
+											                    }
+											                    else if (content.type === 'project') {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderStudent.ejs'));
+											                    }
+											                    else {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderStudent.ejs'));
+											                    }
+											                    var html_body = renderer(message);
+											                    loopback.Email.send({
+												                    to: participantInstance.email,
+												                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+												                    subject: 'Upcoming ' + content.type + ' session',
+												                    html: html_body
+											                    })
+													                    .then(function (response) {
+														                    console.log('email sent! - ');
+													                    })
+													                    .catch(function (err) {
+														                    console.log('email error! - ' + err);
+													                    });
+											
+											                    // send email to teacher
+											                    if (content.type === 'online') {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
+											                    }
+											                    else if (content.type === 'project') {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
+											                    }
+											                    else {
+												                    renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
+											                    }
+											                    html_body = renderer(message);
+											                    loopback.Email.send({
+												                    to: collection.toJSON().owners[0].email,
+												                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+												                    subject: 'Upcoming ' + content.type + ' session',
+												                    html: html_body
+											                    })
+													                    .then(function (response) {
+														                    console.log('email sent! - ');
+													                    })
+													                    .catch(function (err) {
+														                    console.log('email error! - ' + err);
+													                    });
+										                    });
+									                    }
+								                    });
+							                    }
+						                    } else {
+							                    console.log("Time Unavailable !");
+						                    }
+					                    } else {
+						                    console.log("Schedule Days Unavailable");
+					                    }
+				                    });
+			                    }
+		                    });
+	                    }
+                    } catch (err) {
+                        console.log(err);
                     }
                 });
             });

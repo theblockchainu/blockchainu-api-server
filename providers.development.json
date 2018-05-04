@@ -1,0 +1,126 @@
+{
+  "local": {
+    "provider": "local",
+    "module": "passport-local",
+    "usernameField": "email",
+    "passwordField": "password",
+    "authPath": "/auth/local",
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "failureFlash": true,
+    "setAccessToken": true,
+    "json": true,
+    "domain": "localhost"
+  },
+  "facebook-login": {
+    "provider": "facebook",
+    "module": "passport-facebook",
+    "profileFields": [
+      "about",
+      "gender",
+      "link",
+      "locale",
+      "name",
+      "timezone",
+      "verified",
+      "email",
+      "updated_time"
+    ],
+    "clientID": "287639704995097",
+    "clientSecret": "9097377e23a5b4d77ae0b2a788263aef",
+    "callbackURL": "/auth/facebook/callback",
+    "authPath": "/auth/facebook",
+    "callbackPath": "/auth/facebook/callback",
+    "passReqToCallback": true,
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "scope": [
+      "email",
+      "user_friends",
+      "user_likes"
+    ],
+    "failureFlash": true,
+    "json": false,
+    "domain": "localhost"
+  },
+  "google-login": {
+    "provider": "google",
+    "module": "passport-google-oauth",
+    "strategy": "OAuth2Strategy",
+    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
+    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
+    "callbackURL": "/auth/google/callback",
+    "authPath": "/auth/google",
+    "callbackPath": "/auth/google/callback",
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "scope": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ],
+    "failureFlash": true,
+    "accessType": "offline",
+    "approvalPrompt": "force",
+    "passReqToCallback": true,
+    "json": false,
+    "domain": "localhost"
+  },
+  "twitter-login": {
+    "provider": "twitter",
+    "authScheme": "oauth",
+    "module": "passport-twitter",
+    "callbackURL": "/auth/twitter/callback",
+    "authPath": "/auth/twitter",
+    "callbackPath": "/auth/twitter/callback",
+    "successRedirect": "/auth/account",
+    "failureRedirect": "/login",
+    "consumerKey": "{twitter-consumer-key}",
+    "consumerSecret": "{twitter-consumer-secret}",
+    "failureFlash": true,
+    "domain": "localhost"
+  },
+  "facebook-link": {
+    "provider": "facebook",
+    "module": "passport-facebook",
+    "clientID": "287639704995097",
+    "clientSecret": "9097377e23a5b4d77ae0b2a788263aef",
+    "callbackURL": "/link/facebook/callback",
+    "authPath": "/link/facebook",
+    "callbackPath": "/link/facebook/callback",
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "scope": [
+      "email",
+      "user_friends",
+      "user_likes"
+    ],
+    "link": true,
+    "failureFlash": true,
+    "session": true,
+    "domain": "localhost"
+  },
+  "google-link": {
+    "provider": "google",
+    "module": "passport-google-oauth",
+    "strategy": "OAuth2Strategy",
+    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
+    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
+    "callbackURL": "/link/google/callback",
+    "authPath": "/link/google",
+    "callbackPath": "/link/google/callback",
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "scope": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ],
+    "link": true,
+    "failureFlash": true,
+    "accessType": "offline",
+    "approvalPrompt": "force",
+    "session": true,
+    "domain": "localhost"
+  }
+}

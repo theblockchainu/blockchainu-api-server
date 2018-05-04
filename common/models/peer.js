@@ -353,46 +353,32 @@ module.exports = function (Peer) {
         fn = fn || utils.createPromiseCallback();
         var loggedinPeer = Peer.getCookieUserId(req);
         var formattedPhone = phone.replace(/[^\d]/g, '');
+        var sanitizedPhone = formattedPhone;
         formattedPhone = '+' + countryCode + formattedPhone;
         //if user is logged in
         if (loggedinPeer) {
-            // Generate new hex token for sms
-            var phoneToken = crypto.randomBytes(Math.ceil(2))
-                .toString('hex') // convert to hexadecimal format
-                .slice(0, 4);   // return required number of characters
-
-            var client = new twilio(twilioSid, twilioToken);
-
-            var message = "Verify your mobile phone with Peerbuds using code: " + phoneToken;
-
-            client.messages.create({
-                body: message,
-                to: formattedPhone,  // Text this number
-                from: twilioPhone // From a valid Twilio number
-            }, function (err, message) {
+         
+	        var phoneNumber = app.models.phone;
+            phoneNumber.find({'where': {'and': [{'country_code': countryCode}, {'subscriber_number': sanitizedPhone}]}, 'include': {'profilePhoneNumber': 'peer'}}, function (err, phoneNumberInstances) {
                 if (err) {
-                    console.error(err);
-                    fn(err);
-                }
-                else {
-                    //console.log(message);
-                    var User = app.models.peer;
-                    User.findById(loggedinPeer, {}, function (err, peerInstance) {
-                        if (err) {
-                            fn(err);
-                        } else {
-                            peerInstance.phoneVerificationToken = phoneToken;
-                            peerInstance.phoneVerified = false;
-                            User.upsert(peerInstance, function (err, modifiedPeerInstance) {
-                                if (err) {
-                                    fn(err);
-                                }
-                                else {
-                                    fn(null, { result: 'OTP SMS sent' });
-                                }
-                            });
-                        }
+                    fn (err);
+                } else if (phoneNumberInstances && phoneNumberInstances.length > 0) {
+                    let belongsToUser = false;
+                    phoneNumberInstances.forEach(phoneNumber => {
+                       if (phoneNumber.toJSON().profilePhoneNumber !== undefined && phoneNumber.toJSON().profilePhoneNumber.length > 0 && phoneNumber.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {
+                           belongsToUser = true;
+                       }
                     });
+                    if (!belongsToUser) {
+	                    let errResult = new Error(g.f('This number is already associated with another peerbuds account.'));
+	                    errResult.statusCode = 400;
+	                    errResult.code = 'DUPLICATE NUMBER';
+	                    fn (errResult);
+                    } else {
+                        sendPhoneVerificationCodeSms(loggedinPeer, phone, countryCode, fn);
+                    }
+                } else {
+	                sendPhoneVerificationCodeSms(loggedinPeer, phone, countryCode, fn);
                 }
             });
         } else {
@@ -401,6 +387,77 @@ module.exports = function (Peer) {
             fn(err);
         }
         return fn.promise;
+    };
+    
+    let sendPhoneVerificationCodeSms = function(loggedinPeer, phone, countryCode, fn) {
+	    var formattedPhone = phone.replace(/[^\d]/g, '');
+	    formattedPhone = '+' + countryCode + formattedPhone;
+	    // Generate new token for sms
+	    var phoneToken = passcode.hotp({
+		    secret: "0C6&7vvvv",
+		    counter: Date.now()
+	    });
+	
+	    var client = new twilio(twilioSid, twilioToken);
+	
+	    var message = "Verify your mobile number with peerbuds using code: " + phoneToken;
+	    
+	    client.messages.create({
+		    body: message,
+		    to: formattedPhone,  // Text this number
+		    from: twilioPhone // From a valid Twilio number
+	    }, function (err, message) {
+		    if (err) {
+			    console.error(err);
+			    fn(err);
+		    }
+		    else {
+			    //console.log(message);
+			    var User = app.models.peer;
+			    User.findById(loggedinPeer, {'include': 'profiles'}, function (err, peerInstance) {
+				    if (err) {
+					    fn(err);
+				    } else {
+					    Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
+						    if (err) {
+							    fn(err);
+						    } else {
+							    var phoneNumber = {
+								    country_code: countryCode,
+								    subscriber_number: phone,
+								    isPrimary: true
+							    };
+							    profileInstance.__delete__phone_numbers({}, {'where': {'isPrimary': true}}, function (err, deletedNumbers) {
+                                   if (err) {
+                                       fn(err);
+                                   } else {
+	                                   profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
+		                                   if (err) {
+			                                   fn (err);
+		                                   } else {
+			                                   console.log('Added new phone number');
+			                                   delete peerInstance.toJSON().profiles;
+			                                   peerInstance.phoneVerificationToken = phoneToken;
+			                                   peerInstance.phoneVerified = false;
+			                                   console.log(peerInstance);
+			                                   User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
+				                                   if (err) {
+					                                   fn(err);
+				                                   }
+				                                   else {
+					                                   fn(null, { result: 'OTP SMS sent' });
+				                                   }
+			                                   });
+		                                   }
+	                                   });
+                                   }
+							    });
+						    }
+					    });
+				    }
+			    });
+		    }
+	    });
     };
 
     /**

@@ -1,0 +1,37 @@
+{
+  "restApiRoot": "/api",
+  "host": "0.0.0.0",
+  "port": 3000,
+  "cookieSecret": "246bace2-38cb-4138-85d9-0ae8160b07c8",
+  "remoting": {
+    "context": false,
+    "rest": {
+      "handleErrors": false,
+      "normalizeHttpPath": false,
+      "xml": false
+    },
+    "json": {
+      "strict": false,
+      "limit": "100kb"
+    },
+    "urlencoded": {
+      "extended": true,
+      "limit": "100kb"
+    },
+    "cors": false,
+    "handleErrors": false
+  },
+  "swagger": {
+    "protocol": "https"
+  },
+  "legacyExplorer": false,
+  "stripeKey": "sk_live_oYtjbey76sDl9GYj0cyOKW8k",
+  "cookieDomain": ".peerbuds.com",
+  "twilioSID": "ACc1c8552004aef409ea9ba6ceb3b3f4a3",
+  "twilioToken": "57e16fdbb46e57e799f88856e1992a7b",
+  "twilioPhone": "+14243756775",
+  "twilioKey": "SK68c876febdcd814e77a836d2da8909f7",
+  "twilioSecret": "AQALVDcDLXIjB3O7Lio1zsrlhnOg1idZ",
+  "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
+  "uniqueDeveloperCode": "dev"
+}
