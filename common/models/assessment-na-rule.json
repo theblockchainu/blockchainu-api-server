@@ -23,6 +23,13 @@
       "foreignKey": "targetId",
       "through": "assessment_model_has_assessment_na_rule",
       "keyThrough": "sourceId"
+    },
+    "peers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "assessment_na_rule_has_peer",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
