@@ -343,6 +343,27 @@
       "foreignKey": "sourceId",
       "through": "peer_has_token_transaction",
       "keyThrough": "targetId"
+    },
+    "assessments_given": {
+      "type": "hasMany",
+      "model": "assessment_result",
+      "foreignKey": "targetId",
+      "through": "assessment_result_has_assesser",
+      "keyThrough": "sourceId"
+    },
+    "assessment_na_rules": {
+      "type": "hasMany",
+      "model": "assessment_na_rule",
+      "foreignKey": "targetId",
+      "through": "assessment_na_rule_has_peer",
+      "keyThrough": "sourceId"
+    },
+    "assessment_results": {
+      "type": "hasMany",
+      "model": "assessment_result",
+      "foreignKey": "sourceId",
+      "through": "peer_has_assessment_result",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

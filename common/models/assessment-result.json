@@ -1,0 +1,62 @@
+{
+  "name": "assessment_result",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    }
+  },
+  "properties": {
+    "assesseeId": {
+      "type": "string"
+    },
+    "assesserId": {
+      "type": "string"
+    },
+    "calendarId": {
+      "type": "string"
+    },
+    "assessmentRuleId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "assessees": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_assessment_result",
+      "keyThrough": "sourceId"
+    },
+    "assessers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "assessment_result_has_assesser",
+      "keyThrough": "targetId"
+    },
+    "calendars": {
+      "type": "hasMany",
+      "model": "calendar",
+      "foreignKey": "sourceId",
+      "through": "assessment_has_calendar",
+      "keyThrough": "targetId"
+    },
+    "assessment_rules": {
+      "type": "hasMany",
+      "model": "assessment_rule",
+      "foreignKey": "sourceId",
+      "through": "assesment_has_assessment_rule",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

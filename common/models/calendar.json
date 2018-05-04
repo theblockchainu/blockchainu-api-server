@@ -33,6 +33,13 @@
       "foreignKey": "targetId",
       "through": "collection_has_calendar",
       "keyThrough": "sourceId"
+    },
+    "assessment_results": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "assessment_has_calendar",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

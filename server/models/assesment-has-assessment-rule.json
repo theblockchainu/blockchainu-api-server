@@ -1,13 +1,12 @@
 {
-  "name": "assessment_model_has_assessment_na_rule",
-  "base": "PersistedModel",
+  "name": "assesment_has_assessment_rule",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "assessment_model",
-    "targetModel": "assessment_na_rule"
+    "sourceModel": "assessment_result",
+    "targetModel": "assessment_rule"
   },
   "properties": {
     "id": {
@@ -23,14 +22,14 @@
   },
   "validations": [],
   "relations": {
-    "assessment_model": {
+    "assessment_result": {
       "type": "belongsTo",
-      "model": "assessment_model",
+      "model": "assessment_result",
       "foreignKey": "sourceId"
     },
-    "assessment_na_rule": {
+    "assessment_rule": {
       "type": "belongsTo",
-      "model": "assessment_na_rule",
+      "model": "assessment_rule",
       "foreignKey": "targetId"
     }
   },
