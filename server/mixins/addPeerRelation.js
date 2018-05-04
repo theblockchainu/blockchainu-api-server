@@ -14,7 +14,7 @@ module.exports = function (Model, options) {
                     cookie = cookieArray[i].split('=')[1].trim();
                 }
             }
-            var userId = cookie.split(/[ \:.]+/)[0].substring(4);
+            var userId = cookie.split(/[ \:.]+/)[0];
             if (userId.length > 0) {
                 console.log('user ID from cookie is: ' + userId);
                 Model.app.models.peer.findById(userId, function (err, instance) {

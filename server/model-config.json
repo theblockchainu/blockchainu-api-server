@@ -661,6 +661,14 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
+  "peer_has_identity": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_credential": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
   "wallet": {
     "dataSource": "neo4j",
     "public": true

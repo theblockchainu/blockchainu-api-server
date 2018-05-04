@@ -10,7 +10,7 @@
     "failureFlash": true,
     "setAccessToken": true,
     "json": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "facebook-login": {
     "provider": "facebook",
@@ -41,7 +41,7 @@
     ],
     "failureFlash": true,
     "json": false,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "google-login": {
     "provider": "google",
@@ -64,7 +64,7 @@
     "approvalPrompt": "force",
     "passReqToCallback": true,
     "json": false,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "twitter-login": {
     "provider": "twitter",
@@ -78,7 +78,7 @@
     "consumerKey": "{twitter-consumer-key}",
     "consumerSecret": "{twitter-consumer-secret}",
     "failureFlash": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "facebook-link": {
     "provider": "facebook",
@@ -98,7 +98,7 @@
     "link": true,
     "failureFlash": true,
     "session": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "google-link": {
     "provider": "google",
@@ -121,6 +121,6 @@
     "accessType": "offline",
     "approvalPrompt": "force",
     "session": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   }
 }

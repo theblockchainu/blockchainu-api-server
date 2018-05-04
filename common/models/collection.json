@@ -146,10 +146,12 @@
       "type": "string"
     },
     "academicGyan": {
-      "type": "number"
+      "type": "number",
+      "default": 0
     },
     "nonAcademicGyan": {
-      "type": "number"
+      "type": "number",
+      "default": 0
     }
   },
   "validations": [],

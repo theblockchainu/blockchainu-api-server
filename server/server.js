@@ -55,7 +55,11 @@ var flash = require('express-flash');
 // attempt to build the providers/passport config
 var config = {};
 try {
-    config = require('../providers.json');
+    if (process.env.NODE_ENV === 'development') {
+	    config = require('../providers.development.json');
+    } else {
+	    config = require('../providers.json');
+    }
 } catch (err) {
     console.trace(err);
     process.exit(1); // fatal
@@ -335,7 +339,7 @@ app.post('/signup', function (req, res, next) {
                         stripeTransaction.createCustomer(user, function (err, data) {
                             //console.log("Stripe Customer : " + JSON.stringify(data));
                         });
-	                    Web3.eth.personal.newAccount(newUser.password).then(address => {
+	                    /*Web3.eth.personal.newAccount(newUser.password).then(address => {
 		                    User.dataSource.connector.execute(
 				                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + address + "'",
 				                    function (err, results) {}
@@ -349,7 +353,7 @@ app.post('/signup', function (req, res, next) {
 	                    
 	                    Web3.eth.getAccounts().then(accounts => {
 	                       console.log(accounts);
-                        });
+                        });*/
                         console.log("NEW USER ACCOUNT CREATED");
                         User.dataSource.connector.execute(
                             "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
