@@ -752,5 +752,21 @@
   "peer_has_community_request": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "scholarship": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "scholarship_has_owner": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "scholarship_has_allowed_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_has_scholarship": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

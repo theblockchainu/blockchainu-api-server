@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_community_request",
+  "name": "peer_has_scholarship",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "community_request"
+    "targetModel": "scholarship"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "community_request": {
+    "scholarship": {
       "type": "belongsTo",
-      "model": "community_request",
+      "model": "scholarship",
       "foreignKey": "targetId"
     }
   },

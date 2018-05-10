@@ -1,13 +1,13 @@
 {
-  "name": "peer_has_community_request",
+  "name": "scholarship_has_owner",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "community_request"
+    "sourceModel": "scholarship",
+    "targetModel": "peer"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
+    "scholarship": {
+      "type": "belongsTo",
+      "model": "scholarship",
+      "foreignKey": "sourceId"
+    },
     "peer": {
       "type": "belongsTo",
       "model": "peer",
-      "foreignKey": "sourceId"
-    },
-    "community_request": {
-      "type": "belongsTo",
-      "model": "community_request",
       "foreignKey": "targetId"
     }
   },
