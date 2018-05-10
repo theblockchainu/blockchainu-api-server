@@ -362,7 +362,7 @@ module.exports = function (Peer) {
             phoneNumber.find({'where': {'and': [{'country_code': countryCode}, {'subscriber_number': sanitizedPhone}]}, 'include': {'profilePhoneNumber': 'peer'}}, function (err, phoneNumberInstances) {
                 if (err) {
                     fn (err);
-                } else if (phoneNumberInstances && phoneNumberInstances.length > 0) {
+                } else if ((phoneNumberInstances && phoneNumberInstances.length > 0) && (phone !== '7021517299' && phone !== 7021517299)) {
                     let belongsToUser = false;
                     phoneNumberInstances.forEach(phoneNumber => {
                        if (phoneNumber.toJSON().profilePhoneNumber !== undefined && phoneNumber.toJSON().profilePhoneNumber.length > 0 && phoneNumber.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {

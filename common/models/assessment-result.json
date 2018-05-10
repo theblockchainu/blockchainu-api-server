@@ -10,7 +10,8 @@
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
       "required": false
-    }
+    },
+    "GlobalUtils": {}
   },
   "properties": {
     "assesseeId": {
