@@ -744,5 +744,13 @@
   "assesment_has_assessment_rule": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "community_request": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_has_community_request": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -10,7 +10,7 @@
     "failureFlash": true,
     "setAccessToken": true,
     "json": true,
-    "domain": ".peerbuds.com"
+    "domain": "localhost"
   },
   "facebook-login": {
     "provider": "facebook",

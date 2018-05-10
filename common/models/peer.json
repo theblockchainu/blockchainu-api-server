@@ -369,6 +369,13 @@
       "foreignKey": "sourceId",
       "through": "peer_has_assessment_result",
       "keyThrough": "targetId"
+    },
+    "community_requests": {
+      "type": "hasMany",
+      "model": "community_request",
+      "foreignKey": "sourceId",
+      "through": "peer_has_community_request",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
