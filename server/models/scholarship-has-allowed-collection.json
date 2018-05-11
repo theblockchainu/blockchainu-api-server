@@ -1,12 +1,13 @@
 {
-  "name": "assesment_has_assessment_rule",
+  "name": "scholarship_has_allowed_collection",
+  "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "assessment_result",
-    "targetModel": "assessment_rule"
+    "sourceModel": "scholarship",
+    "targetModel": "collection"
   },
   "properties": {
     "id": {
@@ -22,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "assessment_result": {
+    "scholarship": {
       "type": "belongsTo",
-      "model": "assessment_result",
+      "model": "scholarship",
       "foreignKey": "sourceId"
     },
-    "assessment_rule": {
+    "collection": {
       "type": "belongsTo",
-      "model": "assessment_rule",
+      "model": "collection",
       "foreignKey": "targetId"
     }
   },

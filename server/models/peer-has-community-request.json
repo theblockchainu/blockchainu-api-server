@@ -1,12 +1,13 @@
 {
-  "name": "assesment_has_assessment_rule",
+  "name": "peer_has_community_request",
+  "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "assessment_result",
-    "targetModel": "assessment_rule"
+    "sourceModel": "peer",
+    "targetModel": "community_request"
   },
   "properties": {
     "id": {
@@ -22,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "assessment_result": {
+    "peer": {
       "type": "belongsTo",
-      "model": "assessment_result",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
-    "assessment_rule": {
+    "community_request": {
       "type": "belongsTo",
-      "model": "assessment_rule",
+      "model": "community_request",
       "foreignKey": "targetId"
     }
   },
