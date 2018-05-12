@@ -11,9 +11,23 @@
       "updatedAt": "updatedAt",
       "required": false
     },
-    "GlobalUtils": {}
+    "GlobalUtils": {},
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "collection",
+          "hasManyRelation": "allowed_collections"
+        }
+      ]
+    }
   },
   "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
     "karma": {
       "type": "number"
     },
