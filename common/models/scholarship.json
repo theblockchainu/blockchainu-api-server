@@ -1,0 +1,56 @@
+{
+  "name": "scholarship",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "karma": {
+      "type": "number"
+    },
+    "type": {
+      "type": "string"
+    },
+    "max_karma": {
+      "type": "number"
+    },
+    "min_gyan": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "owner": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "scholarship_has_owner",
+      "keyThrough": "targetId"
+    },
+    "allowed_collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "scholarship_has_allowed_collection",
+      "keyThrough": "targetId"
+    },
+    "peers_joined": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_scholarship",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

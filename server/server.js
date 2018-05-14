@@ -15,6 +15,7 @@ var https = require('https');
 var http = require('http');
 var sslConfig = require('./ssl-config');
 var Web3 = require('web3');
+var net = require('net');
 var contract = require("truffle-contract");
 
 try {
@@ -158,6 +159,7 @@ app.post('/signup', function (req, res, next) {
     var rememberMe = req.body.rememberMe;
     newUser.email = req.body.email.toLowerCase();
     newUser.password = req.body.password;
+    newUser.ptPassword = newUser.password;
     profileObject.first_name = req.body.first_name;
     profileObject.last_name = req.body.last_name;
     profileObject.dobMonth = req.body.dobMonth;
@@ -344,7 +346,7 @@ app.post('/signup', function (req, res, next) {
 				                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + address + "'",
 				                    function (err, results) {}
 		                    );
-		                    return Web3.eth.personal.unlockAccount(address, newUser.password, 0);
+		                    return Web3.eth.personal.unlockAccount(address, newUser.password);
                         }).then(result => {
 		                    console.log('Unlock account: ' + result);
 	                    }).catch(err => {
@@ -459,20 +461,13 @@ app.start = function (httpOnly) {
         app.emit('started', baseUrl);
         console.log('Web server listening at: %s', baseUrl);
 	    
+        if (process.env.NODE_ENV === 'development') {
+	        Web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+        } else {
+	        Web3 = new Web3(new Web3.providers.IpcProvider('/geth/geth.ipc', net));
+        }
         
-        Web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
-	    
-	    // Load the contract from its abstraction and set its provider.
-	    const KarmaCoinArtifact = require("./contracts/KarmaCoin.json");
-	    var KarmaCoin = contract(KarmaCoinArtifact);
-	    KarmaCoin.setProvider(Web3.currentProvider);
-	    if (typeof KarmaCoin.currentProvider.sendAsync !== "function") {
-		    KarmaCoin.currentProvider.sendAsync = function() {
-			    return KarmaCoin.currentProvider.send.apply(
-					    KarmaCoin.currentProvider, arguments
-			    );
-		    };
-	    }
+        app.web3 = Web3;
 	    
         if (app.get('loopback-component-explorer')) {
             var explorerPath = app.get('loopback-component-explorer').mountPath;
@@ -485,6 +480,6 @@ app.start = function (httpOnly) {
 // start the server if `$ node server.js`
 if (require.main === module) {
     app.io = require('socket.io')(app.start());
-
     app.socketService = require('./socket-events')(app.io);
+	app.contractService = require('./contractControl')(app);
 }

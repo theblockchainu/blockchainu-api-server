@@ -1,0 +1,97 @@
+{
+  "contractName": "CollectionBasic",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a72305820c24a342279592220a941232c7f8737ae3214a775e4f58ab46f1418cafe965cf30029",
+  "deployedBytecode": "0x6080604052600080fd00a165627a7a72305820c24a342279592220a941232c7f8737ae3214a775e4f58ab46f1418cafe965cf30029",
+  "sourceMap": "140:29:1:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;140:29:1;;;;;;;",
+  "deployedSourceMap": "140:29:1:-;;;;;",
+  "source": "pragma solidity ^0.4.23;\n\n\n/**\n * @title CollectionBasic\n * @author Aakash Bansal @ Peerbuds Inc.\n * @dev Collection Contract Interface\n */\ncontract CollectionBasic {\n\n}",
+  "sourcePath": "/Users/aakash/WebstormProjects/pbether/contracts/Collection/CollectionBasic.sol",
+  "ast": {
+    "absolutePath": "/Users/aakash/WebstormProjects/pbether/contracts/Collection/CollectionBasic.sol",
+    "exportedSymbols": {
+      "CollectionBasic": [
+        630
+      ]
+    },
+    "id": 631,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 629,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".23"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:1"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title CollectionBasic\n@author Aakash Bansal @ Peerbuds Inc.\n@dev Collection Contract Interface",
+        "fullyImplemented": true,
+        "id": 630,
+        "linearizedBaseContracts": [
+          630
+        ],
+        "name": "CollectionBasic",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 631,
+        "src": "140:29:1"
+      }
+    ],
+    "src": "0:169:1"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/aakash/WebstormProjects/pbether/contracts/Collection/CollectionBasic.sol",
+    "exportedSymbols": {
+      "CollectionBasic": [
+        630
+      ]
+    },
+    "id": 631,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 629,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".23"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:1"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title CollectionBasic\n@author Aakash Bansal @ Peerbuds Inc.\n@dev Collection Contract Interface",
+        "fullyImplemented": true,
+        "id": 630,
+        "linearizedBaseContracts": [
+          630
+        ],
+        "name": "CollectionBasic",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 631,
+        "src": "140:29:1"
+      }
+    ],
+    "src": "0:169:1"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.23+commit.124ca40d.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.0",
+  "updatedAt": "2018-05-13T21:31:22.121Z"
+}

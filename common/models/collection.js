@@ -4,8 +4,7 @@ var path = require('path');
 var g = require('../../node_modules/loopback/lib/globalize');
 
 module.exports = function (Collection) {
-
-
+	
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
         var collectionInstance = ctx.instance;
@@ -107,6 +106,15 @@ module.exports = function (Collection) {
                                                                    roomInstances[0].__create__messages(messageObject, function(err, newMessageInstance) {
                                                                        if (!err) {
                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+	
+                                                                           // Record this on blockchain
+	                                                                       Collection.app.getCollectionContractInstance().join(collectionInstance.id.replace(/-/g, ''), participantUserInstance.ethAddress, Collection.app.get('globalScholarshipAddress'))
+			                                                                       .then(function (result) {
+				                                                                       console.log('Recorded participation on blockchain ' + result);
+			                                                                       })
+			                                                                       .catch(err => {
+				                                                                       console.error(err);
+			                                                                       });
                                                                            next();
                                                                        }
                                                                        else {
@@ -410,15 +418,17 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": {"owners": "profiles"}}, function (err, collectionInstance) {
+        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": "assessment_rules"}]}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
                 var ownerId = collectionInstance.toJSON().owners[0].id;
                 var userId = Collection.app.models.peer.getCookieUserId(req);
+                var assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;
                 delete collectionInstance.owners;
+                delete collectionInstance.assessment_models;
                 Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
                     if (err) {
                         console.log(err);
@@ -508,6 +518,30 @@ module.exports = function (Collection) {
 					                                                        newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
 						                                                        if (!err) {
 							                                                        Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
+							                                                        
+							                                                        // Add this collection to blockchain.
+                                                                                    const assessmentRuleKeys = [];
+                                                                                    const assessmentRuleValues = [];
+                                                                                    assessmentRules.forEach(assessmentRule => {
+                                                                                        assessmentRuleKeys.push(assessmentRule.value);
+                                                                                        assessmentRuleValues.push(assessmentRule.gyan);
+                                                                                    });
+                                                                                    /*console.log(collectionInstance.id.replace(/-/g, ''));
+                                                                                    console.log(ownerInstance.ethAddress);
+                                                                                    console.log(collectionInstance.type);
+                                                                                    console.log('000');
+                                                                                    console.log(collectionInstance.academicGyan);
+                                                                                    console.log(collectionInstance.nonAcademicGyan);
+                                                                                    console.log(assessmentRuleKeys);
+                                                                                    console.log(assessmentRuleValues);*/
+							                                                        Collection.app.getCollectionContractInstance().create(collectionInstance.id.replace(/-/g, ''), ownerInstance.ethAddress, collectionInstance.type, 'NA', collectionInstance.academicGyan, collectionInstance.nonAcademicGyan, assessmentRuleKeys, assessmentRuleValues)
+                                                                                            .then(function (result) {
+                                                                                                console.log('Add collection to blockchain: ' + result);
+                                                                                            })
+                                                                                            .catch(err => {
+                                                                                                console.error(err);
+                                                                                            });
+							                                                        
 							                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
 						                                                        }
 						                                                        else {

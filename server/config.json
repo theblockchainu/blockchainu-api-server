@@ -33,5 +33,8 @@
   "twilioKey": "SK68c876febdcd814e77a836d2da8909f7",
   "twilioSecret": "AQALVDcDLXIjB3O7Lio1zsrlhnOg1idZ",
   "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
-  "uniqueDeveloperCode": "dev"
+  "uniqueDeveloperCode": "dev",
+  "blockProducerAddress": "0x227d51bce36a72d1d42f275aa56d357556bd31b6",
+  "blockProducerPassword": "0C6&7vvvv",
+  "globalScholarshipAddress": "0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef"
 }

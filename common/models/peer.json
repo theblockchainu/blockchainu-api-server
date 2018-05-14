@@ -48,6 +48,7 @@
   },
   "hidden": [
     "password",
+	  "ptPassword",
     "verificationToken"
   ],
   "properties": {
@@ -62,6 +63,9 @@
       "type": "string",
       "required": true
     },
+	  "ptPassword": {
+		  "type": "string"
+	  },
     "ethAddress": {
       "type": "string"
     },
@@ -368,6 +372,27 @@
       "model": "assessment_result",
       "foreignKey": "sourceId",
       "through": "peer_has_assessment_result",
+      "keyThrough": "targetId"
+    },
+    "community_requests": {
+      "type": "hasMany",
+      "model": "community_request",
+      "foreignKey": "sourceId",
+      "through": "peer_has_community_request",
+      "keyThrough": "targetId"
+    },
+    "scholarships_owned": {
+      "type": "hasMany",
+      "model": "scholarship",
+      "foreignKey": "targetId",
+      "through": "scholarship_has_owner",
+      "keyThrough": "sourceId"
+    },
+    "scholarships_joined": {
+      "type": "hasMany",
+      "model": "scholarship",
+      "foreignKey": "sourceId",
+      "through": "peer_has_scholarship",
       "keyThrough": "targetId"
     }
   },

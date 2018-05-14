@@ -206,23 +206,60 @@ module.exports = function (Peer) {
                 fn(err);
             } else {
                 if (user && user.verificationToken === token) {
-                    user.verificationToken = null;
+	                user.verificationToken = null;
                     user.emailVerified = true;
-                    user.save(function (err) {
-                        if (err) {
-                            fn(err);
-                        } else {
+                    user.save()
+                        .then(function (userInstance) {
+                            console.log(userInstance);
                             if (redirect !== undefined) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
-                                fn(null, { result: "success" });
+                                return Peer.app.models.scholarship.find(
+                                    {
+                                        'where': {
+                                            'type': 'public'
+                                        }
+                                    }
+                                );
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
                             }
-                        }
-                    });
+                        })
+                        .then(function (scholarshipInstances) {
+                            var scholarshipList = [];
+                            scholarshipInstances.forEach(function (scholarship) {
+                                scholarshipList.push(
+                                    scholarship.peers_joined.add(user.id)
+                                );
+                            });
+                            return Promise.all(scholarshipInstances);
+                        })
+                        .then(function (scholarshipRelationInstances) {
+                            if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+	                            // Send token in email to user.
+	                            const message = {};
+	                            const renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
+	                            const html_body = renderer(message);
+	                            loopback.Email.send({
+		                            to: user.email,
+		                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+		                            subject: 'Peerbuds Global Scholarship',
+		                            html: html_body
+	                            })
+			                            .then(function (response) {
+				                            console.log('email sent! - ' + response);
+			                            })
+			                            .catch(function (err) {
+				                            console.log('email error! - ' + err);
+			                            });
+                            }
+                            fn(null, { result: "success" });
+                        })
+                        .catch(function (err) {
+                            fn(err);
+                        })
                 } else {
                     if (user) {
                         err = new Error(g.f('Invalid token: %s', token));
@@ -244,6 +281,7 @@ module.exports = function (Peer) {
      * Send verification email to user's Email ID
      *
      * @param uid
+     * @param email
      * @param fn
      * @callback {Function} callback
      * @promise
@@ -264,6 +302,7 @@ module.exports = function (Peer) {
                     var message = { otp: verificationToken };
                     var renderer = loopback.template(path.resolve(__dirname, '../../server/views/verifyEmailAddress.ejs'));
                     var html_body = renderer(message);
+                    console.log(verificationToken);
                     loopback.Email.send({
                         to: email,
                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
@@ -357,28 +396,28 @@ module.exports = function (Peer) {
         formattedPhone = '+' + countryCode + formattedPhone;
         //if user is logged in
         if (loggedinPeer) {
-         
-	        var phoneNumber = app.models.phone;
-            phoneNumber.find({'where': {'and': [{'country_code': countryCode}, {'subscriber_number': sanitizedPhone}]}, 'include': {'profilePhoneNumber': 'peer'}}, function (err, phoneNumberInstances) {
+
+            var phoneNumber = app.models.phone;
+            phoneNumber.find({ 'where': { 'and': [{ 'country_code': countryCode }, { 'subscriber_number': sanitizedPhone }] }, 'include': { 'profilePhoneNumber': 'peer' } }, function (err, phoneNumberInstances) {
                 if (err) {
                     fn (err);
                 } else if ((phoneNumberInstances && phoneNumberInstances.length > 0) && (phone !== '7021517299' && phone !== 7021517299)) {
                     let belongsToUser = false;
                     phoneNumberInstances.forEach(phoneNumber => {
-                       if (phoneNumber.toJSON().profilePhoneNumber !== undefined && phoneNumber.toJSON().profilePhoneNumber.length > 0 && phoneNumber.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {
-                           belongsToUser = true;
-                       }
+                        if (phoneNumber.toJSON().profilePhoneNumber !== undefined && phoneNumber.toJSON().profilePhoneNumber.length > 0 && phoneNumber.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {
+                            belongsToUser = true;
+                        }
                     });
                     if (!belongsToUser) {
-	                    let errResult = new Error(g.f('This number is already associated with another peerbuds account.'));
-	                    errResult.statusCode = 400;
-	                    errResult.code = 'DUPLICATE NUMBER';
-	                    fn (errResult);
+                        let errResult = new Error(g.f('This number is already associated with another peerbuds account.'));
+                        errResult.statusCode = 400;
+                        errResult.code = 'DUPLICATE NUMBER';
+                        fn(errResult);
                     } else {
                         sendPhoneVerificationCodeSms(loggedinPeer, phone, countryCode, fn);
                     }
                 } else {
-	                sendPhoneVerificationCodeSms(loggedinPeer, phone, countryCode, fn);
+                    sendPhoneVerificationCodeSms(loggedinPeer, phone, countryCode, fn);
                 }
             });
         } else {
@@ -388,76 +427,76 @@ module.exports = function (Peer) {
         }
         return fn.promise;
     };
-    
-    let sendPhoneVerificationCodeSms = function(loggedinPeer, phone, countryCode, fn) {
-	    var formattedPhone = phone.replace(/[^\d]/g, '');
-	    formattedPhone = '+' + countryCode + formattedPhone;
-	    // Generate new token for sms
-	    var phoneToken = passcode.hotp({
-		    secret: "0C6&7vvvv",
-		    counter: Date.now()
-	    });
-	
-	    var client = new twilio(twilioSid, twilioToken);
-	
-	    var message = "Verify your mobile number with peerbuds using code: " + phoneToken;
-	    
-	    client.messages.create({
-		    body: message,
-		    to: formattedPhone,  // Text this number
-		    from: twilioPhone // From a valid Twilio number
-	    }, function (err, message) {
-		    if (err) {
-			    console.error(err);
-			    fn(err);
-		    }
-		    else {
-			    //console.log(message);
-			    var User = app.models.peer;
-			    User.findById(loggedinPeer, {'include': 'profiles'}, function (err, peerInstance) {
-				    if (err) {
-					    fn(err);
-				    } else {
-					    Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
-						    if (err) {
-							    fn(err);
-						    } else {
-							    var phoneNumber = {
-								    country_code: countryCode,
-								    subscriber_number: phone,
-								    isPrimary: true
-							    };
-							    profileInstance.__delete__phone_numbers({}, {'where': {'isPrimary': true}}, function (err, deletedNumbers) {
-                                   if (err) {
-                                       fn(err);
-                                   } else {
-	                                   profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
-		                                   if (err) {
-			                                   fn (err);
-		                                   } else {
-			                                   console.log('Added new phone number');
-			                                   delete peerInstance.toJSON().profiles;
-			                                   peerInstance.phoneVerificationToken = phoneToken;
-			                                   peerInstance.phoneVerified = false;
-			                                   console.log(peerInstance);
-			                                   User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
-				                                   if (err) {
-					                                   fn(err);
-				                                   }
-				                                   else {
-					                                   fn(null, { result: 'OTP SMS sent' });
-				                                   }
-			                                   });
-		                                   }
-	                                   });
-                                   }
-							    });
-						    }
-					    });
-				    }
-			    });
-		    }
-	    });
+
+    let sendPhoneVerificationCodeSms = function (loggedinPeer, phone, countryCode, fn) {
+        var formattedPhone = phone.replace(/[^\d]/g, '');
+        formattedPhone = '+' + countryCode + formattedPhone;
+        // Generate new token for sms
+        var phoneToken = passcode.hotp({
+            secret: "0C6&7vvvv",
+            counter: Date.now()
+        });
+
+        var client = new twilio(twilioSid, twilioToken);
+
+        var message = "Verify your mobile number with peerbuds using code: " + phoneToken;
+
+        client.messages.create({
+            body: message,
+            to: formattedPhone,  // Text this number
+            from: twilioPhone // From a valid Twilio number
+        }, function (err, message) {
+            if (err) {
+                console.error(err);
+                fn(err);
+            }
+            else {
+                //console.log(message);
+                var User = app.models.peer;
+                User.findById(loggedinPeer, { 'include': 'profiles' }, function (err, peerInstance) {
+                    if (err) {
+                        fn(err);
+                    } else {
+                        Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
+                            if (err) {
+                                fn(err);
+                            } else {
+                                var phoneNumber = {
+                                    country_code: countryCode,
+                                    subscriber_number: phone,
+                                    isPrimary: true
+                                };
+                                profileInstance.__delete__phone_numbers({}, { 'where': { 'isPrimary': true } }, function (err, deletedNumbers) {
+                                    if (err) {
+                                        fn(err);
+                                    } else {
+                                        profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
+                                            if (err) {
+                                                fn(err);
+                                            } else {
+                                                console.log('Added new phone number');
+                                                delete peerInstance.toJSON().profiles;
+                                                peerInstance.phoneVerificationToken = phoneToken;
+                                                peerInstance.phoneVerified = false;
+                                                console.log(peerInstance);
+                                                User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
+                                                    if (err) {
+                                                        fn(err);
+                                                    }
+                                                    else {
+                                                        fn(null, { result: 'OTP SMS sent' });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
     };
 
     /**
@@ -600,7 +639,7 @@ module.exports = function (Peer) {
                         cb(err);
                     } else {
                         // Send token in email to user.
-                        var resetLink = req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken ;
+                        var resetLink = req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken;
                         var message = { resetLink: resetLink };
                         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/forgotPasswordEmail.ejs'));
                         var html_body = renderer(message);
@@ -746,7 +785,7 @@ module.exports = function (Peer) {
 
     Peer.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, {"include": ["socketconnections"]}, function (err, peerInstance) {
+        Peer.findById(id, { "include": ["socketconnections"] }, function (err, peerInstance) {
             if (!err && peerInstance !== null) {
                 var userId = peerInstance.toJSON().id;
                 peerInstance.accountVerified = true;
@@ -887,6 +926,52 @@ module.exports = function (Peer) {
 
         });
     };
+	
+	Peer.gyanBalance = function (id, req, cb) {
+		// Find the collection by given ID
+		Peer.findById(id, function (err, peerInstance) {
+			if (!err && peerInstance !== null && peerInstance.ethAddress) {
+				Peer.app.getGyanContractInstance().balanceOf(peerInstance.ethAddress)
+                        .then(function (result) {
+                            cb(null, result);
+                        })
+                        .catch(err => {
+                           console.error(err);
+                           cb(err);
+                        });
+			}
+			else {
+				err = new Error(g.f('Invalid Peer with ID: %s', id));
+				err.statusCode = 400;
+				err.code = 'INVALID_PEER';
+				cb(err);
+			}
+			
+		});
+	};
+	
+	Peer.karmaBalance = function (id, req, cb) {
+		// Find the collection by given ID
+		Peer.findById(id, function (err, peerInstance) {
+			if (!err && peerInstance !== null && peerInstance.ethAddress) {
+				Peer.app.getKarmaContractInstance().balanceOf(peerInstance.ethAddress)
+						.then(function (result) {
+							cb(null, result);
+						})
+						.catch(err => {
+							console.error(err);
+							cb(err);
+						});
+			}
+			else {
+				err = new Error(g.f('Invalid Peer with ID: %s', id));
+				err.statusCode = 400;
+				err.code = 'INVALID_PEER';
+				cb(err);
+			}
+			
+		});
+	};
 
 
     //noinspection JSCheckFunctionSignatures
@@ -1098,38 +1183,38 @@ module.exports = function (Peer) {
         // A new review was created. Send email to teacher who got review
         var loggedinPeer = Peer.getCookieUserId(ctx.req);
         if (loggedinPeer) {
-            Peer.findById(ctx.instance.id, {include: 'profiles'}, function (err, reviewedPeerInstance) {
+            Peer.findById(ctx.instance.id, { include: 'profiles' }, function (err, reviewedPeerInstance) {
                 if (!err) {
-                    Peer.app.models.collection.findById(newReviewInstance.collectionId, function(err, reviewedCollectionInstance) {
-                       if (!err) {
-                           Peer.findById(loggedinPeer, {include: 'profiles'}, function (err, reviewerInstance) {
-                              if (!err) {
-                                  // Send token in email to user.
-                                  var message = { reviewedPeerName: reviewedPeerInstance.toJSON().profiles[0].first_name, reviewerName: reviewerInstance.toJSON().profiles[0].first_name + ' ' + reviewerInstance.toJSON().profiles[0].last_name, reviewScore: newReviewInstance.score, reviewDesc: newReviewInstance.description, collectionTitle: reviewedCollectionInstance.title };
-                                  var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newReviewToTeacher.ejs'));
-                                  var html_body = renderer(message);
-                                  loopback.Email.send({
-                                      to: ctx.instance.email,
-                                      from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                      subject: 'You have a new review',
-                                      html: html_body
-                                  })
-                                      .then(function (response) {
-                                          console.log('email sent! - ' + response);
-                                      })
-                                      .catch(function (err) {
-                                          console.log('email error! - ' + err);
-                                      });
-                                  next();
-                              }
-                              else {
-                                  next(new Error('Could not find reviewer details'));
-                              }
-                           });
-                       }
-                       else {
-                           next(new Error('Could not find reviewed collection'));
-                       }
+                    Peer.app.models.collection.findById(newReviewInstance.collectionId, function (err, reviewedCollectionInstance) {
+                        if (!err) {
+                            Peer.findById(loggedinPeer, { include: 'profiles' }, function (err, reviewerInstance) {
+                                if (!err) {
+                                    // Send token in email to user.
+                                    var message = { reviewedPeerName: reviewedPeerInstance.toJSON().profiles[0].first_name, reviewerName: reviewerInstance.toJSON().profiles[0].first_name + ' ' + reviewerInstance.toJSON().profiles[0].last_name, reviewScore: newReviewInstance.score, reviewDesc: newReviewInstance.description, collectionTitle: reviewedCollectionInstance.title };
+                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newReviewToTeacher.ejs'));
+                                    var html_body = renderer(message);
+                                    loopback.Email.send({
+                                        to: ctx.instance.email,
+                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        subject: 'You have a new review',
+                                        html: html_body
+                                    })
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
+                                    next();
+                                }
+                                else {
+                                    next(new Error('Could not find reviewer details'));
+                                }
+                            });
+                        }
+                        else {
+                            next(new Error('Could not find reviewed collection'));
+                        }
                     });
                 }
                 else {
@@ -1152,7 +1237,7 @@ module.exports = function (Peer) {
                 cookie = cookieArray[i].split('=')[1].trim();
             }
         }
-	    console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
+        console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
         return cookie.split(/[ \:.]+/)[0];
     };
 
@@ -1336,6 +1421,30 @@ module.exports = function (Peer) {
                 http: { path: '/:id/reject', verb: 'post' }
             }
         );
+	
+	    PeerModel.remoteMethod(
+			    'gyanBalance',
+			    {
+				    accepts: [
+					    { arg: 'id', type: 'string', required: true },
+					    { arg: 'req', type: 'object', http: { source: 'req' } }
+				    ],
+				    returns: { arg: 'result', type: 'object', root: true },
+				    http: { path: '/:id/gyanBalance', verb: 'get' }
+			    }
+	    );
+	
+	    PeerModel.remoteMethod(
+			    'karmaBalance',
+			    {
+				    accepts: [
+					    { arg: 'id', type: 'string', required: true },
+					    { arg: 'req', type: 'object', http: { source: 'req' } }
+				    ],
+				    returns: { arg: 'result', type: 'object', root: true },
+				    http: { path: '/:id/karmaBalance', verb: 'get' }
+			    }
+	    );
 
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
