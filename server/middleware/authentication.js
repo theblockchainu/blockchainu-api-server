@@ -34,7 +34,7 @@ module.exports = function(options) {
 			let urlModel = getSingularName(req.url.split('/')[2].split('?')[0]);
 			const model = app.models[urlModel];
 			if (urlModel !== 'container') {
-				console.log('Request for model: ' + model.name + '. Access Token: ' + access_token);
+				// console.log('Request for model: ' + model.name + '. Access Token: ' + access_token);
 				if (access_token !== null) {
 					// TODO: authenticated user. Fetch his account and add it to the req object.
 					app.models.UserToken.findById(access_token, {include: {'peer': 'profiles'}}, function(err, tokenInstance) {
