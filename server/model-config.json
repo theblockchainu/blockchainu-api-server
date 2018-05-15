@@ -768,5 +768,13 @@
   "peer_has_scholarship": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "knowledge-story": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "story-object": {
+    "dataSource": "neo4j",
+    "public": false
   }
 }
