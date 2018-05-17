@@ -1,0 +1,39 @@
+{
+  "name": "story_has_viewer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "knowledge_story",
+    "targetModel": "peer"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "knowledge_story": {
+      "type": "belongsTo",
+      "model": "knowledge_story",
+      "foreignKey": "sourceId"
+    },
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

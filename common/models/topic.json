@@ -72,6 +72,13 @@
       "foreignKey": "targetId",
       "through": "community_has_topic",
       "keyThrough": "sourceId"
+    },
+    "knowledge_stories": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "targetId",
+      "through": "story_has_topic",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
