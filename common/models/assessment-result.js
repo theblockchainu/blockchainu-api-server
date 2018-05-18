@@ -41,7 +41,7 @@ module.exports = function (Assessmentresult) {
                        const teacherImage = assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].owners[0].picture_url;
                        const assessmentStyle = assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].style;
                        const collectionResult = assessmentResultInstance.toJSON().assessment_rules[0].value;
-                       const gyanEarned = ((assessmentResultInstance.toJSON().assessment_rules[0].gyan / 100) * assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].academicGyan) + assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].nonAcademicGyan;
+                       const gyanEarned = Math.floor(((assessmentResultInstance.toJSON().assessment_rules[0].gyan / 100) * assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].academicGyan) + assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].nonAcademicGyan);
 	                   // Send email to participant about his result
 	                   const message = {userName: userName, userId: userId, collectionTitle: collectionTitle, collectionType: collectionType, teacherName: teacherName, teacherImage: teacherImage, collectionResult: collectionResult, gyanEarned: gyanEarned, assessmentStyle: assessmentStyle};
 	                   var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newResultStudent.ejs'));

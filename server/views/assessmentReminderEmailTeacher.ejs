@@ -12,17 +12,15 @@
     </div>
     <!-- Title -->
     <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-        Congrats on completing your <%= type %>!
+        Time to assess your students
     </div>
     <!-- Body -->
     <div>
         <div style="font-size: 17px; margin-top: 25px;">
             Hey there,
         </div>
-        <div style="font-size: 17px; margin-top: 20px; line-height: 24px">
-            We hope what you've learned was both helpful and exciting.
-            <br><br>
-            We're also hoping you'll be inspired to go forward and share what you've learned with others.
+        <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
+            Now that your latest cohort for <%= collectionType %> <%= collectionTitle %> has ended, it is time to assess the performance of your students.
             <br><br>
             <div style="display: inline-block; width: 30%;">
                 <img src="https://peerbuds.com:3000<%= collectionImage %>" alt="Cover Image" style="width: 100%;">
@@ -31,30 +29,21 @@
                 <b><%= collectionTitle %></b>
                 <br>
                 <%= collectionStartDate %> - <%= collectionEndDate %>
+                <br>
+                <br>
+                <%= participantCount %> students
                 <br><br>
                 <b><%= academicGyan %> Gyan</b> for academics.
                 <br>
                 <b><%= nonAcademicGyan %> Gyan</b> for commitment / engagement.
             </div>
             <br><br>
-            <br><br>Below is a review of what you learned in this past <%= type %> so you can refresh anything that might have gone fuzzy in your memory - and it's here as a handy reference if you ever need it.
+            Your students earn Gyan from this <%= collectionType %> and it becomes a part of their knowledge story only after your assessment.
             <br><br>
-            <ul>
-                <li>
-                    You spent over <b><%= viewTime %> hours</b> on this <b><%= days %> day</b> <%= type%>.<br><br>
-                </li>
-                <li>
-                    You covered <b><%= contentCount %> activities</b> which included <b><%= contentSplit %>.</b><br><br>
-                </li>
-                <li>
-                    During this period <b><%= totalCommentCount %> discussion</b> threads were started of which you were active in <%= personalCommentCount %>.
-                    <br><br>
-                </li>
-                <li>
-                    This <%= type %> covered <b><%= topics %> topics</b>.
+            You earn the same amount of Gyan as each of your student.
         </div>
         <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://peerbuds.com/console/dashboard">View Learning Dashboard</a>
+            <a style="color: white; text-decoration: none;" href="https://peerbuds.com/<%= collectionType %>/<%= collectionId %>/calendar/<%= collectionCalendarId %>">Assess students</a>
         </div>
     </div>
     <!-- Signature -->

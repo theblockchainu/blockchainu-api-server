@@ -57,9 +57,9 @@ var flash = require('express-flash');
 var config = {};
 try {
     if (process.env.NODE_ENV === 'development') {
-	    config = require('../providers.development.json');
+        config = require('../providers.development.json');
     } else {
-	    config = require('../providers.json');
+        config = require('../providers.json');
     }
 } catch (err) {
     console.trace(err);
@@ -91,9 +91,9 @@ var corsOptions = {
 app.use(cors(corsOptions));
 var cookieDomain = app.get('cookieDomain');
 // to support JSON-encoded bodies
-app.middleware('parse', bodyParser.json({limit: '50mb'}));
+app.middleware('parse', bodyParser.json({ limit: '50mb' }));
 // to support URL-encoded bodies
-app.middleware('parse', bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.middleware('parse', bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.middleware('session', session({
     secret: "246bace2-38cb-4138-85d9-0ae8160b07c8",
@@ -251,7 +251,7 @@ app.post('/signup', function (req, res, next) {
                     if (user.accountVerified !== undefined) {
                         res.cookie('accountApproved', user.accountVerified.toString(), {
                             signed: req.signedCookies ? true : false,
-	                        domain: app.get('cookieDomain'),
+                            domain: app.get('cookieDomain'),
                             maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                         });
                     }
@@ -259,7 +259,7 @@ app.post('/signup', function (req, res, next) {
                         res.cookie('currency', user.currency.toString(),
                             {
                                 signed: req.signedCookies ? true : false,
-	                            domain: app.get('cookieDomain'),
+                                domain: app.get('cookieDomain'),
                                 // maxAge is in ms
                                 maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
                             });
@@ -268,14 +268,14 @@ app.post('/signup', function (req, res, next) {
                         res.cookie('timezone', user.timezone.toString(),
                             {
                                 signed: req.signedCookies ? true : false,
-	                            domain: app.get('cookieDomain'),
+                                domain: app.get('cookieDomain'),
                                 // maxAge is in ms
                                 maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
                             });
                     }
                     res.cookie('userId', user.id.toString(), {
                         signed: req.signedCookies ? true : false,
-	                    domain: app.get('cookieDomain'),
+                        domain: app.get('cookieDomain'),
                         maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
                     return res.redirect(returnTo);
@@ -362,7 +362,7 @@ app.post('/signup', function (req, res, next) {
                             function (err, results) {
                                 if (!err) {
                                     // Send welcome email to user
-                                    var message = { username: profileObject.first_name};
+                                    var message = { username: profileObject.first_name };
                                     var renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
                                     var html_body = renderer(message);
                                     loopback.Email.send({
@@ -392,7 +392,7 @@ app.post('/signup', function (req, res, next) {
     });
 });
 
-app.post('/convertCurrency', function(req, res, next) {
+app.post('/convertCurrency', function (req, res, next) {
     var access_key = app.get('currencyLayerKey');
     //console.log(access_key);
     unirest.get('http://apilayer.net/api/convert')
@@ -404,6 +404,12 @@ app.post('/convertCurrency', function(req, res, next) {
             //console.log(response.body);
             res.json(response.body);
         });
+});
+
+
+app.post('/getKarmaValue', function (req, res, next) {
+    //karma login here
+    res.json({ karma: req.body.gyan });
 });
 
 app.get('/login', function (req, res, next) {
@@ -431,14 +437,14 @@ app.get('/auth/logout', function (req, res, next) {
 // Bootstrap the application, configure models, datasources and middleware.
 // Sub-apps like REST API are mounted via boot scripts.
 boot(app, __dirname, function (err) {
-	if (err) throw err;
-	
+    if (err) throw err;
+
 });
 
 passportConfigurator.setupModels({
-	userModel: app.models.peer,
-	userIdentityModel: app.models.userIdentity,
-	userCredentialModel: app.models.userCredential,
+    userModel: app.models.peer,
+    userIdentityModel: app.models.userIdentity,
+    userCredentialModel: app.models.userCredential,
 });
 
 app.start = function (httpOnly) {
@@ -457,7 +463,7 @@ app.start = function (httpOnly) {
     }
     // start the web server
     server.listen(app.get('port'), function () {
-        var baseUrl = (httpOnly? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
+        var baseUrl = (httpOnly ? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
         app.emit('started', baseUrl);
         console.log('Web server listening at: %s', baseUrl);
 	    

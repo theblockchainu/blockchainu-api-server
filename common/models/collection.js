@@ -57,40 +57,6 @@ module.exports = function (Collection) {
                                                 next(err);
                                             }
                                             else {
-                                                // Send email to the student welcoming him to course
-                                                var message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
-                                                var html_body = renderer(message);
-                                                loopback.Email.send({
-                                                    to: participantUserInstance.email,
-                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                    subject: '[Welcome] ' + collectionInstance.title,
-                                                    html: html_body
-                                                })
-                                                    .then(function (response) {
-                                                        console.log('email sent! - ');
-                                                    })
-                                                    .catch(function (err) {
-                                                        console.log('email error! - ' + err);
-                                                    });
-
-                                                // Send email to the teacher informing about new student
-                                                message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-                                                renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
-                                                html_body = renderer(message);
-                                                loopback.Email.send({
-                                                    to: ownerInstance.email,
-                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                    subject: 'New participant @ ' + collectionInstance.title,
-                                                    html: html_body
-                                                })
-                                                    .then(function (response) {
-                                                        console.log('email sent! - ');
-                                                    })
-                                                    .catch(function (err) {
-                                                        console.log('email error! - ' + err);
-                                                    });
-
                                                 // Add this participant to the collection's chat room
                                                 collectionInstance.__get__rooms({}, function(err, roomInstances) {
                                                    if (!err) {
@@ -108,14 +74,48 @@ module.exports = function (Collection) {
                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
 	
                                                                            // Record this on blockchain
-	                                                                       Collection.app.getCollectionContractInstance().join(collectionInstance.id.replace(/-/g, ''), participantUserInstance.ethAddress, Collection.app.get('globalScholarshipAddress'))
+	                                                                       Collection.app.getCollectionContractInstance().join(collectionInstance.id.replace(/-/g, ''), participantUserInstance.ethAddress, ctx.req.body['burnAddress'])
 			                                                                       .then(function (result) {
 				                                                                       console.log('Recorded participation on blockchain ' + result);
+				                                                                       // Send email to the student welcoming him to course
+				                                                                       var message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+				                                                                       var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
+				                                                                       var html_body = renderer(message);
+				                                                                       loopback.Email.send({
+					                                                                       to: participantUserInstance.email,
+					                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
+					                                                                       subject: '[Welcome] ' + collectionInstance.title,
+					                                                                       html: html_body
+				                                                                       })
+						                                                                       .then(function (response) {
+							                                                                       console.log('email sent! - ');
+						                                                                       })
+						                                                                       .catch(function (err) {
+							                                                                       console.log('email error! - ' + err);
+						                                                                       });
+				
+				                                                                       // Send email to the teacher informing about new student
+				                                                                       message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+				                                                                       renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
+				                                                                       html_body = renderer(message);
+				                                                                       loopback.Email.send({
+					                                                                       to: ownerInstance.email,
+					                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
+					                                                                       subject: 'New participant @ ' + collectionInstance.title,
+					                                                                       html: html_body
+				                                                                       })
+						                                                                       .then(function (response) {
+							                                                                       console.log('email sent! - ');
+						                                                                       })
+						                                                                       .catch(function (err) {
+							                                                                       console.log('email error! - ' + err);
+						                                                                       });
+				                                                                       next();
 			                                                                       })
 			                                                                       .catch(err => {
 				                                                                       console.error(err);
+				                                                                       next(err);
 			                                                                       });
-                                                                           next();
                                                                        }
                                                                        else {
                                                                            next(new Error('Could not create system message'));

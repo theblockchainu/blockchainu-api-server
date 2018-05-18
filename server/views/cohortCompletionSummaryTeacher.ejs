@@ -1,55 +1,51 @@
-<html>
-
-<head>
-    <title>Peerbuds</title>
-</head>
-
-<body>
-<div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
-    <!-- Header -->
-    <div style="vertical-align: middle; ">
-        <img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"></span>
-    </div>
-    <!-- Title -->
-    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-        Congrats on completing your <%= type %> cohort!
-    </div>
-    <!-- Body -->
+<div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;"><!-- Header -->
+    <div style="vertical-align: middle;"><img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px" /> <span style="position: relative; top: -14px; color: #ff5b5f;"></span></div>
+                                                                                                              <!-- Title -->
+    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">Congrats on completing your <%= type %>!</div>
+                                                                                                              <!-- Body -->
     <div>
-        <div style="font-size: 17px; margin-top: 25px;">
-            Hey there,
-        </div>
-        <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
-            Did you have an awesome time with your students? We're sure they learned a lot of stuff from you, and hopefully you learned some new things, too.  Here's a basic review of your <%= type %>, and what your students learned.  It's here for your personal reference anytime you might need it.
+        <div style="font-size: 17px; margin-top: 25px;">Hey there,</div>
+        <div style="font-size: 17px; margin-top: 10px; line-height: 24px;">
+            Did you have an awesome time with your students? We're sure they learned a lot of stuff from you, and hopefully you learned some new things, too.
             <br><br>
-            You spent over <%= viewTime %> hours on this <%= days %> day <%= type%> cohort which had <%= participantCount %> participants.
-            <br>
-            <%= participantCompletionRatio %>% of the participants completed all activities.
-            <br>
-            You covered <%= contentCount %> activities which included <%= contentSplit %>.
-            <br>
-            During this period <%= totalCommentCount %> discussion threads were started of which you were active in <%= personalCommentCount %>.
-            <br>
-            This <%= type %> covered <%= topics %> topics.
+            <div style="display: inline-block; width: 30%;">
+                <img src="https://peerbuds.com:3000<%= collectionImage %>" alt="Cover Image" style="width: 100%;">
+            </div>
+            <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: top;">
+                <b><%= collectionTitle %></b>
+                <br>
+                <%= collectionStartDate %> - <%= collectionEndDate %>
+                <br><br>
+                <b><%= academicGyan %> Gyan</b> for academics.
+                <br>
+                <b><%= nonAcademicGyan %> Gyan</b> for commitment / engagement.
+            </div>
+            <br><br>
+                 Here's a basic review of your <%= type %>, and what your students learned. It's here for your personal reference anytime you might need it.
+            <br><br>
+            <ul>
+                <li>
+                    You spent over <b><%= viewTime %> hours</b> on this <b><%= days %> day</b> <%= type%> cohort which had <b><%= participantCount %> participants</b>.
+                    <br><br>
+                </li>
+                <li><b><%= participantCompletionRatio %>%</b> of the participants completed all activities. <br /><br>
+                </li>
+                <li>
+                    You covered <b><%= contentCount %> activities</b> which included <b><%= contentSplit %></b>. <br /><br>
+                </li>
+                <li>
+                    During this period <b><%= totalCommentCount %> discussion</b> threads were started of which you were active in <%= personalCommentCount %>. <br /><br>
+                </li>
+                <li>
+                    This <%= type %> covered <b><%= topics %></b> topics.
+                </li>
+            </ul>
         </div>
-        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">View <%= type %></a>
-        </div>
+        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;"><a style="color: white; text-decoration: none;" href="https://peerbuds.com/console/dashboard">View Teaching Dashboard</a></div>
     </div>
     <!-- Signature -->
-    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
-        Cheers,
-        <br>
-        Peerbuds Team
-    </div>
+    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">Cheers, <br /> Peerbuds Team</div>
     <!-- Footer -->
-    <hr style="margin-top: 40px; background-color: #dbdbdb;">
-    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
-        Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
-        <br><br>
-        Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
-    </div>
+    <hr style="margin-top: 40px; background-color: #dbdbdb;" />
+    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300;">Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds <br /><br /> Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538</div>
 </div>
-</body>
-
-</html>
