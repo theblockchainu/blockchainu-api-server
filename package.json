@@ -19,6 +19,7 @@
     "elasticsearch": "^14.0.0",
     "express-flash": "0.0.2",
     "express-session": "^1.15.4",
+    "finalhandler": "^1.1.1",
     "google-contacts": "^0.1.5",
     "helmet": "^1.3.0",
     "http-aws-es": "^1.1.3",

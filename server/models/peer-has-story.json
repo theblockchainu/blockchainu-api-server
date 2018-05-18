@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_scholarship",
+  "name": "peer_has_story",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "scholarship"
+    "targetModel": "knowledge_story"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "scholarship": {
+    "knowledge_story": {
       "type": "belongsTo",
-      "model": "scholarship",
+      "model": "knowledge_story",
       "foreignKey": "targetId"
     }
   },

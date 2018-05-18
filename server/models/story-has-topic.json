@@ -1,13 +1,13 @@
 {
-  "name": "peer_has_scholarship",
+  "name": "story_has_topic",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "scholarship"
+    "sourceModel": "knowledge_story",
+    "targetModel": "topic"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "knowledge_story": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "knowledge_story",
       "foreignKey": "sourceId"
     },
-    "scholarship": {
+    "topic": {
       "type": "belongsTo",
-      "model": "scholarship",
+      "model": "topic",
       "foreignKey": "targetId"
     }
   },
