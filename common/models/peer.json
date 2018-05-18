@@ -10,7 +10,8 @@
   "mixins": {
     "AddPeerRelation": {
       "relationName": [
-        "reviewsAboutYou"
+        "reviewsAboutYou",
+        "knowledgeStories"
       ]
     },
     "HasOne": {
@@ -394,6 +395,20 @@
       "foreignKey": "sourceId",
       "through": "peer_has_scholarship",
       "keyThrough": "targetId"
+    },
+    "knowledgeStories": {
+      "type": "hasMany",
+      "model": "knowledge_story",
+      "foreignKey": "sourceId",
+      "through": "peer_has_story",
+      "keyThrough": "targetId"
+    },
+    "availableStories": {
+      "type": "hasMany",
+      "model": "knowledge_story",
+      "foreignKey": "targetId",
+      "through": "story_has_viewer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

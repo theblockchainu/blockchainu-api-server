@@ -1,0 +1,62 @@
+{
+  "name": "knowledge_story",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        },
+        {
+          "model": "peer",
+          "hasManyRelation": "peer"
+        }
+      ]
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "visibility": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "protagonist": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_story",
+      "keyThrough": "sourceId"
+    },
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "story_has_viewer",
+      "keyThrough": "targetId"
+    },
+    "topics": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "story_has_topic",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

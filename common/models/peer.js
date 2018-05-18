@@ -428,6 +428,43 @@ module.exports = function (Peer) {
         return fn.promise;
     };
 
+    Peer.generateKnowledgeStory = function (id, data, cb) {
+
+        var knowledgeStory = {
+            first_name: "",
+            last_name: "",
+            story_title: "",
+            story_description: "",
+            topics: [
+                {
+                    id: "string",
+                    name: "string",
+                    type: "string",
+                    imageUrl: "string",
+                    createdAt: "2018-05-15T10:32:38.882Z",
+                    updatedAt: "2018-05-15T10:32:38.882Z"
+                }
+            ],
+            story: [
+                {
+                    identifier: "string",
+                    activity_type: "string",
+                    activity_title: "string",
+                    activity_description: "string",
+                    activity_url: "string",
+                    gyan_acquired: 0,
+                    id: "string"
+                }
+            ]
+        }
+
+        /*
+        get data from blockchain here
+        */
+
+        cb(null, knowledgeStory);
+    }
+
     let sendPhoneVerificationCodeSms = function (loggedinPeer, phone, countryCode, fn) {
         var formattedPhone = phone.replace(/[^\d]/g, '');
         formattedPhone = '+' + countryCode + formattedPhone;
@@ -1449,6 +1486,23 @@ module.exports = function (Peer) {
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
         });
+
+        PeerModel.remoteMethod(
+            'generateKnowledgeStory',
+            {
+                accepts: [
+                    { arg: 'id', type: 'string', required: true },
+                    { arg: 'data', type: 'object', required: true, http: { source: 'body' } }
+                ],
+                description: `  {
+                    "story_title": "string",
+                    "story_description": "string",
+                    "topicIds":[],                    
+                } ` ,
+                returns: { arg: 'result', type: 'object', root: true },
+                http: { path: '/:id/generate-knowledge-story', verb: 'post' }
+            }
+        );
 
         return PeerModel;
     };
