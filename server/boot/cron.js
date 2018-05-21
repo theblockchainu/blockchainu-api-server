@@ -497,7 +497,7 @@ module.exports = function setupCron(server) {
 										let now = moment.tz(teacherTimezone);
 										if (startDateTime && endDateTime) {
 											// check if it starts in the next 10 minutes??
-											console.log('Comparing session time: ' + startDateTime.format() + ' with current time: ' + now.format());
+											//console.log('Comparing session time: ' + startDateTime.format() + ' with current time: ' + now.format());
 											if (startDateTime.diff(now, 'minutes') >= 0 && startDateTime.diff(now, 'minutes') < 10) {
 												// Upcoming peer session starts in 10 minutes. Send notification and email to student and teacher
 												//console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);

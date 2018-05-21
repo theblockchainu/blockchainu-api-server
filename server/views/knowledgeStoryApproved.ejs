@@ -1,0 +1,55 @@
+<html>
+
+<head>
+	<title>Peerbuds</title>
+</head>
+
+<body>
+<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+	<!-- Header -->
+	<div style="vertical-align: middle; ">
+		<img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"></span>
+	</div>
+	<!-- Title -->
+	<div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+		Knowledge story is now ready to view
+	</div>
+	<!-- Body -->
+	<div>
+		<div style="font-size: 17px; margin-top: 25px;">
+			Hey <%= viewerName %>,
+		</div>
+		<br><br>
+		<div style="text-align: center">
+			<img src="https://peerbuds.com:3000<%= ownerImage %>" alt="Profile Image" style="width: 15%; border-radius: 200px;">
+			<br>
+			<%= ownerName%>
+		</div>
+		<div style="font-size: 17px; margin-top: 30px; line-height: 24px">
+			has <b><%= decision %></b> your request to view their knowledge story.
+			<br><br>
+			Just click on the link below to view it.
+			<br><br>
+			Please note, if this is a private story, you will need to log into peerbuds.com so we can be sure its only you who can view it.
+		</div>
+		<div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+			<a style="color: white; text-decoration: none;" href="https://peerbuds.com/story/<%= storyId %>">View Knowledge Story</a>
+		</div>
+	</div>
+	<!-- Signature -->
+	<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
+		Cheers,
+		<br>
+		Peerbuds Team
+	</div>
+	<!-- Footer -->
+	<hr style="margin-top: 40px; background-color: #dbdbdb;">
+	<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+		Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
+		<br><br>
+		Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+	</div>
+</div>
+</body>
+
+</html>

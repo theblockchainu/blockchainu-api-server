@@ -2,6 +2,9 @@
 var loopback = require('loopback');
 var path = require('path');
 var g = require('../../node_modules/loopback/lib/globalize');
+let app = require('../../server/server');
+const protocolUrl = app.get('protocolUrl');
+let request = require('request');
 
 module.exports = function (Assessmentresult) {
 
@@ -26,13 +29,22 @@ module.exports = function (Assessmentresult) {
                    if (err) {
                        next(err);
                    } else {
-                       Assessmentresult.app.getCollectionContractInstance().assess(assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].id.replace(/-/g, ''), assessmentResultInstance.toJSON().assessees[0].ethAddress, assessmentResultInstance.toJSON().assessment_rules[0].value)
-                               .then(function (result) {
-                                   console.log('Recorded assessment on blockchain: ' + result);
-                               })
-                               .catch(err => {
-                                  console.error(err);
-                               });
+	
+                   	    // Record assessment on BC
+	                   request
+			                   .put({
+				                   url: protocolUrl + 'collections/' + assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].id + '/peers/' + assessmentResultInstance.toJSON().assessees[0].ethAddress,
+				                   body: {
+					                   assessmentResult: assessmentResultInstance.toJSON().assessment_rules[0].value
+				                   },
+				                   json: true
+			                   }, function(err, response, data) {
+				                   if (err) {
+					                   console.error(err);
+				                   } else {
+					                   console.log('Recorded assessment on blockchain: ' + data);
+				                   }
+			                   });
                        const userName = assessmentResultInstance.toJSON().assessees[0].profiles[0].first_name + ' ' + assessmentResultInstance.toJSON().assessees[0].profiles[0].last_name;
 	                   const userId = assessmentResultInstance.toJSON().assessees[0].id;
                        const collectionTitle = assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].title;

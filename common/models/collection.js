@@ -1,13 +1,14 @@
 'use strict';
-var loopback = require('loopback');
-var path = require('path');
-var g = require('../../node_modules/loopback/lib/globalize');
+let loopback = require('loopback');
+let path = require('path');
+let g = require('../../node_modules/loopback/lib/globalize');
+const request = require('request');
 
 module.exports = function (Collection) {
 	
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
-        var collectionInstance = ctx.instance;
+        let collectionInstance = ctx.instance;
         Collection.app.models.peer.findById(participantInstance.sourceId, {"include": "profiles"}, function(err, participantUserInstance) {
             if (err) {
                 next(err);
@@ -36,7 +37,7 @@ module.exports = function (Collection) {
                         next(err);
                     }
                     else {
-                        var ownerInstance = ownerInstances[0];
+                        let ownerInstance = ownerInstances[0];
                         ownerInstance.__create__notifications({
                             type: "action",
                             title: "New participant!",
@@ -65,7 +66,7 @@ module.exports = function (Collection) {
                                                                if (!err) {
                                                                    console.log('Added participant to chat room');
                                                                    // Add a new system message about new participant
-                                                                   var messageObject = {
+                                                                   let messageObject = {
                                                                        text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
                                                                        type: 'system'
                                                                    };
@@ -74,48 +75,56 @@ module.exports = function (Collection) {
                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
 	
                                                                            // Record this on blockchain
-	                                                                       Collection.app.getCollectionContractInstance().join(collectionInstance.id.replace(/-/g, ''), participantUserInstance.ethAddress, ctx.req.body['burnAddress'])
-			                                                                       .then(function (result) {
-				                                                                       console.log('Recorded participation on blockchain ' + result);
-				                                                                       // Send email to the student welcoming him to course
-				                                                                       var message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-				                                                                       var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
-				                                                                       var html_body = renderer(message);
-				                                                                       loopback.Email.send({
-					                                                                       to: participantUserInstance.email,
-					                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
-					                                                                       subject: '[Welcome] ' + collectionInstance.title,
-					                                                                       html: html_body
-				                                                                       })
-						                                                                       .then(function (response) {
-							                                                                       console.log('email sent! - ');
-						                                                                       })
-						                                                                       .catch(function (err) {
-							                                                                       console.log('email error! - ' + err);
-						                                                                       });
-				
-				                                                                       // Send email to the teacher informing about new student
-				                                                                       message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-				                                                                       renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
-				                                                                       html_body = renderer(message);
-				                                                                       loopback.Email.send({
-					                                                                       to: ownerInstance.email,
-					                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
-					                                                                       subject: 'New participant @ ' + collectionInstance.title,
-					                                                                       html: html_body
-				                                                                       })
-						                                                                       .then(function (response) {
-							                                                                       console.log('email sent! - ');
-						                                                                       })
-						                                                                       .catch(function (err) {
-							                                                                       console.log('email error! - ' + err);
-						                                                                       });
-				                                                                       next();
+                                                                           request
+                                                                                   .put({
+                                                                                       url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+                                                                                       body: {
+                                                                                           scholarshipId: ctx.req.body.scholarshipId
+                                                                                       },
+                                                                                       json: true
+                                                                                    }, function (err, response, data) {
+                                                                                       if (err) {
+	                                                                                       console.error(err);
+	                                                                                       next(err);
+                                                                                       } else {
+	                                                                                       console.log('Recorded participation on blockchain ' + data);
+                                                                                       }
+                                                                                   });
+                                                                           
+	                                                                       // Send email to the student welcoming him to course
+	                                                                       let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+	                                                                       let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
+	                                                                       let html_body = renderer(message);
+	                                                                       loopback.Email.send({
+		                                                                       to: participantUserInstance.email,
+		                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
+		                                                                       subject: '[Welcome] ' + collectionInstance.title,
+		                                                                       html: html_body
+	                                                                       })
+			                                                                       .then(function (response) {
+				                                                                       console.log('email sent! - ');
 			                                                                       })
-			                                                                       .catch(err => {
-				                                                                       console.error(err);
-				                                                                       next(err);
+			                                                                       .catch(function (err) {
+				                                                                       console.log('email error! - ' + err);
 			                                                                       });
+	
+	                                                                       // Send email to the teacher informing about new student
+	                                                                       message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
+	                                                                       renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
+	                                                                       html_body = renderer(message);
+	                                                                       loopback.Email.send({
+		                                                                       to: ownerInstance.email,
+		                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
+		                                                                       subject: 'New participant @ ' + collectionInstance.title,
+		                                                                       html: html_body
+	                                                                       })
+			                                                                       .then(function (response) {
+				                                                                       console.log('email sent! - ');
+			                                                                       })
+			                                                                       .catch(function (err) {
+				                                                                       console.log('email error! - ' + err);
+			                                                                       });
+	                                                                       next();
                                                                        }
                                                                        else {
                                                                            next(new Error('Could not create system message'));
@@ -150,7 +159,7 @@ module.exports = function (Collection) {
     Collection.afterRemote('prototype.__create__comments', function (ctx, newCommentInstance, next) {
         // Send email to all students if an announcement is made by the teacher
         if (newCommentInstance.toJSON().isAnnouncement) {
-            var loggedinPeer = Collection.getCookieUserId(ctx.req);
+            let loggedinPeer = Collection.getCookieUserId(ctx.req);
             if (loggedinPeer) {
                 Collection.findById(ctx.instance.id, {include: [{'participants': 'profiles'}, 'owners']}, function (err, collectionInstance) {
                     if (!err) {
@@ -158,9 +167,9 @@ module.exports = function (Collection) {
                             if (!err) {
                                 collectionInstance.toJSON().participants.forEach(participant => {
                                     // Send email to every participant
-                                    var message = { studentName: participant.profiles[0].first_name, teacherName: collectionOwnerInstance.toJSON().profiles[0].first_name + ' ' + collectionOwnerInstance.toJSON().profiles[0].last_name, announcement: newCommentInstance.description, collectionTitle: collectionInstance.toJSON().title};
-                                    var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newAnnouncementToStudents.ejs'));
-                                    var html_body = renderer(message);
+                                    let message = { studentName: participant.profiles[0].first_name, teacherName: collectionOwnerInstance.toJSON().profiles[0].first_name + ' ' + collectionOwnerInstance.toJSON().profiles[0].last_name, announcement: newCommentInstance.description, collectionTitle: collectionInstance.toJSON().title};
+                                    let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newAnnouncementToStudents.ejs'));
+                                    let html_body = renderer(message);
                                     loopback.Email.send({
                                         to: participant.email,
                                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
@@ -197,9 +206,9 @@ module.exports = function (Collection) {
 
     Collection.getCookieUserId = function (req) {
 
-        var cookieArray = req.headers.cookie.split(';');
-        var cookie = '';
-        for (var i = 0; i < cookieArray.length; i++) {
+        let cookieArray = req.headers.cookie.split(';');
+        let cookie = '';
+        for (let i = 0; i < cookieArray.length; i++) {
             if (cookieArray[i].split('=')[0].trim() === 'userId') {
                 cookie = cookieArray[i].split('=')[1].trim();
             }
@@ -210,8 +219,8 @@ module.exports = function (Collection) {
 
     Collection.afterRemote('prototype.__unlink__participants', function (ctx, next1) {
         // Participant canceled collection. Notify collection owner.
-        var collectionInstance = ctx.instance;
-        var participantId = ctx.args.fk;
+        let collectionInstance = ctx.instance;
+        let participantId = ctx.args.fk;
         Collection.app.models.peer.findById(participantId, {"include": "profiles"}, function(err, participantUserInstance) {
             if (err) {
                 next1(err);
@@ -222,7 +231,7 @@ module.exports = function (Collection) {
                         next1(err);
                     }
                     else {
-                        var ownerInstance = ownerInstances[0];
+                        let ownerInstance = ownerInstances[0];
                         ownerInstance.__create__notifications({
                             type: "action",
                             title: "Cancelled participation",
@@ -244,9 +253,9 @@ module.exports = function (Collection) {
                                             }
                                             else {
                                                 // Send email to the confirming cancellation
-                                                var message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days."};
-                                                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                                                var html_body = renderer(message);
+                                                let message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days."};
+                                                let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                                                let html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: participantUserInstance.email,
                                                     from: 'Peerbuds <noreply@mx.peerbuds.com>',
@@ -284,7 +293,7 @@ module.exports = function (Collection) {
                                                                 if (!err) {
                                                                     console.log('Removed participant from room');
                                                                     // Add a new system message about new participant
-                                                                    var messageObject = {
+                                                                    let messageObject = {
                                                                         text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " left ",
                                                                         type: 'system'
                                                                     };
@@ -328,10 +337,10 @@ module.exports = function (Collection) {
     Collection.submitForReview = function (id, req, cb) {
         // Find the collection by given ID
         Collection.findById(id, function (err, collectionInstance) {
-            var loggedinPeer = Collection.app.models.peer.getCookieUserId(req);
+            let loggedinPeer = Collection.app.models.peer.getCookieUserId(req);
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
-                //var ownerEmail = collectionInstance.toJSON().owners[0].email;
+                //let ownerEmail = collectionInstance.toJSON().owners[0].email;
                 collectionInstance.status = 'submitted';
                 collectionInstance.isApproved = false;
                 collectionInstance.save(function (err) {
@@ -347,7 +356,7 @@ module.exports = function (Collection) {
                     }
                 });
 
-                var message = '', subject = '';
+                let message = '', subject = '';
                 message = { type: collectionInstance.type };
                 switch (collectionInstance.type) {
                     case 'workshop':
@@ -363,8 +372,8 @@ module.exports = function (Collection) {
                         subject = 'Collection submitted for review';
                         break;
                 }
-                var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionSubmitted.ejs'));
-                var html_body = renderer(message);
+                let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionSubmitted.ejs'));
+                let html_body = renderer(message);
 
                 // Create payout rule for this collection
                 Collection.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] },
@@ -383,13 +392,13 @@ module.exports = function (Collection) {
                                 console.log('email error! - ' + err);
                             });
 
-                        var peerPayoutAccs = peerInstance.toJSON().payoutaccs;
+                        let peerPayoutAccs = peerInstance.toJSON().payoutaccs;
                         if (peerPayoutAccs && peerPayoutAccs.length) {
 
                             peerPayoutAccs.forEach(function (payoutaccs) {
 
                                 if (payoutaccs.is_default) {
-                                    var payoutRule = {};
+                                    let payoutRule = {};
                                     payoutRule.percentage1 = 100;
                                     payoutRule.payoutId1 = payoutaccs.id;
 
@@ -418,17 +427,19 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": "assessment_rules"}]}, function (err, collectionInstance) {
+        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": "assessment_rules"}, "topics"]}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
-                var ownerId = collectionInstance.toJSON().owners[0].id;
-                var userId = Collection.app.models.peer.getCookieUserId(req);
-                var assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
+                let ownerId = collectionInstance.toJSON().owners[0].id;
+                let userId = Collection.app.models.peer.getCookieUserId(req);
+                let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
+                let topics = collectionInstance.toJSON().topics;
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
                 collectionInstance.approvedBy = userId;
                 delete collectionInstance.owners;
                 delete collectionInstance.assessment_models;
+                delete collectionInstance.topics;
                 Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
                     if (err) {
                         console.log(err);
@@ -438,8 +449,8 @@ module.exports = function (Collection) {
                         cb(err);
                     }
                     else {
-                        var message = '', subject = '';
-                        var title = '', description = '', actionUrl = [];
+                        let message = '', subject = '';
+                        let title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
                             case 'workshop':
@@ -467,8 +478,8 @@ module.exports = function (Collection) {
 	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
                                 break;
                         }
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
-                        var html_body = renderer(message);
+                        let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
+                        let html_body = renderer(message);
 
                         // Send email to owner of this collection
                         Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
@@ -500,7 +511,7 @@ module.exports = function (Collection) {
                                                         }
                                                         else {
 	                                                        // Create a new chat room for this collection
-	                                                        var roomValue =  {
+	                                                        let roomValue =  {
 		                                                        name: collectionInstance.title
 	                                                        };
 	                                                        collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
@@ -511,7 +522,7 @@ module.exports = function (Collection) {
 				                                                        if (!err) {
 					                                                        console.log('Added teacher to chat room');
 					                                                        // Add a new system message about new participant
-					                                                        var messageObject = {
+					                                                        let messageObject = {
 						                                                        text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
 						                                                        type: 'system'
 					                                                        };
@@ -522,26 +533,39 @@ module.exports = function (Collection) {
 							                                                        // Add this collection to blockchain.
                                                                                     const assessmentRuleKeys = [];
                                                                                     const assessmentRuleValues = [];
+                                                                                    const topicArray = [];
                                                                                     assessmentRules.forEach(assessmentRule => {
                                                                                         assessmentRuleKeys.push(assessmentRule.value);
                                                                                         assessmentRuleValues.push(assessmentRule.gyan);
                                                                                     });
-                                                                                    /*console.log(collectionInstance.id.replace(/-/g, ''));
-                                                                                    console.log(ownerInstance.ethAddress);
-                                                                                    console.log(collectionInstance.type);
-                                                                                    console.log('000');
-                                                                                    console.log(collectionInstance.academicGyan);
-                                                                                    console.log(collectionInstance.nonAcademicGyan);
-                                                                                    console.log(assessmentRuleKeys);
-                                                                                    console.log(assessmentRuleValues);*/
-							                                                        Collection.app.getCollectionContractInstance().create(collectionInstance.id.replace(/-/g, ''), ownerInstance.ethAddress, collectionInstance.type, 'NA', collectionInstance.academicGyan, collectionInstance.nonAcademicGyan, assessmentRuleKeys, assessmentRuleValues)
-                                                                                            .then(function (result) {
-                                                                                                console.log('Add collection to blockchain: ' + result);
-                                                                                            })
-                                                                                            .catch(err => {
-                                                                                                console.error(err);
-                                                                                            });
+							                                                        topics.forEach(topic => {
+								                                                        topicArray.push(topic.name);
+							                                                        });
 							                                                        
+                                                                                    // Add to blockchain
+                                                                                    request
+									                                                        .post({
+										                                                        url: Collection.app.get('protocolUrl') + 'collections',
+										                                                        body: {
+											                                                        uniqueId: collectionInstance.id,
+											                                                        teacherAddress: ownerInstance.ethAddress,
+											                                                        type: collectionInstance.type,
+											                                                        activityHash: 'NA',
+											                                                        academicGyan: collectionInstance.academicGyan,
+											                                                        nonAcademicGyan: collectionInstance.nonAcademicGyan,
+											                                                        assessmentRuleKeys: assessmentRuleKeys,
+											                                                        assessmentRuleValues: assessmentRuleValues,
+											                                                        topics: topicArray
+										                                                        },
+										                                                        json: true
+									                                                        }, function (err, response, data) {
+									                                                            if (err) {
+										                                                            console.error(err);
+                                                                                                } else {
+										                                                            console.log('Add collection to blockchain: ' + data);
+                                                                                                }
+                                                                                            });
+							
 							                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
 						                                                        }
 						                                                        else {
@@ -600,8 +624,8 @@ module.exports = function (Collection) {
         Collection.findById(id, {"include": {"owners": "profiles"}}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
-                var ownerId = collectionInstance.toJSON().owners[0].id;
-                var userId = Collection.app.models.peer.getCookieUserId(req);
+                let ownerId = collectionInstance.toJSON().owners[0].id;
+                let userId = Collection.app.models.peer.getCookieUserId(req);
                 collectionInstance.status = 'draft';
                 collectionInstance.isApproved = false;
                 collectionInstance.approvedBy = '';
@@ -615,8 +639,8 @@ module.exports = function (Collection) {
                         cb(err);
                     }
                     else {
-                        var message = '', subject = '';
-                        var title = '', description = '', actionUrl = [];
+                        let message = '', subject = '';
+                        let title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
 	                        case 'workshop':
@@ -644,8 +668,8 @@ module.exports = function (Collection) {
 		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","14"];
 		                        break;
                         }
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
-                        var html_body = renderer(message);
+                        let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
+                        let html_body = renderer(message);
 
                         // Send email to owner of this workshop
                         Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
@@ -711,7 +735,7 @@ module.exports = function (Collection) {
 
 
     Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
-        var collectionInstance = ctx.instance;
+        let collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
             next();
         }
@@ -728,9 +752,9 @@ module.exports = function (Collection) {
                     //Inform all participants that the workshop is cancelled.
                     participantInstances.forEach((participantInstance) => {
                         // Send email to participants
-                        var message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
-                        var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
-                        var html_body = renderer(message);
+                        let message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
+                        let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
+                        let html_body = renderer(message);
                         loopback.Email.send({
                             to: participantInstance.email,
                             from: 'Peerbuds <noreply@mx.peerbuds.com>',
@@ -762,9 +786,9 @@ module.exports = function (Collection) {
                     else if (participantInstances !== null && participantInstances.length > 0) {
                         // This collection has existing participants on it. It cannot be edited without branching out.
                         // Create a new collection by copying all the data of this collection
-                        var newCollection = collectionInstance.toJSON();
+                        let newCollection = collectionInstance.toJSON();
 
-                        var updatedContentKeys = Object.keys(ctx.args.data);
+                        let updatedContentKeys = Object.keys(ctx.args.data);
                         updatedContentKeys.forEach(function (updatedContentKey) {
                             newCollection[updatedContentKey] = ctx.args.data[updatedContentKey];
                         });
@@ -828,9 +852,9 @@ module.exports = function (Collection) {
                                 // Copy calendars from old collection to new collection
                                 collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
                                     if (!err && oldCalendarInstances !== null) {
-                                        var hasOneCalendarCopied = false;
+                                        let hasOneCalendarCopied = false;
                                         oldCalendarInstances.forEach(function (oldCalendarInstance) {
-                                            var hasParticipant = participantInstances.some(function (participantInstance) {
+                                            let hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             // If this calendar has no participant signed up
@@ -892,7 +916,7 @@ module.exports = function (Collection) {
 
 
     Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next)   {
-        var collectionInstance = ctx.instance;
+        let collectionInstance = ctx.instance;
         /*console.log('received instance is: ' + JSON.stringify(collectionInstance));
         console.log("ctx args are: " + JSON.stringify(ctx.args));
         console.log("ctx method is: " + JSON.stringify(ctx.methodString));*/
@@ -915,7 +939,7 @@ module.exports = function (Collection) {
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
                         // Create a new collection by copying all the data of this collection
-                        var newCollection = collectionInstance.toJSON();
+                        let newCollection = collectionInstance.toJSON();
                         delete newCollection.id;
                         delete newCollection.status;
                         delete newCollection.isCanceled;
@@ -946,13 +970,13 @@ module.exports = function (Collection) {
                                     }
                                 });
 
-                                var resultContents = [];
+                                let resultContents = [];
 
                                 // Copy all contents from oldInstance to new instance
                                 collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
-                                        var m = 0;
-                                        for (var i = 0; i < oldContentInstances.length; i++) {
+                                        let m = 0;
+                                        for (let i = 0; i < oldContentInstances.length; i++) {
                                             // If this content is not a dirty content
                                             if (oldContentInstances[i].id !== ctx.args.fk) {
                                                 // Add content to array to pass in result
@@ -964,7 +988,7 @@ module.exports = function (Collection) {
                                                     }
                                                     m++;
                                                     if (m === oldContentInstances.length) {
-                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        let resultCollectionInstance = newCollectionInstance.toJSON();
                                                         resultCollectionInstance['contents'] = resultContents;
                                                         ctx.res.json(resultCollectionInstance);
                                                     }
@@ -972,10 +996,10 @@ module.exports = function (Collection) {
                                             }
                                             // If this content is a dirty content.
                                             else {
-                                                var newContent = {};
+                                                let newContent = {};
                                                 newContent = oldContentInstances[i].toJSON();
 
-                                                var updatedContentKeys = Object.keys(ctx.args.data);
+                                                let updatedContentKeys = Object.keys(ctx.args.data);
                                                 updatedContentKeys.forEach(function (updatedContentKey) {
                                                     newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
                                                 });
@@ -990,13 +1014,13 @@ module.exports = function (Collection) {
                                                 newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
                                                     if (!err && newCreatedContentInstance !== null) {
                                                         console.log('Cloned content for collection');
-                                                        var oldContentInstance = oldContentInstances[m].__data;
+                                                        let oldContentInstance = oldContentInstances[m].__data;
 
                                                         // Add content to array to pass in result
                                                         resultContents.push(newCreatedContentInstance);
 
                                                         // Copy locations from old content to new content
-                                                        var newContentLocation = oldContentInstance.locations[0].toJSON();
+                                                        let newContentLocation = oldContentInstance.locations[0].toJSON();
                                                         if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
                                                             delete newContentLocation.id;
                                                             newCreatedContentInstance.__create__locations(newContentLocation, function (err, copiedLocationInstance) {
@@ -1007,7 +1031,7 @@ module.exports = function (Collection) {
 
 
                                                         // Copy schedules from old content to new content
-                                                        var newContentSchedule = oldContentInstance.schedules[0].toJSON();
+                                                        let newContentSchedule = oldContentInstance.schedules[0].toJSON();
                                                         if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
                                                             delete newContentSchedule.id;
                                                             newCreatedContentInstance.__create__schedules(newContentSchedule, function (err, copiedScheduleInstance) {
@@ -1019,7 +1043,7 @@ module.exports = function (Collection) {
                                                     }
                                                     m++;
                                                     if (m === oldContentInstances.length) {
-                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        let resultCollectionInstance = newCollectionInstance.toJSON();
                                                         resultCollectionInstance['contents'] = resultContents;
                                                         ctx.res.json(resultCollectionInstance);
                                                     }
@@ -1036,10 +1060,10 @@ module.exports = function (Collection) {
                                 // Copy calendars from old collection to new collection
                                 collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
                                     if (!err && oldCalendarInstances !== null) {
-                                        var hasOneCalendarCopied = false;
+                                        let hasOneCalendarCopied = false;
                                         oldCalendarInstances.forEach(function (oldCalendarInstance) {
                                             //participantInstances = participantInstances.toJSON();
-                                            var hasParticipant = participantInstances.some(function (participantInstance) {
+                                            let hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             // If this calendar has no participant signed up
@@ -1112,7 +1136,7 @@ module.exports = function (Collection) {
 
     Collection.beforeRemote('prototype.__create__contents', function (ctx, newInstance, next)   {
         console.log('***** ADDING NEW CONTENT TO ACTIVE COLLECTION');
-        var collectionInstance = ctx.instance;
+        let collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
@@ -1131,7 +1155,7 @@ module.exports = function (Collection) {
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
                         // Create a new collection by copying all the data of this collection
-                        var newCollection = collectionInstance.toJSON();
+                        let newCollection = collectionInstance.toJSON();
                         delete newCollection.id;
                         delete newCollection.status;
                         delete newCollection.isCanceled;
@@ -1162,14 +1186,14 @@ module.exports = function (Collection) {
                                     }
                                 });
 
-                                var resultContents = [];
+                                let resultContents = [];
 
 
                                 // Copy all contents from oldInstance to new instance
                                 collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
-                                        var m = 0;
-                                        for (var i = 0; i < oldContentInstances.length; i++) {
+                                        let m = 0;
+                                        for (let i = 0; i < oldContentInstances.length; i++) {
                                             // Link new clone to all non-dirty contents.
                                             newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
                                                 if (!err && newLinkedContentInstance !== null) {
@@ -1182,8 +1206,8 @@ module.exports = function (Collection) {
                                             if (m === oldContentInstances.length) {
 
                                                 // Create new content for this collection
-                                                var newContent = {};
-                                                var updatedContentKeys = Object.keys(ctx.args.data);
+                                                let newContent = {};
+                                                let updatedContentKeys = Object.keys(ctx.args.data);
                                                 updatedContentKeys.forEach(function (updatedContentKey) {
                                                     newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
                                                 });
@@ -1195,7 +1219,7 @@ module.exports = function (Collection) {
                                                         // Add content to array to pass as result
                                                         resultContents.push(newCreatedContentInstance.toJSON());
                                                         // Sent result response
-                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        let resultCollectionInstance = newCollectionInstance.toJSON();
                                                         resultCollectionInstance['contents'] = resultContents;
                                                         ctx.res.json(resultCollectionInstance);
                                                     }
@@ -1215,10 +1239,10 @@ module.exports = function (Collection) {
                                 // Copy calendars from old collection to new collection
                                 collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
                                     if (!err && oldCalendarInstances !== null) {
-                                        var hasOneCalendarCopied = false;
+                                        let hasOneCalendarCopied = false;
                                         oldCalendarInstances.forEach(function (oldCalendarInstance) {
                                             //participantInstances = participantInstances.toJSON();
-                                            var hasParticipant = participantInstances.some(function (participantInstance) {
+                                            let hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             // If this calendar has no participant signed up
@@ -1291,7 +1315,7 @@ module.exports = function (Collection) {
 
     Collection.beforeRemote('prototype.__destroyById__contents', function (ctx, newInstance, next)   {
         console.log('***** DELETING CONTENT OF COLLECTION');
-        var collectionInstance = ctx.instance;
+        let collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
             next();
         }
@@ -1310,7 +1334,7 @@ module.exports = function (Collection) {
                         // This collection has existing participants on it. It cannot be edited without branching out.
 
                         // Create a new collection by copying all the data of this collection
-                        var newCollection = collectionInstance.toJSON();
+                        let newCollection = collectionInstance.toJSON();
                         delete newCollection.id;
                         delete newCollection.status;
                         delete newCollection.isCanceled;
@@ -1341,13 +1365,13 @@ module.exports = function (Collection) {
                                     }
                                 });
 
-                                var resultContents = [];
+                                let resultContents = [];
 
                                 // Copy all contents from oldInstance to new instance
                                 collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                                     if (!err && oldContentInstances !== null) {
-                                        var m = 0;
-                                        for (var i = 0; i < oldContentInstances.length; i++) {
+                                        let m = 0;
+                                        for (let i = 0; i < oldContentInstances.length; i++) {
 
                                             if (oldContentInstances[i].id !== ctx.args.fk) {
                                                 // Add content to array to pass as result
@@ -1359,7 +1383,7 @@ module.exports = function (Collection) {
                                                     }
                                                     m++;
                                                     if (m === (oldContentInstances.length - 1)) {
-                                                        var resultCollectionInstance = newCollectionInstance.toJSON();
+                                                        let resultCollectionInstance = newCollectionInstance.toJSON();
                                                         resultCollectionInstance['contents'] = resultContents;
                                                         ctx.res.json(resultCollectionInstance);
                                                     }
@@ -1376,9 +1400,9 @@ module.exports = function (Collection) {
                                 // Copy calendars from old collection to new collection
                                 collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
                                     if (!err && oldCalendarInstances !== null) {
-                                        var hasOneCalendarCopied = false;
+                                        let hasOneCalendarCopied = false;
                                         oldCalendarInstances.forEach(function (oldCalendarInstance) {
-                                            var hasParticipant = participantInstances.some(function (participantInstance) {
+                                            let hasParticipant = participantInstances.some(function (participantInstance) {
                                                 return participantInstance.calendarId === oldCalendarInstance.id;
                                             });
                                             // If this calendar has no participant signed up
@@ -1436,12 +1460,12 @@ module.exports = function (Collection) {
                     }
                     else {
                         // This collection has no participants on it. We can delete its content but change status to draft
-                        var newCollectionData = collectionInstance.toJSON();
+                        let newCollectionData = collectionInstance.toJSON();
                         newCollectionData.isNewInstance = true;
                         // Copy all contents from oldInstance to new instance
                         collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
                             if (!err && oldContentInstances !== null) {
-                                var resultCollectionInstance = newCollectionData;
+                                let resultCollectionInstance = newCollectionData;
                                 resultCollectionInstance['contents'] = oldContentInstances.toJSON();
                                 ctx.res.json(resultCollectionInstance);
                             }

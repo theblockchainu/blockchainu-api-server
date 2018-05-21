@@ -1,22 +1,20 @@
 'use strict';
 
-var loopback = require('loopback');
-var boot = require('loopback-boot');
-var app = module.exports = loopback();
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var SALT_WORK_FACTOR = 10;
-var g = require('../node_modules/loopback/lib/globalize');
-var cors = require('cors');
-var bcrypt;
-var MAX_PASSWORD_LENGTH = 72;
-var unirest = require('unirest');
-var https = require('https');
-var http = require('http');
-var sslConfig = require('./ssl-config');
-var Web3 = require('web3');
-var net = require('net');
-var contract = require("truffle-contract");
+let loopback = require('loopback');
+let boot = require('loopback-boot');
+let app = module.exports = loopback();
+let cookieParser = require('cookie-parser');
+let session = require('express-session');
+let SALT_WORK_FACTOR = 10;
+let g = require('../node_modules/loopback/lib/globalize');
+let cors = require('cors');
+let bcrypt;
+let MAX_PASSWORD_LENGTH = 72;
+let unirest = require('unirest');
+let request = require('request');
+let https = require('https');
+let http = require('http');
+let sslConfig = require('./ssl-config');
 
 try {
     // Try the native module first
@@ -31,9 +29,9 @@ try {
 }
 
 // Passport configurators..
-var loopbackPassport = require('loopback-component-passport-neo4j');
-var PassportConfigurator = loopbackPassport.PassportConfigurator;
-var passportConfigurator = new PassportConfigurator(app);
+let loopbackPassport = require('loopback-component-passport-neo4j');
+let PassportConfigurator = loopbackPassport.PassportConfigurator;
+let passportConfigurator = new PassportConfigurator(app);
 
 /*
  * body-parser is a piece of express middleware that
@@ -41,7 +39,7 @@ var passportConfigurator = new PassportConfigurator(app);
  *   object accessible through `req.body`
  *
  */
-var bodyParser = require('body-parser');
+let bodyParser = require('body-parser');
 
 /**
  * Flash messages for passport
@@ -51,10 +49,10 @@ var bodyParser = require('body-parser');
  * if any. This is often the best approach, because the verify callback
  * can make the most accurate determination of why authentication failed.
  */
-var flash = require('express-flash');
+let flash = require('express-flash');
 
 // attempt to build the providers/passport config
-var config = {};
+let config = {};
 try {
     if (process.env.NODE_ENV === 'development') {
         config = require('../providers.development.json');
@@ -69,27 +67,27 @@ try {
 // -- Add your pre-processing middleware here --
 
 // Setup the view engine (jade)
-var path = require('path');
+let path = require('path');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // Middlewars to enable cors on the server
-var originsWhitelist = [
+let originsWhitelist = [
     'null',
     'localhost:9090',      //frontend url for development
     'localhost:8080',      //frontend url for development
     'https://peedbuds.com'
 ];
-var corsOptions = {
+let corsOptions = {
     origin: function (origin, callback) {
-        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+        let isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
         callback(null, isWhitelisted);
     },
     credentials: true
 };
 
 app.use(cors(corsOptions));
-var cookieDomain = app.get('cookieDomain');
+let cookieDomain = app.get('cookieDomain');
 // to support JSON-encoded bodies
 app.middleware('parse', bodyParser.json({ limit: '50mb' }));
 // to support URL-encoded bodies
@@ -111,13 +109,13 @@ passportConfigurator.init();
 // We need flash messages to see passport errors
 app.use(flash());
 
-for (var s in config) {
-    var c = config[s];
+for (let s in config) {
+    let c = config[s];
     c.session = c.session !== false;
     passportConfigurator.configureProvider(s, c);
 }
 
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+let ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 
 app.get('/', function (req, res, next) {
     res.render('pages/index', {
@@ -152,11 +150,11 @@ app.get('/socket', function (req, res, next) {
 });
 
 app.post('/signup', function (req, res, next) {
-    var User = app.models.peer;
+    let User = app.models.peer;
 
-    var newUser = {};
-    var profileObject = {};
-    var rememberMe = req.body.rememberMe;
+    let newUser = {};
+    let profileObject = {};
+    let rememberMe = req.body.rememberMe;
     newUser.email = req.body.email.toLowerCase();
     newUser.password = req.body.password;
     newUser.ptPassword = newUser.password;
@@ -166,9 +164,9 @@ app.post('/signup', function (req, res, next) {
     profileObject.dobDay = req.body.dobDay;
     profileObject.dobYear = req.body.dobYear;
     profileObject.promoOptIn = req.body.promoOptIn;
-    var returnTo = req.headers.origin + '/' + req.query.returnTo;
-    var hashedPassword = '';
-    var query;
+    let returnTo = req.headers.origin + '/' + req.query.returnTo;
+    let hashedPassword = '';
+    let query;
     if (newUser.email && newUser.username) {
         query = {
             or: [
@@ -185,14 +183,14 @@ app.post('/signup', function (req, res, next) {
     /*!
      * Hash the plain password
      */
-    var hashPassword = function (plain) {
+    let hashPassword = function (plain) {
         validatePassword(plain);
-        var salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
+        let salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
         return bcrypt.hashSync(plain, salt);
     };
 
-    var validatePassword = function (plain) {
-        var err;
+    let validatePassword = function (plain) {
+        let err;
         if (plain && typeof plain === 'string' && plain.length <= MAX_PASSWORD_LENGTH) {
             return true;
         }
@@ -207,7 +205,7 @@ app.post('/signup', function (req, res, next) {
         throw err;
     };
 
-    var setPassword = function (plain) {
+    let setPassword = function (plain) {
         if (typeof plain !== 'string') {
             return;
         }
@@ -220,7 +218,7 @@ app.post('/signup', function (req, res, next) {
         }
     };
 
-    var loopbackLogin = function (user) {
+    let loopbackLogin = function (user) {
         console.log("inside loopbackLogin");
         User.login({ email: newUser.email, password: newUser.password }, function (err, accessToken) {
             if (err) {
@@ -294,8 +292,8 @@ app.post('/signup', function (req, res, next) {
         });
     };
 
-    var createProfileNode = function (user) {
-        var profile = app.models.profile;
+    let createProfileNode = function (user) {
+        let profile = app.models.profile;
         console.log('Creating Profile Node');
         user.updateProfileNode(profile, profileObject, user, function (err, user, profileNode) {
             if (!err) {
@@ -337,34 +335,42 @@ app.post('/signup', function (req, res, next) {
 
                         setPassword(newUser.password);
 
-                        var stripeTransaction = app.models.transaction;
+                        let stripeTransaction = app.models.transaction;
                         stripeTransaction.createCustomer(user, function (err, data) {
                             //console.log("Stripe Customer : " + JSON.stringify(data));
                         });
-	                    Web3.eth.personal.newAccount(newUser.password).then(address => {
-		                    User.dataSource.connector.execute(
-				                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + address + "'",
-				                    function (err, results) {}
-		                    );
-		                    return Web3.eth.personal.unlockAccount(address, newUser.password);
-                        }).then(result => {
-		                    console.log('Unlock account: ' + result);
-	                    }).catch(err => {
-		                    console.log(err);
-	                    });
+	
+	                    // Create wallet on blockchain
+	                    request
+			                    .post({
+				                    url: app.get('protocolUrl') + 'peers',
+                                    body: {
+				                      password: newUser.password
+                                    },
+				                    json: true
+			                    }, function(err, response, data) {
+			                       if (err) {
+				                       console.error(err);
+                                   } else {
+				                       console.log(data);
+				                       User.dataSource.connector.execute(
+						                       "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
+						                       function (err, results) {
+							                       console.log('Created ethereum wallet and saved address in DB');
+						                       }
+				                       );
+                                   }
+                                });
 	                    
-	                    Web3.eth.getAccounts().then(accounts => {
-	                       console.log(accounts);
-                        });
                         console.log("NEW USER ACCOUNT CREATED");
                         User.dataSource.connector.execute(
                             "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
                             function (err, results) {
                                 if (!err) {
                                     // Send welcome email to user
-                                    var message = { username: profileObject.first_name };
-                                    var renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
-                                    var html_body = renderer(message);
+                                    let message = { username: profileObject.first_name };
+                                    let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+                                    let html_body = renderer(message);
                                     loopback.Email.send({
                                         to: user.email,
                                         from: 'Peerbuds <noreply@mx.peerbuds.com>',
@@ -393,7 +399,7 @@ app.post('/signup', function (req, res, next) {
 });
 
 app.post('/convertCurrency', function (req, res, next) {
-    var access_key = app.get('currencyLayerKey');
+    let access_key = app.get('currencyLayerKey');
     //console.log(access_key);
     unirest.get('http://apilayer.net/api/convert')
         .query('access_key=' + access_key)
@@ -420,8 +426,8 @@ app.get('/login', function (req, res, next) {
 });
 
 app.get('/auth/logout', function (req, res, next) {
-    var User = app.models.Peer;
-    var tokenId = !!req.accessToken ? req.accessToken.id : '';
+    let User = app.models.Peer;
+    let tokenId = !!req.accessToken ? req.accessToken.id : '';
     console.log("Access token to delete is: " + JSON.stringify(tokenId));
     User.dataSource.connector.execute(
         "match (:peer)-[:hasToken]->(token:UserToken {id:'" + tokenId + "'}) DETACH DELETE token",
@@ -451,9 +457,9 @@ app.start = function (httpOnly) {
     if (httpOnly === undefined) {
         httpOnly = process.env.HTTP;
     }
-    var server = null;
+    let server = null;
     if (!httpOnly) {
-        var options = {
+        let options = {
             key: sslConfig.privateKey,
             cert: sslConfig.certificate,
         };
@@ -463,20 +469,12 @@ app.start = function (httpOnly) {
     }
     // start the web server
     server.listen(app.get('port'), function () {
-        var baseUrl = (httpOnly ? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
+        let baseUrl = (httpOnly ? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
         app.emit('started', baseUrl);
         console.log('Web server listening at: %s', baseUrl);
 	    
-        if (process.env.NODE_ENV === 'development') {
-	        Web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
-        } else {
-	        Web3 = new Web3(new Web3.providers.IpcProvider('/geth/geth.ipc', net));
-        }
-        
-        app.web3 = Web3;
-	    
         if (app.get('loopback-component-explorer')) {
-            var explorerPath = app.get('loopback-component-explorer').mountPath;
+            let explorerPath = app.get('loopback-component-explorer').mountPath;
             console.log('Browse your REST API at %s%s', baseUrl, explorerPath);
         }
     });
@@ -487,5 +485,4 @@ app.start = function (httpOnly) {
 if (require.main === module) {
     app.io = require('socket.io')(app.start());
     app.socketService = require('./socket-events')(app.io);
-	app.contractService = require('./contractControl')(app);
 }

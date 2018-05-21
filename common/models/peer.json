@@ -49,7 +49,7 @@
   },
   "hidden": [
     "password",
-	  "ptPassword",
+    "ptPassword",
     "verificationToken"
   ],
   "properties": {
@@ -64,9 +64,9 @@
       "type": "string",
       "required": true
     },
-	  "ptPassword": {
-		  "type": "string"
-	  },
+    "ptPassword": {
+      "type": "string"
+    },
     "ethAddress": {
       "type": "string"
     },
