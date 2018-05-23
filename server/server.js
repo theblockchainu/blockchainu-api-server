@@ -336,8 +336,9 @@ app.post('/signup', function (req, res, next) {
                         setPassword(newUser.password);
 
                         let stripeTransaction = app.models.transaction;
+                        let stripeResponse = '';
                         stripeTransaction.createCustomer(user, function (err, data) {
-                            //console.log("Stripe Customer : " + JSON.stringify(data));
+                            stripeResponse = data;
                         });
 	
 	                    // Create wallet on blockchain
@@ -359,6 +360,30 @@ app.post('/signup', function (req, res, next) {
 							                       console.log('Created ethereum wallet and saved address in DB');
 						                       }
 				                       );
+				                       // Send welcome email to user
+				                       let message = {
+					                       userName: profileObject.first_name + ' ' + profileObject.last_name,
+					                       userEmail: user.email,
+					                       dobMonth: profileObject.dobMonth,
+					                       dobDay: profileObject.dobDay,
+					                       dobYear: profileObject.dobYear,
+					                       stripeId: stripeResponse,
+                                           ethWalletId: data
+				                       };
+				                       let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
+				                       let html_body = renderer(message);
+				                       loopback.Email.send({
+					                       to: 'aakash@peerbuds.com',
+					                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
+					                       subject: 'New user signup!',
+					                       html: html_body
+				                       })
+						                       .then(function (response) {
+							                       console.log('email sent! - ' + response);
+						                       })
+						                       .catch(function (err) {
+							                       console.log('email error! - ' + err);
+						                       });
                                    }
                                 });
 	                    
@@ -373,8 +398,8 @@ app.post('/signup', function (req, res, next) {
                                     let html_body = renderer(message);
                                     loopback.Email.send({
                                         to: user.email,
-                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                        subject: 'Welcome to peerbuds',
+                                        from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
+                                        subject: 'Welcome to peerbuds - thanks for signing up!',
                                         html: html_body
                                     })
                                         .then(function (response) {

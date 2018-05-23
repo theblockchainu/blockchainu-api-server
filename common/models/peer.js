@@ -1093,7 +1093,30 @@ module.exports = function (Peer) {
 						next(err);
 					}
 					else {
-						next();
+						Peer.findById(ctx.where.id, function (err, peerInstance) {
+							if (err) {
+								next(err);
+							} else {
+								let message = {};
+								let subject = 'Account rejected';
+								
+								let renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountRejected.ejs'));
+								let html_body = renderer(message);
+								loopback.Email.send({
+									to: peerInstance.email,
+									from: 'Peerbuds <noreply@mx.peerbuds.com>',
+									subject: subject,
+									html: html_body
+								})
+										.then(function (response) {
+											console.log('email sent! - ' + response);
+										})
+										.catch(function (err) {
+											console.log('email error! - ' + err);
+										});
+								next();
+							}
+						});
 					}
 				}
 		);
