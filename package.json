@@ -47,11 +47,13 @@
     "passport-google-oauth": "^1.0.0",
     "passport-instagram": "^1.0.0",
     "passport-linkedin": "^1.0.0",
+    "passport-linkedin-oauth2": "^1.5.0",
     "passport-local": "^1.0.0",
     "passport-oauth2": "^1.1.2",
     "passport-twitter": "^1.0.0",
     "path": "^0.12.7",
     "raven-js": "^3.22.3",
+    "request": "latest",
     "serve-favicon": "^2.0.1",
     "sharp": "^0.20.1",
     "socket.io": "^2.0.3",
@@ -63,8 +65,7 @@
     "twilio-video": "^1.2.2",
     "uid2": "latest",
     "unirest": "^0.5.1",
-    "weak-map": "^1.0.5",
-    "request": "latest"
+    "weak-map": "^1.0.5"
   },
   "devDependencies": {
     "eslint": "^2.13.1",

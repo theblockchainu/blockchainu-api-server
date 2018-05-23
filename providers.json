@@ -122,5 +122,20 @@
     "approvalPrompt": "force",
     "session": true,
     "domain": ".peerbuds.com"
+  },
+  "linkedin-login": {
+    "provider": "linkedin",
+    "module": "passport-linkedin-oauth2",
+    "callbackURL": "/auth/linkedin/callback",
+    "authPath": "/auth/linkedin",
+    "callbackPath": "/auth/linkedin/callback",
+    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "failureRedirect": "https://peerbuds.com/login",
+    "clientID": "8127t6ennuwft1",
+    "clientSecret": "6oFiodWubyfkHuET",
+    "scope": ["r_basicprofile", "r_emailaddress", "r_network", "w_share"],
+    "state": true,
+    "json": false,
+    "domain": ".peerbuds.com"
   }
 }
