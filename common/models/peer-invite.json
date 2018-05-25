@@ -29,6 +29,9 @@
     },
     "status": {
       "type": "string"
+    },
+    "contactId": {
+      "type": "string"
     }
   },
   "validations": [],
@@ -39,6 +42,13 @@
       "foreignKey": "targetId",
       "through": "community_has_invite",
       "keyThrough": "sourceId"
+    },
+    "contacts": {
+      "type": "hasMany",
+      "model": "contact",
+      "foreignKey": "sourceId",
+      "through": "invite_has_contact",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
