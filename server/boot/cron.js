@@ -404,14 +404,13 @@ module.exports = function setupCron(server) {
 													endDateTime.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
 													endDateTime.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
 													endDateTime.seconds('00');
-													const teacherTimezone = collection.owners()[0].profiles()[0].timezone;
+													const teacherTimezone = collection.owners()[0].profiles()[0].timezone? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
 													startDateTime = startDateTime.tz(teacherTimezone);
 													endDateTime = endDateTime.tz(teacherTimezone);
 													/* console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');*/
-													if ((content.type !== 'video') && startDateTime.diff(now, 'minutes') >= 60 && startDateTime.diff(now, 'minutes') < 70) {
+													if ((content.type !== 'video') && startDateTime.diff(now, 'minutes') >= 60 && startDateTime.diff(now, 'minutes') < 70 ) {
 														// Upcoming activity starts in 1 hour. Send notification and email to all participants
 														collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
-															console.log('got participants');
 															if (!err && participantInstances.length > 0) {
 																const activityTitle = _.upperFirst(content.title);
 																const collectionTitle = _.upperFirst(collection.title);
@@ -420,16 +419,16 @@ module.exports = function setupCron(server) {
 																const calendarId = calendar.id;
 																const activityId = content.id;
 																const collectionType = _.upperFirst(collection.type);
-																const activityImage = content.imageUrl ? content.imageUrl: '/no-image.jpg';
-																const activityAddress = content.locations() && content.locations().length > 0 ? content.locations()[0].toString() : '';
-																const teacherImage = collection.owners()[0].profiles()[0].picture_url;
+																const activityImage = content.imageUrl ? content.imageUrl: '/assets/images/no-image.jpg';
+																const activityAddress = content.locations() && content.locations().length > 0 ? '#' + content.locations()[0].apt_suite + ', ' + content.locations()[0].street_address + ', ' + content.locations()[0].city + ', ' + content.locations()[0].state + ', ' + content.locations()[0].country + ' ' + content.locations()[0].zip : '';
+																const teacherImage = collection.owners()[0].profiles()[0].picture_url? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
 																const teacherName = _.upperFirst(collection.owners()[0].profiles()[0].first_name) + ' ' + _.upperFirst(collection.owners()[0].profiles()[0].last_name);
 																const teacherHeadline = _.upperFirst(collection.owners()[0].profiles()[0].headline);
-																const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching()).toString();
+																const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topic => topic.name)).toString();
 																const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
 																const participantCount = participantInstances.length;
 																participantInstances.forEach(participantInstance => {
-																	const studentTimezone = participantInstance.profiles()[0].timezone;
+																	const studentTimezone = participantInstance.profiles()[0].timezone? participantInstance.profiles()[0].timezone.toUpperCase() : 'PST';
 																	const startTime = startDateTime.tz(studentTimezone).format('h:mm a');
 																	const endTime = endDateTime.tz(studentTimezone).format('h:mm a');
 																	const studentName = _.upperFirst(participantInstance.profiles()[0].first_name) + ' ' + _.upperFirst(participantInstance.profiles()[0].last_name);
@@ -563,11 +562,11 @@ module.exports = function setupCron(server) {
 												// Upcoming peer session starts in 10 minutes. Send notification and email to student and teacher
 												//console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);
 												// Send email to student
-												const teacherImage = collection.owners()[0].profiles()[0].picture_url;
+												const teacherImage = collection.owners()[0].profiles()[0].picture_url? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
 												const teacherHeadline = collection.owners()[0].profiles()[0].headline;
 												const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topics => topics.name)).toString();
 												const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance: '0';
-												const studentImage = sessionParticipants[0].profiles()[0].picture_url;
+												const studentImage = sessionParticipants[0].profiles()[0].picture_url ? sessionParticipants[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
 												const studentHeadline = sessionParticipants[0].profiles()[0].headline;
 												const studentTopics = _.uniq(sessionParticipants[0].topicsTeaching().map(topics => topics.name)).toString();
 												const studentGyan = sessionParticipants[0].wallet() ? sessionParticipants[0].wallet()[0].gyan_balance : '0';
