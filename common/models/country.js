@@ -11,7 +11,7 @@ module.exports = function (Country) {
         countries.forEach(function (country) {
 
             var newCountry = {};
-            newCountry.name = country.name.official;
+            newCountry.name = country.name.common;
             newCountry.currency = country.currency;
             newCountry.callingCode = country.callingCode;
             newCountry.capital = country.capital;
