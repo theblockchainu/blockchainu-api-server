@@ -416,8 +416,8 @@ module.exports = function (Peer) {
 					fn (err);
 				} else if ((phoneNumberInstances && phoneNumberInstances.length > 0) && (phone !== '7021517299' && phone !== 7021517299)) {
 					let belongsToUser = false;
-					phoneNumberInstances.forEach(phoneNumber => {
-						if (phoneNumber.toJSON().profilePhoneNumber !== undefined && phoneNumber.toJSON().profilePhoneNumber.length > 0 && phoneNumber.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {
+					phoneNumberInstances.forEach(phoneNumberInstance => {
+						if (phoneNumberInstance.toJSON().profilePhoneNumber !== undefined && phoneNumberInstance.toJSON().profilePhoneNumber.length > 0 && phoneNumberInstance.toJSON().profilePhoneNumber[0].peer !== undefined && phoneNumberInstance.toJSON().profilePhoneNumber[0].peer[0].id === loggedinPeer) {
 							belongsToUser = true;
 						}
 					});
@@ -673,9 +673,9 @@ module.exports = function (Peer) {
 		
 	};
 	
-	Peer.forgotPassword = function (req, email, cb) {
+	Peer.forgotPassword = function (req, body, cb) {
 		cb = cb || utils.createPromiseCallback();
-		this.findOne({ where: { email: email } }, function (err, user) {
+		this.findOne({ where: { email: body.email } }, function (err, user) {
 			if (user) {
 				// Generate new verificationToken
 				let verificationToken = passcode.hotp({
@@ -689,17 +689,17 @@ module.exports = function (Peer) {
 						cb(err);
 					} else {
 						// Send token in email to user.
-						let resetLink = req.headers.origin + '/reset?email=' + email + '&code=' + verificationToken;
+						let resetLink = req.headers.origin + '/reset?email=' + body.email + '&code=' + verificationToken;
 						let message = { resetLink: resetLink };
 						let renderer = loopback.template(path.resolve(__dirname, '../../server/views/forgotPasswordEmail.ejs'));
 						let html_body = renderer(message);
 						loopback.Email.send({
-							to: email,
+							to: body.email,
 							from: 'Peerbuds <noreply@mx.peerbuds.com>',
 							subject: 'Peerbuds - Account recovery',
 							html: html_body
 						}).then(function (response) {
-							cb(null, { email: email, sent: true });
+							cb(null, { email: body.email, sent: true });
 						}).catch(function (err) {
 							cb(err);
 						});
@@ -1511,7 +1511,7 @@ module.exports = function (Peer) {
 					description: 'Forgot password for a user with email.',
 					accepts: [
 						{ arg: 'req', type: 'object', http: { source: 'req' } },
-						{ arg: 'email', type: 'string', required: true }
+						{ arg: 'body', type: 'object', required: true, http: { source: 'body'}}
 					],
 					returns: { arg: 'response', type: 'object', root: true },
 					http: { verb: 'post', path: '/forgotPassword' }

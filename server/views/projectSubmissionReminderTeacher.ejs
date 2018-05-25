@@ -5,7 +5,7 @@
 </head>
 
 <body>
-<div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
     <!-- Header -->
     <div style="vertical-align: middle; ">
         <img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"></span>
@@ -17,13 +17,32 @@
     <!-- Body -->
     <div>
         <div style="font-size: 17px; margin-top: 25px;">
-            Hey there,
+            Hey <%= teacherName %>,
         </div>
         <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
-            Have you checked the entries submitted for project -- <%= title %>,  due today at <%= time %>?  Start viewing entries and add your assessment grade to each project.
+            Submissions for this project ends today at <%= endTime %>.
+            <br><br>
+            If you have any student queries about this project, this is the last chance to address those.
+            <br><br><br>
+            <div style="display: inline-block; width: 30%;">
+                <img src="https://peerbuds.com:3000<%= activityImage %>" alt="Activity Image" style="width: 100%;">
+            </div>
+            <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: top;">
+                <b><%= activityTitle %></b>
+                <br>
+                <%= collectionTitle %>
+                <br>
+                <%= collectionType %>
+                <br>
+                <br>
+                Submissions by <%= endTime %>
+                <br><br>
+                <b><%= participantCount %> participants</b>
+            </div>
+            <br><br>
         </div>
         <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://peerbuds.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>/<%= contentId%>">View entries</a>
+            <a style="color: white; text-decoration: none;" href="https://peerbuds.com/<%= collectionType %>/<%= collectionId %>/<%= calendarId %>/<%= activityId %>">View Entries</a>
         </div>
     </div>
     <!-- Signature -->

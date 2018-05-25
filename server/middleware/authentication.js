@@ -1,6 +1,18 @@
 var app = require('../server');
 var moment = require('moment');
+let _ = require('lodash');
 module.exports = function(options) {
+	
+	const exemptUrls = [
+			'api/peers/forgotPassword',
+			'api/peers/resetPassword'
+	];
+	
+	const exemptModels = [
+			'container',
+			'emailSubscription',
+			'guestContact'
+	];
 	
 	const getHeaderAccessToken = function (req) {
 		if (req.headers && req.headers.hasOwnProperty('access_token') && req.headers.access_token.length > 0) {
@@ -20,20 +32,16 @@ module.exports = function(options) {
 		}
 	};
 	
-	const isRESTapi = function(url) {
-		if (url.split('/').length > 2 && url.split('/')[1] === 'api') {
-			return true;
-		} else {
-			return false;
-		}
+	const isSecureUrl = function(url) {
+		return url.split('/').length > 2 && url.split('/')[1] === 'api' && _.find(exemptUrls, (exUrl) => exUrl === _.join(_.slice(url.split('/'), 1), '/').split('?')[0]) === undefined
 	};
 	
 	return function authenticationHandler(req, res, next) {
 		const access_token = getHeaderAccessToken(req);
-		if (isRESTapi(req.url)) {
+		if (isSecureUrl(req.url)) {
 			let urlModel = getSingularName(req.url.split('/')[2].split('?')[0]);
 			const model = app.models[urlModel];
-			if (urlModel !== 'container') {
+			if (!_.find(exemptModels, (exModels) => exModels === urlModel)) {
 				// console.log('Request for model: ' + model.name + '. Access Token: ' + access_token);
 				if (access_token !== null) {
 					// TODO: authenticated user. Fetch his account and add it to the req object.

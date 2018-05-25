@@ -52,8 +52,8 @@
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "http://localhost:8080/home/homefeed",
+    "failureRedirect": "http://localhost:8080/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",

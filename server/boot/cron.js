@@ -380,7 +380,7 @@ module.exports = function setupCron(server) {
 	/*const upcomingActivityCron = new CronJob('*!/20 * * * * *',*/
 			function() {
 				console.info('\n\n***********\nRunning 10 minute cron job. Functions: \n- Check if any upcoming activities in the next hour and send reminder emails to student and teacher\n**********\n\n');
-				server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': ['profiles', 'topicsTeaching', 'wallet']}]}, function(err, collectionInstances){
+				server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': ['profiles', 'topicsTeaching', 'wallet', 'topicsTeaching']}]}, function(err, collectionInstances){
 					collectionInstances.forEach(collection => {
 						try {
 							if (collection.calendars() !== undefined) {
@@ -395,30 +395,63 @@ module.exports = function setupCron(server) {
 											let schedules = content.schedules();
 											let scheduleData = schedules[0];
 											if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-												let startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
-												let endDate = moment(startDate).add(scheduleData.endDay, 'days');
+												let startDateTime = moment(calendar.startDate).add(scheduleData.startDay, 'days');
+												let endDateTime = moment(startDateTime).add(scheduleData.endDay, 'days');
 												if (scheduleData.startTime && scheduleData.endTime) {
-													startDate.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-													startDate.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-													startDate.seconds('00');
-													endDate.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-													endDate.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-													endDate.seconds('00');
-													//console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');
-													if ((content.type !== 'video') && startDate.diff(now, 'minutes') >= 60 && startDate.diff(now, 'minutes') < 70) {
-														// Upcoming online session starts in 1 hour. Send notification and email to all participants
+													startDateTime.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
+													startDateTime.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
+													startDateTime.seconds('00');
+													endDateTime.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
+													endDateTime.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
+													endDateTime.seconds('00');
+													const teacherTimezone = collection.owners()[0].profiles()[0].timezone;
+													startDateTime = startDateTime.tz(teacherTimezone);
+													endDateTime = endDateTime.tz(teacherTimezone);
+													/* console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');*/
+													if ((content.type !== 'video') && startDateTime.diff(now, 'minutes') >= 60 && startDateTime.diff(now, 'minutes') < 70) {
+														// Upcoming activity starts in 1 hour. Send notification and email to all participants
 														collection.__get__participants({'relWhere': {'calendarId': calendar.id}, 'include': 'profiles'}, function(err, participantInstances){
+															console.log('got participants');
 															if (!err && participantInstances.length > 0) {
+																const activityTitle = _.upperFirst(content.title);
+																const collectionTitle = _.upperFirst(collection.title);
+																const collectionId = collection.id;
+																const collectionCalendarId = calendar.id;
+																const calendarId = calendar.id;
+																const activityId = content.id;
+																const collectionType = _.upperFirst(collection.type);
+																const activityImage = content.imageUrl ? content.imageUrl: '/no-image.jpg';
+																const activityAddress = content.locations() && content.locations().length > 0 ? content.locations()[0].toString() : '';
+																const teacherImage = collection.owners()[0].profiles()[0].picture_url;
+																const teacherName = _.upperFirst(collection.owners()[0].profiles()[0].first_name) + ' ' + _.upperFirst(collection.owners()[0].profiles()[0].last_name);
+																const teacherHeadline = _.upperFirst(collection.owners()[0].profiles()[0].headline);
+																const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching()).toString();
+																const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
+																const participantCount = participantInstances.length;
 																participantInstances.forEach(participantInstance => {
-																	/*console.log('Sending notification to participant ' + participantInstance.toJSON().profiles[0].first_name + ' ' + participantInstance.toJSON().profiles[0].last_name + ' of ' + collection.title + ' for activity: ' + content.title);*/
+																	const studentTimezone = participantInstance.profiles()[0].timezone;
+																	const startTime = startDateTime.tz(studentTimezone).format('h:mm a');
+																	const endTime = endDateTime.tz(studentTimezone).format('h:mm a');
+																	const studentName = _.upperFirst(participantInstance.profiles()[0].first_name) + ' ' + _.upperFirst(participantInstance.profiles()[0].last_name);
 																	// Send email to student
 																	let message = {
-																		title: content.title,
-																		time: startDate.format('hh:mm a'),
-																		type: collection.type,
-																		collectionId: collection.id,
-																		calendarId: calendar.id,
-																		contentId: content.id
+																		startTime: startTime,
+																		endTime: endTime,
+																		activityTitle: activityTitle,
+																		collectionTitle: collectionTitle,
+																		collectionId: collectionId,
+																		calendarId: calendarId,
+																		collectionCalendarId: collectionCalendarId,
+																		activityId: activityId,
+																		collectionType: collectionType,
+																		activityImage: activityImage,
+																		activityAddress: activityAddress,
+																		teacherImage: teacherImage,
+																		teacherName: teacherName,
+																		teacherHeadline: teacherHeadline,
+																		teacherTopics: teacherTopics,
+																		teacherGyan: teacherGyan,
+																		studentName: studentName
 																	};
 																	let renderer;
 																	if (content.type === 'online') {
@@ -434,31 +467,7 @@ module.exports = function setupCron(server) {
 																	loopback.Email.send({
 																		to: participantInstance.email,
 																		from: 'Peerbuds <noreply@mx.peerbuds.com>',
-																		subject: 'Upcoming ' + content.type + ' session',
-																		html: html_body
-																	})
-																			.then(function (response) {
-																				console.log('email sent! - ');
-																			})
-																			.catch(function (err) {
-																				console.log('email error! - ' + err);
-																			});
-																	
-																	// send email to teacher
-																	if (content.type === 'online') {
-																		renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
-																	}
-																	else if (content.type === 'project') {
-																		renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
-																	}
-																	else {
-																		renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
-																	}
-																	html_body = renderer(message);
-																	loopback.Email.send({
-																		to: collection.owners()[0].email,
-																		from: 'Peerbuds <noreply@mx.peerbuds.com>',
-																		subject: 'Upcoming ' + content.type + ' session',
+																		subject: 'Upcoming ' + content.type + ' activity',
 																		html: html_body
 																	})
 																			.then(function (response) {
@@ -468,6 +477,51 @@ module.exports = function setupCron(server) {
 																				console.log('email error! - ' + err);
 																			});
 																});
+																let renderer;
+																const startTime = startDateTime.tz(teacherTimezone).format('h:mm a');
+																const endTime = endDateTime.tz(teacherTimezone).format('h:mm a');
+																let message = {
+																	startTime: startTime,
+																	endTime: endTime,
+																	activityTitle: activityTitle,
+																	collectionTitle: collectionTitle,
+																	collectionId: collectionId,
+																	calendarId: calendarId,
+																	collectionCalendarId: collectionCalendarId,
+																	activityId: activityId,
+																	collectionType: collectionType,
+																	activityImage: activityImage,
+																	activityAddress: activityAddress,
+																	teacherImage: teacherImage,
+																	teacherName: teacherName,
+																	teacherHeadline: teacherHeadline,
+																	teacherTopics: teacherTopics,
+																	teacherGyan: teacherGyan,
+																	participantCount: participantCount
+																};
+																// send email to teacher
+																if (content.type === 'online') {
+																	renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
+																}
+																else if (content.type === 'project') {
+																	renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
+																}
+																else {
+																	renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
+																}
+																let html_body = renderer(message);
+																loopback.Email.send({
+																	to: collection.owners()[0].email,
+																	from: 'Peerbuds <noreply@mx.peerbuds.com>',
+																	subject: 'Upcoming ' + content.type + ' activity',
+																	html: html_body
+																})
+																		.then(function (response) {
+																			console.log('email sent! - ');
+																		})
+																		.catch(function (err) {
+																			console.log('email error! - ' + err);
+																		});
 															}
 														});
 													}
@@ -512,11 +566,11 @@ module.exports = function setupCron(server) {
 												const teacherImage = collection.owners()[0].profiles()[0].picture_url;
 												const teacherHeadline = collection.owners()[0].profiles()[0].headline;
 												const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topics => topics.name)).toString();
-												const teacherGyan = collection.owners()[0].wallet()[0].gyan_balance;
+												const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance: '0';
 												const studentImage = sessionParticipants[0].profiles()[0].picture_url;
 												const studentHeadline = sessionParticipants[0].profiles()[0].headline;
 												const studentTopics = _.uniq(sessionParticipants[0].topicsTeaching().map(topics => topics.name)).toString();
-												const studentGyan = sessionParticipants[0].wallet()[0].gyan_balance;
+												const studentGyan = sessionParticipants[0].wallet() ? sessionParticipants[0].wallet()[0].gyan_balance : '0';
 												let message = {
 													date: startDateTime.tz(studentTimezone).format('Do MMM, YYYY'),
 													startTime: startDateTime.tz(studentTimezone).format('h:mm a'),
