@@ -132,7 +132,11 @@
     "successRedirect": "http://localhost:8080/home/homefeed",
     "clientID": "8127t6ennuwft1",
     "clientSecret": "6oFiodWubyfkHuET",
-    "scope": ["r_basicprofile", "r_emailaddress", "r_network", "w_share"],
+    "scope": [
+      "r_basicprofile",
+      "r_emailaddress",
+      "w_share"
+    ],
     "state": true,
     "domain": "localhost"
   }
