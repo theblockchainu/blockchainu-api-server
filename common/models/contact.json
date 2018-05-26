@@ -45,6 +45,13 @@
       "foreignKey": "targetId",
       "through": "peer_has_contact",
       "keyThrough": "sourceId"
+    },
+    "invite": {
+      "type": "hasMany",
+      "model": "peer_invite",
+      "foreignKey": "targetId",
+      "through": "invite_has_contact",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

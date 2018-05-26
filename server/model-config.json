@@ -784,5 +784,9 @@
   "story_has_topic": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "invite_has_contact": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

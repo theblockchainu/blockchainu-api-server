@@ -2,6 +2,9 @@
   "name": "assessment_rule",
   "base": "PersistedModel",
   "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
   "mixins": {
     "TimeStamp": {
       "createdAt": "createdAt",
@@ -9,9 +12,6 @@
       "required": false
     },
     "GlobalUtils": {}
-  },
-  "options": {
-    "validateUpsert": true
   },
   "properties": {
     "value": {

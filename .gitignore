@@ -73,3 +73,5 @@ licode/
 
 #private keys
 server/private/
+
+.eslintrc.json

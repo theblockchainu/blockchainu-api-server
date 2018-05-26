@@ -5,56 +5,71 @@
 </head>
 
 <body>
-<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
-	<!-- Header -->
-	<div style="vertical-align: middle; ">
-		<img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #ff5b5f"></span>
-	</div>
-	<!-- Title -->
-	<div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-		You have been invited!
-	</div>
-	<!-- Body -->
-	<div>
-		<div style="font-size: 17px; margin-top: 25px;">
-			Hey <%= inviteeName %>,
+	<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+		<!-- Header -->
+		<div style="vertical-align: middle; ">
+			<img src="https://peerbuds.com/assets/images/pb_logo.png" width="auto" height="35px">
+			<span style="position: relative; top: -14px; color: #ff5b5f"></span>
 		</div>
-		<div style="font-size: 17px; margin-top: 10px; line-height: 24px">
-			<b><%= invitorName %></b> has invited you to join peerbuds.com
-			<br><br>
-			                          Peerbuds is a protocol built on blockchain technology and is transforming the education industry.
-			<br><br>
-			                          Peerbuds.com empowers to you gain 100% control and ownership of your education data across all schools, colleges, workplaces and online platforms. All your learning activity is instantly validated and can be shared easily with anyone with complete privacy and control.
-			<br><br>
-			                          That is not all, you get rewarded with Karma for all your efforts - across any partner platform - which can then be used to pay for your classes. Join peerbuds.com now to learn how blockchain and peerbuds are creating a knowledge economy.
-			<br><br><br>
-			<div style="vertical-align: middle">
-				<div style="display: inline-block; width: 15%; vertical-align: middle;">
-					<img src="https://peerbuds.com:3000<%= invitorImage %>" alt="Activity Image" style="width: 100%; border-radius: 200px;">
-				</div>
-				<div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
-					<b><%= invitorName %></b>
-					<br>
-					<%= invitorHeadline %>
+		<!-- Title -->
+		<div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+			You have been invited!
+		</div>
+		<!-- Body -->
+		<div>
+			<div style="font-size: 17px; margin-top: 25px;">
+				Hey
+				<%= inviteeName %>,
+			</div>
+			<div style="font-size: 17px; margin-top: 10px; line-height: 24px">
+				<b>
+					<%= invitorName %>
+				</b> has invited you to join peerbuds.com
+				<br>
+				<br> Peerbuds is a protocol built on blockchain technology and is transforming the education industry.
+				<br>
+				<br> Peerbuds.com empowers to you gain 100% control and ownership of your education data across all schools, colleges, workplaces
+				and online platforms. All your learning activity is instantly validated and can be shared easily with anyone with complete
+				privacy and control.
+				<br>
+				<br> That is not all, you get rewarded with Karma for all your efforts - across any partner platform - which can then be
+				used to pay for your classes. Join peerbuds.com now to learn how blockchain and peerbuds are creating a knowledge economy.
+				<br>
+				<br>
+				<br>
+				<div style="vertical-align: middle">
+					<div style="display: inline-block; width: 15%; vertical-align: middle;">
+						<img src="https://peerbuds.com:3000<%= invitorImage %>" alt="Activity Image" style="width: 100%; border-radius: 200px;">
+					</div>
+					<div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
+						<b>
+							<%= invitorName %>
+						</b>
+						<br>
+						<%= invitorHeadline %>
+					</div>
 				</div>
 			</div>
+			<div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+				<a style="color: white; text-decoration: none;" href="https://peerbuds.com/sign-up/invite/<%= invitationCode %>">Accept Invitation</a>
+			</div>
 		</div>
-		<div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #ff5b5f; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-			<a style="color: white; text-decoration: none;" href="https://peerbuds.com/sign-up/invite/<%= invitationCode %>">Accept Invitation</a>
+		<!-- Signature -->
+		<div style="font-size: 13px; margin-top: 30px; line-height: 24px; text-align: center; color: #bbb; font-weight: 300">
+			You are receiving this email because you were listed in
+			<%=invitorFirstName %>’s
+				<%= invitorContactProvider %> Contacts and
+					<%=invitorFirstName %> requested to invite you to peerbuds.com
+		</div>
+		<!-- Footer -->
+		<hr style="margin-top: 40px; background-color: #dbdbdb;">
+		<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+			Sent with
+			<span style="font-size: 11px;">&hearts;</span> from Peerbuds
+			<br>
+			<br> Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
 		</div>
 	</div>
-	<!-- Signature -->
-	<div style="font-size: 13px; margin-top: 30px; line-height: 24px; text-align: center; color: #bbb; font-weight: 300">
-		You are receiving this email because you were listed in <%=invitorFirstName %>’s <%= invitorContactProvider %> Contacts and <%=invitorFirstName %> requested to invite you to peerbuds.com
-	</div>
-	<!-- Footer -->
-	<hr style="margin-top: 40px; background-color: #dbdbdb;">
-	<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
-		Sent with <span style="font-size: 11px;">&hearts;</span> from Peerbuds
-		<br><br>
-		Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
-	</div>
-</div>
 </body>
 
 </html>
