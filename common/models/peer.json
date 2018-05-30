@@ -409,6 +409,13 @@
       "foreignKey": "targetId",
       "through": "story_has_viewer",
       "keyThrough": "sourceId"
+    },
+    "requestedStories": {
+      "type": "hasMany",
+      "model": "knowledge_story",
+      "foreignKey": "targetId",
+      "through": "story_has_request",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
