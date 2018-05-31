@@ -5,7 +5,7 @@
     "usernameField": "email",
     "passwordField": "password",
     "authPath": "/auth/local",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "failureFlash": true,
     "setAccessToken": true,
@@ -32,7 +32,7 @@
     "authPath": "/auth/facebook",
     "callbackPath": "/auth/facebook/callback",
     "passReqToCallback": true,
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "scope": [
       "email",
@@ -52,7 +52,7 @@
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -88,7 +88,7 @@
     "callbackURL": "/link/facebook/callback",
     "authPath": "/link/facebook",
     "callbackPath": "/link/facebook/callback",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "scope": [
       "email",
@@ -109,7 +109,7 @@
     "callbackURL": "/link/google/callback",
     "authPath": "/link/google",
     "callbackPath": "/link/google/callback",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -129,7 +129,7 @@
     "callbackURL": "/auth/linkedin/callback",
     "authPath": "/auth/linkedin",
     "callbackPath": "/auth/linkedin/callback",
-    "successRedirect": "https://peerbuds.com/home/homefeed",
+    "successRedirect": "https://peerbuds.com/home",
     "failureRedirect": "https://peerbuds.com/login",
     "clientID": "8127t6ennuwft1",
     "clientSecret": "6oFiodWubyfkHuET",
