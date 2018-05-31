@@ -1,12 +1,13 @@
 {
-  "name": "invite_has_contact",
+  "name": "story_has_request",
+  "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer_invite",
-    "targetModel": "contact"
+    "sourceModel": "knowledge_story",
+    "targetModel": "peer"
   },
   "properties": {
     "id": {
@@ -22,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer_invite": {
+    "knowledge_story": {
       "type": "belongsTo",
-      "model": "peer_invite",
+      "model": "knowledge_story",
       "foreignKey": "sourceId"
     },
-    "contact": {
+    "peer": {
       "type": "belongsTo",
-      "model": "contact",
+      "model": "peer",
       "foreignKey": "targetId"
     }
   },
