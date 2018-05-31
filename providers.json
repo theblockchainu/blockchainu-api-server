@@ -138,8 +138,8 @@
       "r_emailaddress",
       "w_share"
     ],
-    "state": true,
     "json": false,
+    "session": true,
     "domain": ".peerbuds.com"
   }
 }

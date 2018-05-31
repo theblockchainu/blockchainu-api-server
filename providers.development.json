@@ -130,6 +130,7 @@
     "authPath": "/auth/linkedin",
     "callbackPath": "/auth/linkedin/callback",
     "successRedirect": "http://localhost:8080/home/homefeed",
+    "failureRedirect": "http://localhost:8080/login",
     "clientID": "8127t6ennuwft1",
     "clientSecret": "6oFiodWubyfkHuET",
     "scope": [
@@ -137,7 +138,8 @@
       "r_emailaddress",
       "w_share"
     ],
-    "state": true,
+    "session": true,
+    "json": false,
     "domain": "localhost"
   }
 }

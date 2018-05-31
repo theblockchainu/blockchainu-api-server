@@ -100,7 +100,7 @@ app.middleware('session', session({
     cookie: {
         domain: cookieDomain,
         httpOnly: false,
-        secure: true
+        secure: false
     }
 }));
 

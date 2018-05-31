@@ -11,7 +11,9 @@ module.exports = function(options) {
 	const exemptModels = [
 			'container',
 			'emailSubscription',
-			'guestContact'
+			'guestContact',
+			'country',
+			'currency'
 	];
 	
 	const getHeaderAccessToken = function (req) {
