@@ -438,9 +438,57 @@ app.post('/convertCurrency', function (req, res, next) {
 });
 
 
-app.post('/getKarmaValue', function (req, res, next) {
-    //karma login here
-    res.json({ karma: req.body.gyan });
+app.post('/getKarmaToBurn', function (req, res, next) {
+	request
+			.get({
+				url: app.get('protocolUrl') + 'gyan/' + req.body.gyan + '/karma',
+				json: true
+			}, function(err, response, data) {
+				if (err) {
+					console.error(err);
+					next(err);
+				} else {
+					console.log('Got karma to burn: ' + data);
+					res.json({ karma: data});
+				}
+			});
+});
+
+app.get('/karmaToDollar', function (req, res, next) {
+	request
+			.get({
+				url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+				json: true
+			}, function(err, response, data) {
+				if (err) {
+					console.error(err);
+					next(err);
+				} else {
+					console.log('Got eth rate: ' + data);
+					const dollarPerEther = parseFloat(data.USD);
+					const karmaPerEther = app.get('karmaRate');
+					res.json({USD: (req.query.karma * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
+				}
+			});
+});
+
+app.get('/gyanToDollar', function (req, res, next) {
+	request
+			.get({
+				url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+				json: true
+			}, function(err, response, data) {
+				if (err) {
+					console.error(err);
+					next(err);
+				} else {
+					console.log('Got eth rate: ' + data);
+					const dollarPerEther = parseFloat(data.USD);
+					const karmaRewardPerGyan = 1;   // TODO: Calculate potential Karma earnings from knowledge pool based on Gyan ranking
+					const karmaPerEther = app.get('karmaRate');
+					res.json({USD: (req.query.gyan * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
+				}
+			});
 });
 
 app.get('/login', function (req, res, next) {

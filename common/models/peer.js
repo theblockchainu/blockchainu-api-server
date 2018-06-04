@@ -990,8 +990,27 @@ module.exports = function (Peer) {
 								console.error(err);
 								cb(err);
 							} else {
-								console.log('Got gyan balance of user: ' + response);
-								cb(null, data);
+								console.log('Got gyan balance of user: ' + data);
+								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
+									request
+											.get({
+												url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+												json: true
+											}, function(err, response, data1) {
+												if (err) {
+													console.error(err);
+													next(err);
+												} else {
+													console.log('Got eth rate: ' + data1.USD);
+													const dollarPerEther = parseFloat(data1.USD);
+													const karmaRewardPerGyan = 1;   // TODO: Calculate potential Karma earnings from knowledge pool based on Gyan ranking
+													const karmaPerEther = app.get('karmaRate');
+													cb(null, (data * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+												}
+											});
+								} else {
+									cb(null, data);
+								}
 							}
 						});
 			}
@@ -1018,8 +1037,26 @@ module.exports = function (Peer) {
 								console.error(err);
 								cb(err);
 							} else {
-								console.log('Got karma balance of user: ' + response);
-								cb(null, data);
+								console.log('Got karma balance of user: ' + data);
+								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
+									request
+											.get({
+												url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+												json: true
+											}, function(err, response, data1) {
+												if (err) {
+													console.error(err);
+													next(err);
+												} else {
+													console.log('Got eth rate: ' + data1.USD);
+													const dollarPerEther = parseFloat(data1.USD);
+													const karmaPerEther = app.get('karmaRate');
+													cb(null, (data * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+												}
+											});
+								} else {
+									cb(null, data);
+								}
 							}
 						});
 			}
@@ -1080,6 +1117,24 @@ module.exports = function (Peer) {
 			}
 			
 		});
+	};
+	
+	Peer.karmaSupply = function (cb) {
+		
+		// Get from blockchain
+		request
+				.get({
+					url: protocolUrl + 'karma',
+					json: true
+				}, function(err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(err);
+					} else {
+						console.log('Got karma supply: ' + data);
+						cb(null, data);
+					}
+				});
 	};
 	
 	
@@ -1587,6 +1642,14 @@ module.exports = function (Peer) {
 					],
 					returns: { arg : 'result', type: 'object', root: true },
 					http: { path: '/:id/fixWallet', verb: 'post' }
+				}
+		);
+		
+		PeerModel.remoteMethod(
+				'karmaSupply',
+				{
+					returns: { arg : 'result', type: 'object', root: true },
+					http: { path: '/karmaSupply', verb: 'get' }
 				}
 		);
 		

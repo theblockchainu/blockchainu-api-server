@@ -74,7 +74,7 @@ module.exports = function (Collection) {
                                                                        if (!err) {
                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
 	
-                                                                           // Record this on blockchain
+                                                                           // Record student participation in an experience on blockchain
                                                                            request
                                                                                    .put({
                                                                                        url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
@@ -87,7 +87,7 @@ module.exports = function (Collection) {
 	                                                                                       console.error(err);
 	                                                                                       next(err);
                                                                                        } else {
-	                                                                                       console.log('Recorded participation on blockchain ' + data);
+	                                                                                       console.log('Recorded student participation on blockchain ' + data);
                                                                                        }
                                                                                    });
                                                                            

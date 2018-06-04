@@ -34,5 +34,6 @@
   "twilioSecret": "AQALVDcDLXIjB3O7Lio1zsrlhnOg1idZ",
   "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
   "uniqueDeveloperCode": "dev",
-  "protocolUrl": "https://api.peerbuds.com/v1/"
+  "protocolUrl": "https://api.peerbuds.com/v1/",
+  "karmaRate": 4000
 }
