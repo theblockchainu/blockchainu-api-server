@@ -1,0 +1,30 @@
+{
+  "name": "cache",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "ethRate": {
+      "type": "number",
+      "default": 0
+    },
+    "karmaMintRate": {
+      "type": "number",
+      "default": 0
+    },
+    "gyanEarnRate": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

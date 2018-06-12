@@ -977,37 +977,115 @@ module.exports = function (Peer) {
 		});
 	};
 	
-	Peer.gyanBalance = function (id, req, cb) {
+	Peer.floatingGyanBalance = function (id, req, cb) {
 		// Find the collection by given ID
 		Peer.findById(id, function (err, peerInstance) {
 			if (!err && peerInstance !== null && peerInstance.ethAddress) {
 				// Get from blockchain
 				request
 						.get({
-							url: protocolUrl + 'gyan/' + peerInstance.ethAddress,
+							url: protocolUrl + 'gyan/' + peerInstance.ethAddress + '/floating',
 						}, function(err, response, data) {
 							if (err) {
 								console.error(err);
 								cb(err);
 							} else {
-								console.log('Got gyan balance of user: ' + data);
+								console.log('Got floating gyan balance of user: ' + data);
 								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-									request
-											.get({
-												url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-												json: true
-											}, function(err, response, data1) {
-												if (err) {
-													console.error(err);
-													next(err);
-												} else {
-													console.log('Got eth rate: ' + data1.USD);
-													const dollarPerEther = parseFloat(data1.USD);
-													const karmaRewardPerGyan = 1;   // TODO: Calculate potential Karma earnings from knowledge pool based on Gyan ranking
-													const karmaPerEther = app.get('karmaRate');
-													cb(null, (data * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
-												}
-											});
+									Peer.app.models.cache.findById('1', function (err, cacheInstance) {
+										if (err) {
+											cb(err);
+										} else {
+											console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+											const dollarPerEther = parseFloat(cacheInstance.ethRate);
+											const karmaRewardPerGyan = parseInt(cacheInstance.karmaMintRate) * 0.65 * Math.max((1 / parseInt(cacheInstance.gyanEarnRate)), 1);
+											const karmaPerEther = app.get('karmaRate');
+											cb(null, (data * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+										}
+									});
+								} else {
+									cb(null, data);
+								}
+							}
+						});
+			}
+			else {
+				err = new Error(g.f('Invalid Peer with ID: %s', id));
+				err.statusCode = 400;
+				err.code = 'INVALID_PEER';
+				cb(err);
+			}
+			
+		});
+	};
+	
+	Peer.fixedGyanBalance = function (id, req, cb) {
+		// Find the collection by given ID
+		Peer.findById(id, function (err, peerInstance) {
+			if (!err && peerInstance !== null && peerInstance.ethAddress) {
+				// Get from blockchain
+				request
+						.get({
+							url: protocolUrl + 'gyan/' + peerInstance.ethAddress + '/fixed',
+						}, function(err, response, data) {
+							if (err) {
+								console.error(err);
+								cb(err);
+							} else {
+								console.log('Got fixed gyan balance of user: ' + data);
+								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
+									Peer.app.models.cache.findById('1', function (err, cacheInstance) {
+										if (err) {
+											cb(err);
+										} else {
+											console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+											const dollarPerEther = parseFloat(cacheInstance.ethRate);
+											const karmaRewardPerGyan = parseInt(cacheInstance.karmaMintRate) * 0.65 * Math.max((1 / parseInt(cacheInstance.gyanEarnRate)), 1);
+											const karmaPerEther = app.get('karmaRate');
+											cb(null, (data * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+										}
+									});
+								} else {
+									cb(null, data);
+								}
+							}
+						});
+			}
+			else {
+				err = new Error(g.f('Invalid Peer with ID: %s', id));
+				err.statusCode = 400;
+				err.code = 'INVALID_PEER';
+				cb(err);
+			}
+			
+		});
+	};
+	
+	Peer.potentialKarmaReward = function (id, req, cb) {
+		// Find the collection by given ID
+		Peer.findById(id, function (err, peerInstance) {
+			if (!err && peerInstance !== null && peerInstance.ethAddress) {
+				// Get from blockchain
+				request
+						.get({
+							url: protocolUrl + 'karma/' + peerInstance.ethAddress + '/potentialRewards',
+						}, function(err, response, data) {
+							if (err) {
+								console.error(err);
+								cb(err);
+							} else {
+								console.log('Got potential karma rewards of user: ' + data);
+								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
+									Peer.app.models.cache.findById('1', function (err, cacheInstance) {
+										if (err) {
+											cb(err);
+										} else {
+											console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+											const dollarPerEther = parseFloat(cacheInstance.ethRate);
+											const karmaPerEther = app.get('karmaRate');
+											cb(null, (data  * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+										}
+									});
 								} else {
 									cb(null, data);
 								}
@@ -1039,21 +1117,16 @@ module.exports = function (Peer) {
 							} else {
 								console.log('Got karma balance of user: ' + data);
 								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-									request
-											.get({
-												url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-												json: true
-											}, function(err, response, data1) {
-												if (err) {
-													console.error(err);
-													next(err);
-												} else {
-													console.log('Got eth rate: ' + data1.USD);
-													const dollarPerEther = parseFloat(data1.USD);
-													const karmaPerEther = app.get('karmaRate');
-													cb(null, (data * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
-												}
-											});
+									Peer.app.models.cache.findById('1', function (err, cacheInstance) {
+										if (err) {
+											cb(err);
+										} else {
+											console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+											const dollarPerEther = parseFloat(cacheInstance.ethRate);
+											const karmaPerEther = app.get('karmaRate');
+											cb(null, (data * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+										}
+									});
 								} else {
 									cb(null, data);
 								}
@@ -1132,6 +1205,24 @@ module.exports = function (Peer) {
 						cb(err);
 					} else {
 						console.log('Got karma supply: ' + data);
+						cb(null, data);
+					}
+				});
+	};
+	
+	Peer.blockTransactions = function(id, req, cb) {
+		const topics = req.query && req.query.topics ? req.query.topics : '';
+		// Get from blockchain
+		request
+				.get({
+					url: protocolUrl + 'peers/' + id + '/transactions?topics=' + topics,
+					json: true
+				}, function(err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(err);
+					} else {
+						console.log('Got transactions of this peer: ' + data);
 						cb(null, data);
 					}
 				});
@@ -1609,14 +1700,26 @@ module.exports = function (Peer) {
 		);
 		
 		PeerModel.remoteMethod(
-				'gyanBalance',
+				'fixedGyanBalance',
 				{
 					accepts: [
 						{ arg: 'id', type: 'string', required: true },
 						{ arg: 'req', type: 'object', http: { source: 'req' } }
 					],
 					returns: { arg: 'result', type: 'object', root: true },
-					http: { path: '/:id/gyanBalance', verb: 'get' }
+					http: { path: '/:id/fixedGyanBalance', verb: 'get' }
+				}
+		);
+		
+		PeerModel.remoteMethod(
+				'floatingGyanBalance',
+				{
+					accepts: [
+						{ arg: 'id', type: 'string', required: true },
+						{ arg: 'req', type: 'object', http: { source: 'req' } }
+					],
+					returns: { arg: 'result', type: 'object', root: true },
+					http: { path: '/:id/floatingGyanBalance', verb: 'get' }
 				}
 		);
 		
@@ -1629,6 +1732,18 @@ module.exports = function (Peer) {
 					],
 					returns: { arg: 'result', type: 'object', root: true },
 					http: { path: '/:id/karmaBalance', verb: 'get' }
+				}
+		);
+		
+		PeerModel.remoteMethod(
+				'potentialKarmaReward',
+				{
+					accepts: [
+						{ arg: 'id', type: 'string', required: true },
+						{ arg: 'req', type: 'object', http: { source: 'req' } }
+					],
+					returns: { arg: 'result', type: 'object', root: true },
+					http: { path: '/:id/potentialRewards', verb: 'get' }
 				}
 		);
 		
@@ -1650,6 +1765,18 @@ module.exports = function (Peer) {
 				{
 					returns: { arg : 'result', type: 'object', root: true },
 					http: { path: '/karmaSupply', verb: 'get' }
+				}
+		);
+		
+		PeerModel.remoteMethod(
+				'blockTransactions',
+				{
+					accepts: [
+						{ arg: 'id', type: 'string', required: true },
+						{ arg: 'req', type: 'object', http: { source: 'req' } },
+					],
+					returns: { arg : 'result', type: 'object', root: true },
+					http: { path: '/:id/blockTransactions', verb: 'get' }
 				}
 		);
 		

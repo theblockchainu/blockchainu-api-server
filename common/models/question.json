@@ -30,7 +30,17 @@
     },
     "text": {
       "type": "string"
-    }
+    },
+    "gyan": {
+      "type": "number"
+    },
+    "scholarshipId": {
+      "type": "string"
+    },
+	  "open": {
+		  "type": "boolean",
+		  "default": true
+	  }
   },
   "validations": [],
   "relations": {

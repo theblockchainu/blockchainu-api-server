@@ -17,9 +17,19 @@ module.exports = function (Assessmentresult) {
                 console.log(calendars);
                 return assessment.assessment_rules.add(assessment.assessmentRuleId);
             })
-            .then(function (assessment_rules) {
-                console.log('assessment_rules');
-                console.log(assessment_rules);
+	        .then(function (assessment_rules) {
+		        console.log('assessment_rules');
+		        console.log(assessment_rules);
+		        return assessment.assessment_na_rules.add(assessment.assessmentEngagementRuleId);
+	        })
+	        .then(function (assessment_na_rules) {
+		        console.log('assessment_engagement_rules');
+		        console.log(assessment_na_rules);
+		        return assessment.assessment_na_rules.add(assessment.assessmentCommitmentRuleId);
+	        })
+            .then(function (assessment_na_rules) {
+                console.log('assessment_commitment_rules');
+                console.log(assessment_na_rules);
                 return assessment.assessees.add(assessment.assesseeId);
             })
             .then(function (assessees) {
@@ -35,7 +45,9 @@ module.exports = function (Assessmentresult) {
 			                   .put({
 				                   url: protocolUrl + 'collections/' + assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].id + '/peers/' + assessmentResultInstance.toJSON().assessees[0].ethAddress,
 				                   body: {
-					                   assessmentResult: assessmentResultInstance.toJSON().assessment_rules[0].value
+					                   assessmentResult: assessmentResultInstance.toJSON().assessment_rules[0].value,
+					                   engagementResult: assessmentResultInstance.toJSON().assessmentEngagementResult,
+					                   commitmentResult: assessmentResultInstance.toJSON().assessmentCommitmentResult
 				                   },
 				                   json: true
 			                   }, function(err, response, data) {
@@ -45,6 +57,7 @@ module.exports = function (Assessmentresult) {
 					                   console.log('Recorded assessment on blockchain: ' + data);
 				                   }
 			                   });
+	                   
                        const userName = assessmentResultInstance.toJSON().assessees[0].profiles[0].first_name + ' ' + assessmentResultInstance.toJSON().assessees[0].profiles[0].last_name;
 	                   const userId = assessmentResultInstance.toJSON().assessees[0].id;
                        const collectionTitle = assessmentResultInstance.toJSON().assessment_rules[0].assessment_models[0].collections[0].title;

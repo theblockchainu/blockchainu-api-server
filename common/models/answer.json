@@ -29,6 +29,10 @@
     },
     "text": {
       "type": "string"
+    },
+    "accept": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

@@ -1,13 +1,13 @@
 {
-  "name": "story_has_request",
+  "name": "assessment_has_assessment_na_rule",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "knowledge_story",
-    "targetModel": "peer"
+    "sourceModel": "assessment_result",
+    "targetModel": "assessment_na_rule"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "knowledge_story": {
+    "assessment_result": {
       "type": "belongsTo",
-      "model": "knowledge_story",
+      "model": "assessment_result",
       "foreignKey": "sourceId"
     },
-    "peer": {
+    "assessment_na_rule": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "assessment_na_rule",
       "foreignKey": "targetId"
     }
   },

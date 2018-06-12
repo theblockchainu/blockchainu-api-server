@@ -21,21 +21,16 @@ module.exports = function (Scholarship) {
 							} else {
 								console.log('Got karma balance of scholarship: ' + data);
 								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-									request
-											.get({
-												url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-												json: true
-											}, function(err, response, data1) {
-												if (err) {
-													console.error(err);
-													next(err);
-												} else {
-													console.log('Got eth rate: ' + data1.USD);
-													const dollarPerEther = parseFloat(data1.USD);
-													const karmaPerEther = app.get('karmaRate');
-													cb(null, (data * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
-												}
-											});
+									Scholarship.app.models.cache.findById('1', function (err, cacheInstance) {
+										if (err) {
+											cb(err);
+										} else {
+											console.log('Got eth rate: ' + cacheInstance.ethRate);
+											const dollarPerEther = parseFloat(cacheInstance.ethRate);
+											const karmaPerEther = app.get('karmaRate');
+											cb(null, (data * (1 / karmaPerEther) * dollarPerEther).toFixed(2));
+										}
+									});
 								} else {
 									cb(null, data);
 								}

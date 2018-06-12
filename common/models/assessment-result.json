@@ -25,6 +25,18 @@
     },
     "assessmentRuleId": {
       "type": "string"
+    },
+    "assessmentEngagementRuleId": {
+      "type": "string"
+    },
+    "assessmentCommitmentRuleId": {
+      "type": "string"
+    },
+    "assessmentEngagementResult": {
+      "type": "number"
+    },
+    "assessmentCommitmentResult": {
+      "type": "number"
     }
   },
   "validations": [],
@@ -55,6 +67,13 @@
       "model": "assessment_rule",
       "foreignKey": "sourceId",
       "through": "assesment_has_assessment_rule",
+      "keyThrough": "targetId"
+    },
+    "assessment_na_rules": {
+      "type": "hasMany",
+      "model": "assessment_na_rule",
+      "foreignKey": "sourceId",
+      "through": "assessment_has_assessment_na_rule",
       "keyThrough": "targetId"
     }
   },

@@ -3,6 +3,7 @@ let loopback = require('loopback');
 let path = require('path');
 let g = require('../../node_modules/loopback/lib/globalize');
 const request = require('request');
+let moment = require('moment');
 
 module.exports = function (Collection) {
 	
@@ -359,8 +360,8 @@ module.exports = function (Collection) {
                 let message = '', subject = '';
                 message = { type: collectionInstance.type };
                 switch (collectionInstance.type) {
-                    case 'workshop':
-                        subject = 'Workshop submitted for review';
+                    case 'class':
+                        subject = 'Class submitted for review';
                         break;
                     case 'experience':
                         subject = 'Experience submitted for review';
@@ -427,12 +428,14 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": "assessment_rules"}, "topics"]}, function (err, collectionInstance) {
+        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": ["assessment_rules", "assessment_na_rules"]}, "topics", {"contents": "schedules"}]}, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
                 let ownerId = collectionInstance.toJSON().owners[0].id;
                 let userId = Collection.app.models.peer.getCookieUserId(req);
                 let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
+	            let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
+                let contents = collectionInstance.toJSON().contents;
                 let topics = collectionInstance.toJSON().topics;
                 collectionInstance.status = 'active';
                 collectionInstance.isApproved = true;
@@ -453,11 +456,11 @@ module.exports = function (Collection) {
                         let title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
-                            case 'workshop':
-                                subject = 'Workshop Approved';
-                                title = 'Workshop Approved!';
+                            case 'class':
+                                subject = 'Class Approved';
+                                title = 'Class Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
+                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Approved';
@@ -533,15 +536,30 @@ module.exports = function (Collection) {
 							                                                        // Add this collection to blockchain.
                                                                                     const assessmentRuleKeys = [];
                                                                                     const assessmentRuleValues = [];
+                                                                                    const nonAcademicRules = [];
                                                                                     const topicArray = [];
+                                                                                    let learningHours = 0;
                                                                                     assessmentRules.forEach(assessmentRule => {
                                                                                         assessmentRuleKeys.push(assessmentRule.value);
                                                                                         assessmentRuleValues.push(assessmentRule.gyan);
                                                                                     });
+							                                                        assessmentNARules.forEach(assessmentNARule => {
+								                                                        if (assessmentNARule.value === 'engagement') {
+								                                                            nonAcademicRules[0] = assessmentNARule.gyan;
+                                                                                        } else if (assessmentNARule.value === 'commitment') {
+								                                                            nonAcademicRules[1] = assessmentNARule.gyan;
+                                                                                        }
+							                                                        });
 							                                                        topics.forEach(topic => {
 								                                                        topicArray.push(topic.name);
 							                                                        });
-							                                                        
+							                                                        contents.forEach(content => {
+							                                                           if (content.schedules && content.schedules.length > 0) {
+								                                                           learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
+                                                                                       }
+                                                                                    });
+							                                                        learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
+							                                                        console.log('total learning hours are: ' + learningHours);
                                                                                     // Add to blockchain
                                                                                     request
 									                                                        .post({
@@ -550,11 +568,13 @@ module.exports = function (Collection) {
 											                                                        uniqueId: collectionInstance.id,
 											                                                        teacherAddress: ownerInstance.ethAddress,
 											                                                        type: collectionInstance.type,
+                                                                                                    learningHours: learningHours,
 											                                                        activityHash: 'NA',
 											                                                        academicGyan: collectionInstance.academicGyan,
 											                                                        nonAcademicGyan: collectionInstance.nonAcademicGyan,
 											                                                        assessmentRuleKeys: assessmentRuleKeys,
 											                                                        assessmentRuleValues: assessmentRuleValues,
+                                                                                                    nonAcademicRules: nonAcademicRules,
 											                                                        topics: topicArray
 										                                                        },
 										                                                        json: true
@@ -643,9 +663,9 @@ module.exports = function (Collection) {
                         let title = '', description = '', actionUrl = [];
                         message = { type: collectionInstance.type};
                         switch (collectionInstance.type) {
-	                        case 'workshop':
-		                        subject = 'Workshop Rejected';
-		                        title = 'Workshop Rejected!';
+	                        case 'class':
+		                        subject = 'Class Rejected';
+		                        title = 'Class Rejected!';
 		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
 		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
 		                        break;
@@ -671,7 +691,7 @@ module.exports = function (Collection) {
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
                         let html_body = renderer(message);
 
-                        // Send email to owner of this workshop
+                        // Send email to owner of this class
                         Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
 
                             if (!err) {
@@ -743,13 +763,13 @@ module.exports = function (Collection) {
             next();
         }
         else if (ctx.args.data.status === 'cancelled') {
-            // cancelling a workshop with participants.
+            // cancelling a class with participants.
             collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
                 if (err) {
                     next(err);
                 }
                 else if (participantInstances !== null && participantInstances.length > 0) {
-                    //Inform all participants that the workshop is cancelled.
+                    //Inform all participants that the class is cancelled.
                     participantInstances.forEach((participantInstance) => {
                         // Send email to participants
                         let message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};

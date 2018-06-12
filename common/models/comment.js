@@ -35,27 +35,27 @@ module.exports = function(Comment) {
 							
 							var actionUrl = [];
 							var notificationConnectedNode, notificationConnectedNodeId;
-							if (commentInstance.toJSON().collections) {
+							if (commentInstance.toJSON().collections && commentInstance.toJSON().collections.length > 0) {
 								actionUrl = [commentInstance.toJSON().collections[0].type, commentInstance.toJSON().collections[0].id];
 								notificationConnectedNode = 'collection';
 								notificationConnectedNodeId = commentInstance.toJSON().collections[0].id;
-							} else if (commentInstance.toJSON().contents) {
+							} else if (commentInstance.toJSON().contents && commentInstance.toJSON().contents.length > 0) {
 								actionUrl = [commentInstance.toJSON().contents[0].collections[0].type, commentInstance.toJSON().contents[0].collections[0].id, commentInstance.toJSON().contents[0].collections[0].calendars[0].id, commentInstance.toJSON().contents[0].id];
 								notificationConnectedNode = 'collection';
 								notificationConnectedNodeId = commentInstance.toJSON().contents[0].collections[0].id;
-							} else if (commentInstance.toJSON().submissions) {
+							} else if (commentInstance.toJSON().submissions && commentInstance.toJSON().submissions.length > 0) {
 								actionUrl = [commentInstance.toJSON().submissions[0].contents[0].collections[0].type, commentInstance.toJSON().submissions[0].contents[0].collections[0].id, commentInstance.toJSON().submissions[0].contents[0].collections[0].calendars[0].id, commentInstance.toJSON().submissions[0].contents[0].id];
 								notificationConnectedNode = 'collection';
 								notificationConnectedNodeId = commentInstance.toJSON().submissions[0].contents[0].collections[0].id;
-							} else if (commentInstance.toJSON().communities) {
+							} else if (commentInstance.toJSON().communities && commentInstance.toJSON().communities.length > 0) {
 								actionUrl = ['community', commentInstance.toJSON().communities[0].id];
 								notificationConnectedNode = 'community';
 								notificationConnectedNodeId = commentInstance.toJSON().communities[0].id;
-							} else if (commentInstance.toJSON().questions) {
+							} else if (commentInstance.toJSON().questions && commentInstance.toJSON().questions.length > 0) {
 								actionUrl = ['community', commentInstance.toJSON().questions[0].communities[0].id];
 								notificationConnectedNode = 'community';
 								notificationConnectedNodeId = commentInstance.toJSON().questions[0].communities[0].id;
-							} else if (commentInstance.toJSON().answers) {
+							} else if (commentInstance.toJSON().answers && commentInstance.toJSON().answers.length > 0) {
 								actionUrl = ['community', commentInstance.toJSON().answers[0].questions[0].communities[0].id];
 								notificationConnectedNode = 'community';
 								notificationConnectedNodeId = commentInstance.toJSON().answers[0].questions[0].communities[0].id;
@@ -105,5 +105,5 @@ module.exports = function(Comment) {
 		console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
 		return cookie.split(/[ \:.]+/)[0];
 	};
-    
+ 
 };

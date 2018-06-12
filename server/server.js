@@ -455,40 +455,30 @@ app.post('/getKarmaToBurn', function (req, res, next) {
 });
 
 app.get('/karmaToDollar', function (req, res, next) {
-	request
-			.get({
-				url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-				json: true
-			}, function(err, response, data) {
-				if (err) {
-					console.error(err);
-					next(err);
-				} else {
-					console.log('Got eth rate: ' + data);
-					const dollarPerEther = parseFloat(data.USD);
-					const karmaPerEther = app.get('karmaRate');
-					res.json({USD: (req.query.karma * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
-				}
-			});
+	app.models.cache.findById('1', function (err, cacheInstance) {
+		if (err) {
+			next(err);
+		} else {
+			console.log('Got eth rate: ' + cacheInstance.ethRate);
+			const dollarPerEther = parseFloat(cacheInstance.ethRate);
+			const karmaPerEther = app.get('karmaRate');
+			res.json({USD: (req.query.karma * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
+		}
+	});
 });
 
 app.get('/gyanToDollar', function (req, res, next) {
-	request
-			.get({
-				url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-				json: true
-			}, function(err, response, data) {
-				if (err) {
-					console.error(err);
-					next(err);
-				} else {
-					console.log('Got eth rate: ' + data);
-					const dollarPerEther = parseFloat(data.USD);
-					const karmaRewardPerGyan = 1;   // TODO: Calculate potential Karma earnings from knowledge pool based on Gyan ranking
-					const karmaPerEther = app.get('karmaRate');
-					res.json({USD: (req.query.gyan * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
-				}
-			});
+	app.models.cache.findById('1', function (err, cacheInstance) {
+		if (err) {
+			next(err);
+		} else {
+			console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+			const dollarPerEther = parseFloat(cacheInstance.ethRate);
+			const karmaRewardPerGyan = parseInt(cacheInstance.karmaMintRate) * 0.65 * Math.max((1 / parseInt(cacheInstance.gyanEarnRate)), 1);
+			const karmaPerEther = app.get('karmaRate');
+			res.json({USD: (req.query.gyan * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
+		}
+	});
 });
 
 app.get('/login', function (req, res, next) {

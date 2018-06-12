@@ -78,6 +78,10 @@
     "imageUrl": {
       "type": "string"
     },
+    "videoLength": {
+      "type": "number",
+      "default": 0
+    },
     "prerequisites": {
       "type": "string"
     },

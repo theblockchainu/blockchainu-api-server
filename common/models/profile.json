@@ -28,7 +28,8 @@
       "type": "string"
     },
     "headline": {
-      "type": "string"
+      "type": "string",
+      "default": "New User"
     },
     "joining_date": {
       "type": "date"

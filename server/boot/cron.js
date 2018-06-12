@@ -4,9 +4,11 @@ let moment = require('moment-timezone');
 let client = require('../esConnection.js');
 let bulk = [];
 let app = require('../server');
+let request = require('request');
 let loopback = require('../../node_modules/loopback/lib/loopback');
 let path = require('path');
 const _ = require('lodash');
+const protocolUrl = app.get('protocolUrl');
 
 module.exports = function setupCron(server) {
 	
@@ -380,6 +382,72 @@ module.exports = function setupCron(server) {
 	/*const upcomingActivityCron = new CronJob('*!/20 * * * * *',*/
 			function() {
 				console.info('\n\n***********\nRunning 10 minute cron job. Functions: \n- Check if any upcoming activities in the next hour and send reminder emails to student and teacher\n**********\n\n');
+				request
+						.get({
+							url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+							json: true
+						}, function(err, response, data1) {
+							if (err) {
+								console.error(err);
+							} else {
+								console.log('Got eth rate: ' + data1.USD);
+								const cacheData = {
+									id: '1',
+									ethRate: data1.USD
+								};
+								server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+									if (err) {
+										console.log(err);
+									} else {
+										console.log('Updated cache with ethRate - ' + JSON.stringify(cacheInstance));
+									}
+								});
+							}
+						});
+				request
+						.get({
+							url: protocolUrl + 'karma/mintRate',
+							json: true
+						}, function(err, response, data1) {
+							if (err) {
+								console.error(err);
+							} else {
+								console.log('Got karma mint rate: ' + data1);
+								const cacheData = {
+									id: '1',
+									karmaMintRate: data1
+								};
+								server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+									if (err) {
+										console.log(err);
+									} else {
+										console.log('Updated cache with karma mint rate - ' + JSON.stringify(cacheInstance));
+									}
+								});
+							}
+						});
+				request
+						.get({
+							url: protocolUrl + 'gyan/earnRate',
+							json: true
+						}, function(err, response, data1) {
+							if (err) {
+								console.error(err);
+							} else {
+								console.log('Got gyan earn rate: ' + data1);
+								const cacheData = {
+									id: '1',
+									gyanEarnRate: data1
+								};
+								server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+									if (err) {
+										console.log(err);
+									} else {
+										console.log('Updated cache with gyan mint rate - ' + JSON.stringify(cacheInstance));
+									}
+								});
+							}
+						});
 				server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': [{'contents': ['schedules', 'locations', 'submissions']}, 'calendars', {'owners': ['profiles', 'topicsTeaching', 'wallet', 'topicsTeaching']}]}, function(err, collectionInstances){
 					collectionInstances.forEach(collection => {
 						try {
