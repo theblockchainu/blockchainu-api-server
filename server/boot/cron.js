@@ -137,6 +137,17 @@ module.exports = function setupCron(server) {
 	/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
 			function() {
 				console.info('\n\n********\nRunning midnight cron job. Functions: \n- Check for completed cohorts - mark them complete - send summary and reminders\n- Check upcoming cohorts and send reminder emails to student and teacher\n**********\n\n');
+				request
+						.post({
+							url: protocolUrl + 'karma/mintRewards',
+							json: true
+						}, function(err, response, data1) {
+							if (err) {
+								console.error(err);
+							} else {
+								console.log('Tried karma minting: ' + JSON.stringify(data1));
+							}
+						});
 				server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': ['calendars', {'contents': 'schedules'}, 'topics', {'comments': 'peer'}, 'participants', {'owners': 'profiles'}]}, function(err, collectionInstances){
 					collectionInstances.forEach(collection => {
 						if (collection.calendars() !== undefined) {
