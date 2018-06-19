@@ -171,17 +171,7 @@ module.exports = function(Question) {
 								if (questionInst.communities()) {
 									actionUrl = ['community', questionInst.communities()[0].id];
 								}
-								// Create notification
-								let Notification = app.models.notification;
-								let notifData = {
-									type: "action",
-									title: "Answer accepted",
-									description: "%username% has accepted your answer.",
-									actionUrl: actionUrl
-								};
-								Notification.createNotification(answerInst.peer()[0].id, questionInst.peer()[0].id, notifData, 'community', questionInst.communities()[0].id, function(err, notificationInstance) {
-									if (!err) console.log('Notification created for user: ' + notificationInstance);
-								});
+								
 								request
 										.put({
 											url: protocolUrl + 'questions/' + id + '/answers/' + fk,
@@ -193,9 +183,26 @@ module.exports = function(Question) {
 												cb(err);
 											} else {
 												console.log('Accepted answer on blockchain: ' + data);
-												cb(null, data);
 											}
 										});
+								
+								// Create notification
+								let Notification = app.models.notification;
+								let notifData = {
+									type: "action",
+									title: "Answer accepted",
+									description: "%username% has accepted your answer.",
+									actionUrl: actionUrl
+								};
+								Notification.createNotification(answerInst.peer()[0].id, questionInst.peer()[0].id, notifData, 'community', questionInst.communities()[0].id, function(err, notificationInstance) {
+									if (!err) {
+										console.log('Notification created for user: ' + notificationInstance);
+										cb(null, answerInst);
+									} else {
+										cb(err);
+									}
+								});
+								
 							})
 							.catch(err => {
 								cb(err);

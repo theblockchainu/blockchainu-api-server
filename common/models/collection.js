@@ -1,9 +1,11 @@
 'use strict';
 let loopback = require('loopback');
+let app = require('../../server/server');
 let path = require('path');
 let g = require('../../node_modules/loopback/lib/globalize');
-const request = require('request');
 let moment = require('moment');
+let protocolUrl = app.get('protocolUrl');
+let request = require('request');
 
 module.exports = function (Collection) {
 	
@@ -1503,6 +1505,107 @@ module.exports = function (Collection) {
             }
         }
     });
+    
+    Collection.etherInfo = function(id, req, cb) {
+	    // Get from blockchain
+	    request
+			    .get({
+				    url: protocolUrl + 'collections/' + id,
+			    }, function(err, response, data) {
+				    if (err) {
+					    console.error(err);
+					    cb(err);
+				    } else {
+					    console.log('Got details of collection: ' + data);
+					    cb(null, JSON.parse(data));
+				    }
+			    });
+    };
+	
+	Collection.addToEthereum = function(id, req, cb) {
+		// Find the collection by given ID
+		Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": ["assessment_rules", "assessment_na_rules"]}, "topics", {"contents": "schedules"}]}, function (err, collectionInstance) {
+			// if collection exists and the user is logged in
+			if (!err && collectionInstance !== null) {
+				let ownerId = collectionInstance.toJSON().owners[0].id;
+				let userId = Collection.app.models.peer.getCookieUserId(req);
+				let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
+				let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
+				let contents = collectionInstance.toJSON().contents;
+				let topics = collectionInstance.toJSON().topics;
+				
+                Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+                    if (!err) {
+                        // Add this collection to blockchain.
+                        const assessmentRuleKeys = [];
+                        const assessmentRuleValues = [];
+                        const nonAcademicRules = [];
+                        const topicArray = [];
+                        let learningHours = 0;
+                        assessmentRules.forEach(assessmentRule => {
+                            assessmentRuleKeys.push(assessmentRule.value);
+                            assessmentRuleValues.push(assessmentRule.gyan);
+                        });
+                        assessmentNARules.forEach(assessmentNARule => {
+                            if (assessmentNARule.value === 'engagement') {
+                                nonAcademicRules[0] = assessmentNARule.gyan;
+                            } else if (assessmentNARule.value === 'commitment') {
+                                nonAcademicRules[1] = assessmentNARule.gyan;
+                            }
+                        });
+                        topics.forEach(topic => {
+                            topicArray.push(topic.name);
+                        });
+                        contents.forEach(content => {
+                            if (content.schedules && content.schedules.length > 0) {
+                                learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
+                            }
+                        });
+                        learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
+                        console.log('total learning hours are: ' + learningHours);
+                        const body = {
+	                        uniqueId: collectionInstance.id,
+	                        teacherAddress: ownerInstance.ethAddress,
+	                        type: collectionInstance.type,
+	                        learningHours: learningHours,
+	                        activityHash: 'NA',
+	                        academicGyan: collectionInstance.academicGyan,
+	                        nonAcademicGyan: collectionInstance.nonAcademicGyan,
+	                        assessmentRuleKeys: assessmentRuleKeys,
+	                        assessmentRuleValues: assessmentRuleValues,
+	                        nonAcademicRules: nonAcademicRules,
+	                        topics: topicArray
+                        };
+                        console.log(body);
+                        // Add to blockchain
+                        request
+                                .post({
+                                    url: protocolUrl + 'collections',
+                                    body: body,
+                                    json: true
+                                }, function (err, response, data) {
+                                    if (err) {
+                                        console.error(err);
+                                        cb(err);
+                                    } else if (response.body.error) {
+                                        cb(response.body.error);
+                                    } else {
+                                        console.log('Add collection to blockchain: ');
+                                        console.log(response);
+	                                    cb(null, data);
+                                    }
+                                });
+                    }
+                });
+			}
+			else {
+				err = new Error(g.f('Invalid Collection with ID: %s', id));
+				err.statusCode = 400;
+				err.code = 'INVALID_COLLECTION';
+				cb(err);
+			}
+		});
+	};
 
 
     Collection.remoteMethod(
@@ -1540,5 +1643,29 @@ module.exports = function (Collection) {
             http: { path: '/:id/reject', verb: 'post' }
         }
     );
+	
+	Collection.remoteMethod(
+			'etherInfo',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/ether', verb: 'get' }
+			}
+	);
+	
+	Collection.remoteMethod(
+			'addToEthereum',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/ether', verb: 'post' }
+			}
+	);
 
 };
