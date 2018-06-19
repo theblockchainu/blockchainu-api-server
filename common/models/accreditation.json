@@ -11,6 +11,14 @@
       "updatedAt": "updatedAt",
       "required": false
     },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        }
+      ]
+    },
     "GlobalUtils": {}
   },
   "properties": {
@@ -36,14 +44,14 @@
       "through": "peer_created_accreditation",
       "keyThrough": "sourceId"
     },
-    "subscriptions": {
+    "subscribedBy": {
       "type": "hasMany",
       "model": "peer",
       "foreignKey": "targetId",
       "through": "peer_subscribed_accreditation",
       "keyThrough": "sourceId"
     },
-    "allowedTopics": {
+    "topics": {
       "type": "hasMany",
       "model": "topic",
       "foreignKey": "sourceId",
