@@ -1,0 +1,56 @@
+{
+  "name": "accreditation",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "minimum_gyan": {
+      "type": "number"
+    },
+    "fees": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "createdBy": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_created_accreditation",
+      "keyThrough": "sourceId"
+    },
+    "subscriptions": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_subscribed_accreditation",
+      "keyThrough": "sourceId"
+    },
+    "allowedTopics": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "accreditation_has_topics",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

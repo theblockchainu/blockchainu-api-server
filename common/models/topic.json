@@ -79,6 +79,13 @@
       "foreignKey": "targetId",
       "through": "story_has_topic",
       "keyThrough": "sourceId"
+    },
+    "accreditations": {
+      "type": "hasMany",
+      "model": "accreditation",
+      "foreignKey": "targetId",
+      "through": "accreditation_has_topics",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
