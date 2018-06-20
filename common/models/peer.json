@@ -416,6 +416,20 @@
       "foreignKey": "targetId",
       "through": "story_has_request",
       "keyThrough": "sourceId"
+    },
+    "accreditationsCreated": {
+      "type": "hasMany",
+      "model": "accreditation",
+      "foreignKey": "sourceId",
+      "through": "peer_created_accreditation",
+      "keyThrough": "targetId"
+    },
+    "accreditationsSubscribed": {
+      "type": "hasMany",
+      "model": "accreditation",
+      "foreignKey": "sourceId",
+      "through": "peer_subscribed_accreditation",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

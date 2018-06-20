@@ -1,0 +1,39 @@
+{
+  "name": "accreditation_has_topics",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "accreditation",
+    "targetModel": "topic"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "accreditation": {
+      "type": "belongsTo",
+      "model": "accreditation",
+      "foreignKey": "sourceId"
+    },
+    "topic": {
+      "type": "belongsTo",
+      "model": "topic",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

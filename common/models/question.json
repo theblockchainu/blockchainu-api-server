@@ -37,10 +37,10 @@
     "scholarshipId": {
       "type": "string"
     },
-	  "open": {
-		  "type": "boolean",
-		  "default": true
-	  }
+    "open": {
+      "type": "boolean",
+      "default": true
+    }
   },
   "validations": [],
   "relations": {

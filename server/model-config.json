@@ -800,5 +800,21 @@
   "assessment_has_assessment_na_rule": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "accreditation": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "peer_created_accreditation": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_subscribed_accreditation": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "accreditation_has_topics": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
