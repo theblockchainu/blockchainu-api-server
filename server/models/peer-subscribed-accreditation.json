@@ -6,7 +6,7 @@
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "profile",
+    "sourceModel": "peer",
     "targetModel": "accreditation"
   },
   "properties": {
@@ -23,9 +23,9 @@
   },
   "validations": [],
   "relations": {
-    "profile": {
+    "peer": {
       "type": "belongsTo",
-      "model": "profile",
+      "model": "peer",
       "foreignKey": "sourceId"
     },
     "accreditation": {
