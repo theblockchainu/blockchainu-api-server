@@ -430,6 +430,13 @@
       "foreignKey": "sourceId",
       "through": "peer_subscribed_accreditation",
       "keyThrough": "targetId"
+    },
+    "certificates": {
+      "type": "hasMany",
+      "model": "certificate",
+      "foreignKey": "sourceId",
+      "through": "peer_has_certificate",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -1,0 +1,39 @@
+{
+  "name": "peer_has_certificate",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "neo4j": {
+    "sourceModel": "peer",
+    "targetModel": "certificate"
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "belongsTo",
+      "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "certificate": {
+      "type": "belongsTo",
+      "model": "certificate",
+      "foreignKey": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

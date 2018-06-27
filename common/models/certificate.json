@@ -1,5 +1,5 @@
 {
-  "name": "certificate_template",
+  "name": "certificate",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -14,23 +14,21 @@
     "GlobalUtils": {}
   },
   "properties": {
-    "certificateHTML": {
-      "type": "string"
+    "id": {
+      "type": "string",
+      "required": true
     },
-    "expiryDate": {
-      "type": "date"
-    },
-    "formData": {
+    "stringifiedJSON": {
       "type": "string"
     }
   },
   "validations": [],
   "relations": {
-    "collections": {
+    "peers": {
       "type": "hasMany",
-      "model": "certificate_template",
+      "model": "peer",
       "foreignKey": "targetId",
-      "through": "collection_has_certificate_template",
+      "through": "peer_has_certificate",
       "keyThrough": "sourceId"
     }
   },
