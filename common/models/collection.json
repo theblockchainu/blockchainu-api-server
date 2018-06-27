@@ -25,6 +25,11 @@
           "model": "assessment_model",
           "hasManyRelation": "assessment_models",
           "autoCreate": true
+        },
+        {
+          "model": "certificate_template",
+          "hasManyRelation": "certificate_templates",
+          "autoCreate": true
         }
       ]
     },
@@ -302,6 +307,13 @@
       "foreignKey": "targetId",
       "through": "scholarship_has_allowed_collection",
       "keyThrough": "sourceId"
+    },
+    "certificate_templates": {
+      "type": "hasMany",
+      "model": "certificate_template",
+      "foreignKey": "sourceId",
+      "through": "collection_has_certificate_template",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

@@ -816,5 +816,13 @@
   "accreditation_has_topics": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "certificate_template": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_certificate_template": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
