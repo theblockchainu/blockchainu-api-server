@@ -48,7 +48,7 @@ module.exports = function (Assessmentresult) {
 							assessmentResult: assessmentResultInstanceJSON.assessment_rules[0].value,
 							engagementResult: assessmentResultInstanceJSON.assessmentEngagementResult,
 							commitmentResult: assessmentResultInstanceJSON.assessmentCommitmentResult,
-							hash: // hash
+							hash: '' // hash
 						},
 						json: true
 					}, function (err, response, data) {
