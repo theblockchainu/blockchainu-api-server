@@ -1,13 +1,13 @@
 {
-  "name": "peer_created_accreditation",
+  "name": "collection_has_certificate_template",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "accreditation"
+    "sourceModel": "collection",
+    "targetModel": "certificate_template"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "collection": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "accreditation": {
+    "certificate_template": {
       "type": "belongsTo",
-      "model": "accreditation",
+      "model": "certificate_template",
       "foreignKey": "targetId"
     }
   },
