@@ -37,7 +37,6 @@ module.exports = function (Assessmentresult) {
 			.then((assessmentResultInstance) => {
 				// Record assessment on BC
 				const assessmentResultInstanceJSON = assessmentResultInstance.toJSON();
-
 				if (assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates && assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates.length > 0) {
 					const certificateTemplate = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates[0];
 					const template = certificateTemplate.certificateHTML.replace(/\\n/g, '');
