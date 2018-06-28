@@ -53,6 +53,7 @@
     "passport-oauth2": "^1.1.2",
     "passport-twitter": "^1.0.0",
     "path": "^0.12.7",
+    "qrcode": "^1.2.0",
     "raven-js": "^3.22.3",
     "request": "latest",
     "serve-favicon": "^2.0.1",
