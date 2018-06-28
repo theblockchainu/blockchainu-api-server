@@ -37,24 +37,6 @@ module.exports = function (Assessmentresult) {
 			.then((assessmentResultInstance) => {
 				// Record assessment on BC
 				const assessmentResultInstanceJSON = assessmentResultInstance.toJSON();
-				request
-					.put({
-						url: protocolUrl + 'collections/' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id + '/peers/' + assessmentResultInstanceJSON.assessees[0].ethAddress,
-						body: {
-							assessmentResult: assessmentResultInstanceJSON.assessment_rules[0].value,
-							engagementResult: assessmentResultInstanceJSON.assessmentEngagementResult,
-							commitmentResult: assessmentResultInstanceJSON.assessmentCommitmentResult,
-							hash: '' // hash
-						},
-						json: true
-					}, function (err, response, data) {
-						if (err) {
-							console.error(err);
-						} else {
-							console.log('Recorded assessment on blockchain: ' + data);
-						}
-					});
-
 				if (assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates && assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates.length > 0) {
 					const certificateTemplate = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].certificate_templates[0];
 					const template = certificateTemplate.certificateHTML.replace(/\\n/g, '');
