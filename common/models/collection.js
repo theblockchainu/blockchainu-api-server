@@ -462,25 +462,25 @@ module.exports = function (Collection) {
                                 subject = 'Class Approved';
                                 title = 'Class Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
+                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Approved';
 	                            title = 'Experience Approved!';
 	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
                                 break;
 	                        case 'session':
 		                        subject = 'Account Approved for Peer Sessions';
 		                        title = 'Account Approved for Peer Sessions!';
 		                        description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
+		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
 		                        break;
                             default:
                                 subject = 'Collection Approved';
                                 title = 'Collection Approved!';
 	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","16"];
+	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
                                 break;
                         }
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
