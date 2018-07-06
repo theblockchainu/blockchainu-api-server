@@ -8,6 +8,7 @@ let request = require('request');
 let _ = require('lodash');
 const qrcode = require('yaqrcode');
 var sha256 = require('js-sha256');
+var intoStream = require('into-stream');
 
 module.exports = function (Assessmentresult) {
 	Assessmentresult.observe('after save', function (ctx, next) {
@@ -169,7 +170,6 @@ module.exports = function (Assessmentresult) {
 													}
 												]
 											};
-
 											certificate.signature = signature;
 											certificateInstanceObj.stringifiedJSON = JSON.stringify(certificate);
 											certificateInstanceObj.save((error, updatedInstance) => {
@@ -179,18 +179,18 @@ module.exports = function (Assessmentresult) {
 													console.log('UpdatedInstance');
 													console.log(displayHtml);
 													let html_body = ' <html> <head> <title>Peerbuds</title>   </head>  <body> <div>  ' + displayHtml + ' </div> </body> </html>';
+													var attachment = {
+														data: intoStream(updatedInstance.stringifiedJSON),
+														filename: 'certificate.json',
+														knownLength: updatedInstance.stringifiedJSON.length,
+														contentType: 'application/json'
+													};
 													loopback.Email.send({
 														to: assessmentResultInstanceJSON.assessees[0].email,
 														from: 'Peerbuds <noreply@mx.peerbuds.com>',
 														subject: 'Your certificate for ' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].type + ': ' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].title,
-														html: html_body
-														// attachments: [
-														// 	{   // utf-8 string as an attachment
-														// 		filename: 'certificate.json',
-														// 		data: updatedInstance.stringifiedJSON,
-														// 		contentType: 'application/json'
-														// 	}
-														// ]
+														html: html_body,
+														attachments: [attachment]
 													});
 												}
 											});
@@ -203,18 +203,6 @@ module.exports = function (Assessmentresult) {
 				} else {
 					next('No certificate');
 				}
-				// const userName = assessmentResultInstanceJSON.assessees[0].profiles[0].first_name + ' ' + assessmentResultInstanceJSON.assessees[0].profiles[0].last_name;
-				// const userId = assessmentResultInstanceJSON.assessees[0].id;
-				// const collectionTitle = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].title;
-				// const collectionType = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].type;
-				// const teacherName = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].owners[0].profiles[0].first_name + ' ' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].owners[0].profiles[0].last_name;
-				// const teacherImage = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].owners[0].picture_url;
-				// const assessmentStyle = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].style;
-				// const collectionResult = assessmentResultInstanceJSON.assessment_rules[0].value;
-				// const gyanEarned = Math.floor(((assessmentResultInstanceJSON.assessment_rules[0].gyan / 100) * assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].academicGyan) + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].nonAcademicGyan);
-
-				// Send email to participant about his result
-
 			})
 			.catch(function (err) {
 				console.log(err);
