@@ -156,7 +156,8 @@ module.exports = function (Assessmentresult) {
 										if (err) {
 											console.error(err);
 										} else {
-											console.log('Recorded assessment on blockchain: ' + data);
+											console.log('Recorded assessment on blockchain: ');
+											console.log(data);
 											const signature = {
 												"type": [
 													"sha256"
