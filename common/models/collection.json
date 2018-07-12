@@ -157,6 +157,10 @@
     "nonAcademicGyan": {
       "type": "number",
       "default": 0
+    },
+    "subCategory": {
+      "type": "string",
+      "default": "workshop"
     }
   },
   "validations": [],
