@@ -18,7 +18,8 @@
       "type": "string"
     },
     "expiryDate": {
-      "type": "date"
+      "type": "date",
+      "default": "2123-12-31T00:00:00.000Z"
     },
     "formData": {
       "type": "string"
