@@ -141,7 +141,6 @@ module.exports = function (Assessmentresult) {
 									"universalIdentifier": certificateInstance.id.replace(/\-/g, '')
 								};
 								const hash = sha256(JSON.stringify(certificate));
-
 								request
 									.put({
 										url: protocolUrl + 'collections/' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id + '/peers/' + assessmentResultInstanceJSON.assessees[0].ethAddress,
@@ -155,7 +154,7 @@ module.exports = function (Assessmentresult) {
 									}, (err, response, data) => {
 										if (err) {
 											console.error(err);
-										} else {
+										} else if (data.tx) {
 											console.log('Recorded assessment on blockchain: ');
 											console.log(data);
 											const signature = {
@@ -195,6 +194,10 @@ module.exports = function (Assessmentresult) {
 													});
 												}
 											});
+
+										} else {
+											console.log('transaction Id not found');
+											console.log(data);
 										}
 									});
 								next(null, certificate);
