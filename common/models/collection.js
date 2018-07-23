@@ -8,11 +8,11 @@ let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 
 module.exports = function (Collection) {
-	
+
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
         let collectionInstance = ctx.instance;
-        Collection.app.models.peer.findById(participantInstance.sourceId, {"include": "profiles"}, function(err, participantUserInstance) {
+        Collection.app.models.peer.findById(participantInstance.sourceId, { "include": "profiles" }, function (err, participantUserInstance) {
             if (err) {
                 next(err);
             }
@@ -21,7 +21,7 @@ module.exports = function (Collection) {
                 collectionInstance.__get__topics({}, function (err, topicInstances) {
                     if (!err) {
                         topicInstances.forEach(topicInstance => {
-                            participantUserInstance.__link__topicsLearning(topicInstance.id, function(err1, linkedTopicInstance) {
+                            participantUserInstance.__link__topicsLearning(topicInstance.id, function (err1, linkedTopicInstance) {
                                 if (!err1) {
                                     //console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
                                 }
@@ -35,8 +35,8 @@ module.exports = function (Collection) {
                         console.log(err);
                     }
                 });
-                collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
-                    if(err) {
+                collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
+                    if (err) {
                         next(err);
                     }
                     else {
@@ -45,107 +45,107 @@ module.exports = function (Collection) {
                             type: "action",
                             title: "New participant!",
                             description: "%username% joined %collectionTitle%",
-                            actionUrl: [collectionInstance.type,collectionInstance.id,"calendar",participantInstance.calendarId]
-                        }, function(err, notificationInstance) {
-                            if(err) {
+                            actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", participantInstance.calendarId]
+                        }, function (err, notificationInstance) {
+                            if (err) {
                                 next(err);
                             }
                             else {
-                                notificationInstance.actor.add(participantInstance.sourceId, function(err, actorInstance){
-                                    if(err){
+                                notificationInstance.actor.add(participantInstance.sourceId, function (err, actorInstance) {
+                                    if (err) {
                                         next(err);
                                     }
                                     else {
-                                        notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                            if(err) {
+                                        notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
+                                            if (err) {
                                                 next(err);
                                             }
                                             else {
                                                 // Add this participant to the collection's chat room
-                                                collectionInstance.__get__rooms({}, function(err, roomInstances) {
-                                                   if (!err) {
-                                                       if (roomInstances.length > 0) {
-                                                           roomInstances[0].__link__participants(participantUserInstance.id, function(err, linkedParticipantInstance) {
-                                                               if (!err) {
-                                                                   console.log('Added participant to chat room');
-                                                                   // Add a new system message about new participant
-                                                                   let messageObject = {
-                                                                       text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
-                                                                       type: 'system'
-                                                                   };
-                                                                   roomInstances[0].__create__messages(messageObject, function(err, newMessageInstance) {
-                                                                       if (!err) {
-                                                                           Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
-	
-                                                                           // Record student participation in an experience on blockchain
-                                                                           request
-                                                                                   .put({
-                                                                                       url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
-                                                                                       body: {
-                                                                                           scholarshipId: ctx.req.body.scholarshipId
-                                                                                       },
-                                                                                       json: true
-                                                                                    }, function (err, response, data) {
-                                                                                       if (err) {
-	                                                                                       console.error(err);
-	                                                                                       next(err);
-                                                                                       } else {
-	                                                                                       console.log('Recorded student participation on blockchain ' + data);
-                                                                                       }
-                                                                                   });
-                                                                           
-	                                                                       // Send email to the student welcoming him to course
-	                                                                       let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-	                                                                       let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
-	                                                                       let html_body = renderer(message);
-	                                                                       loopback.Email.send({
-		                                                                       to: participantUserInstance.email,
-		                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
-		                                                                       subject: '[Welcome] ' + collectionInstance.title,
-		                                                                       html: html_body
-	                                                                       })
-			                                                                       .then(function (response) {
-				                                                                       console.log('email sent! - ');
-			                                                                       })
-			                                                                       .catch(function (err) {
-				                                                                       console.log('email error! - ' + err);
-			                                                                       });
-	
-	                                                                       // Send email to the teacher informing about new student
-	                                                                       message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId};
-	                                                                       renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
-	                                                                       html_body = renderer(message);
-	                                                                       loopback.Email.send({
-		                                                                       to: ownerInstance.email,
-		                                                                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
-		                                                                       subject: 'New participant @ ' + collectionInstance.title,
-		                                                                       html: html_body
-	                                                                       })
-			                                                                       .then(function (response) {
-				                                                                       console.log('email sent! - ');
-			                                                                       })
-			                                                                       .catch(function (err) {
-				                                                                       console.log('email error! - ' + err);
-			                                                                       });
-	                                                                       next();
-                                                                       }
-                                                                       else {
-                                                                           next(new Error('Could not create system message'));
-                                                                       }
-                                                                   });
-                                                               }
-                                                               else {
-                                                                   next(err);
-                                                               }
-                                                           });
-                                                       }
-                                                       else {
-                                                           next();
-                                                       }
-                                                   }
-                                                   else {
-                                                       next(err);
-                                                   }
+                                                collectionInstance.__get__rooms({}, function (err, roomInstances) {
+                                                    if (!err) {
+                                                        if (roomInstances.length > 0) {
+                                                            roomInstances[0].__link__participants(participantUserInstance.id, function (err, linkedParticipantInstance) {
+                                                                if (!err) {
+                                                                    console.log('Added participant to chat room');
+                                                                    // Add a new system message about new participant
+                                                                    let messageObject = {
+                                                                        text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
+                                                                        type: 'system'
+                                                                    };
+                                                                    roomInstances[0].__create__messages(messageObject, function (err, newMessageInstance) {
+                                                                        if (!err) {
+                                                                            Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+
+                                                                            // Record student participation in an experience on blockchain
+                                                                            request
+                                                                                .put({
+                                                                                    url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+                                                                                    body: {
+                                                                                        scholarshipId: ctx.req.body.scholarshipId
+                                                                                    },
+                                                                                    json: true
+                                                                                }, function (err, response, data) {
+                                                                                    if (err) {
+                                                                                        console.error(err);
+                                                                                        next(err);
+                                                                                    } else {
+                                                                                        console.log('Recorded student participation on blockchain ' + data);
+                                                                                    }
+                                                                                });
+
+                                                                            // Send email to the student welcoming him to course
+                                                                            let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
+                                                                            let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
+                                                                            let html_body = renderer(message);
+                                                                            loopback.Email.send({
+                                                                                to: participantUserInstance.email,
+                                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                                subject: '[Welcome] ' + collectionInstance.title,
+                                                                                html: html_body
+                                                                            })
+                                                                                .then(function (response) {
+                                                                                    console.log('email sent! - ');
+                                                                                })
+                                                                                .catch(function (err) {
+                                                                                    console.log('email error! - ' + err);
+                                                                                });
+
+                                                                            // Send email to the teacher informing about new student
+                                                                            message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
+                                                                            renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
+                                                                            html_body = renderer(message);
+                                                                            loopback.Email.send({
+                                                                                to: ownerInstance.email,
+                                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                                subject: 'New participant @ ' + collectionInstance.title,
+                                                                                html: html_body
+                                                                            })
+                                                                                .then(function (response) {
+                                                                                    console.log('email sent! - ');
+                                                                                })
+                                                                                .catch(function (err) {
+                                                                                    console.log('email error! - ' + err);
+                                                                                });
+                                                                            next();
+                                                                        }
+                                                                        else {
+                                                                            next(new Error('Could not create system message'));
+                                                                        }
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    next(err);
+                                                                }
+                                                            });
+                                                        }
+                                                        else {
+                                                            next();
+                                                        }
+                                                    }
+                                                    else {
+                                                        next(err);
+                                                    }
                                                 });
                                             }
                                         });
@@ -164,13 +164,13 @@ module.exports = function (Collection) {
         if (newCommentInstance.toJSON().isAnnouncement) {
             let loggedinPeer = Collection.getCookieUserId(ctx.req);
             if (loggedinPeer) {
-                Collection.findById(ctx.instance.id, {include: [{'participants': 'profiles'}, 'owners']}, function (err, collectionInstance) {
+                Collection.findById(ctx.instance.id, { include: [{ 'participants': 'profiles' }, 'owners'] }, function (err, collectionInstance) {
                     if (!err) {
-                        Collection.app.models.peer.findById(collectionInstance.toJSON().owners[0].id, {include: 'profiles'}, function(err, collectionOwnerInstance) {
+                        Collection.app.models.peer.findById(collectionInstance.toJSON().owners[0].id, { include: 'profiles' }, function (err, collectionOwnerInstance) {
                             if (!err) {
                                 collectionInstance.toJSON().participants.forEach(participant => {
                                     // Send email to every participant
-                                    let message = { studentName: participant.profiles[0].first_name, teacherName: collectionOwnerInstance.toJSON().profiles[0].first_name + ' ' + collectionOwnerInstance.toJSON().profiles[0].last_name, announcement: newCommentInstance.description, collectionTitle: collectionInstance.toJSON().title};
+                                    let message = { studentName: participant.profiles[0].first_name, teacherName: collectionOwnerInstance.toJSON().profiles[0].first_name + ' ' + collectionOwnerInstance.toJSON().profiles[0].last_name, announcement: newCommentInstance.description, collectionTitle: collectionInstance.toJSON().title };
                                     let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newAnnouncementToStudents.ejs'));
                                     let html_body = renderer(message);
                                     loopback.Email.send({
@@ -224,13 +224,13 @@ module.exports = function (Collection) {
         // Participant canceled collection. Notify collection owner.
         let collectionInstance = ctx.instance;
         let participantId = ctx.args.fk;
-        Collection.app.models.peer.findById(participantId, {"include": "profiles"}, function(err, participantUserInstance) {
+        Collection.app.models.peer.findById(participantId, { "include": "profiles" }, function (err, participantUserInstance) {
             if (err) {
                 next1(err);
             }
             else {
-                collectionInstance.__get__owners({"include": "profiles"}, function(err, ownerInstances){
-                    if(err) {
+                collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
+                    if (err) {
                         next1(err);
                     }
                     else {
@@ -239,24 +239,42 @@ module.exports = function (Collection) {
                             type: "action",
                             title: "Cancelled participation",
                             description: "%username% cancelled participation for %collectionTitle%",
-                            actionUrl: [collectionInstance.type,collectionInstance.id]
-                        }, function(err, notificationInstance) {
-                            if(err) {
+                            actionUrl: [collectionInstance.type, collectionInstance.id]
+                        }, function (err, notificationInstance) {
+                            if (err) {
                                 next1(err);
                             }
                             else {
-                                notificationInstance.actor.add(participantId, function(err, actorInstance){
-                                    if(err){
+                                notificationInstance.actor.add(participantId, function (err, actorInstance) {
+                                    if (err) {
                                         next1(err);
                                     }
                                     else {
-                                        notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                            if(err) {
+                                        notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
+                                            if (err) {
                                                 next(err);
                                             }
                                             else {
+
+                                                // Record student dropping from a collection on blockchain
+                                                request
+                                                    .delete({
+                                                        url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+                                                        body: {
+                                                            scholarshipId: ctx.req.body.scholarshipId
+                                                        },
+                                                        json: true
+                                                    }, function (err, response, data) {
+                                                        if (err) {
+                                                            console.error(err);
+                                                            next(err);
+                                                        } else {
+                                                            console.log('Recorded student participation on blockchain ' + data);
+                                                        }
+                                                    });
+
                                                 // Send email to the confirming cancellation
-                                                let message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days."};
+                                                let message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days." };
                                                 let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                                                 let html_body = renderer(message);
                                                 loopback.Email.send({
@@ -273,7 +291,7 @@ module.exports = function (Collection) {
                                                     });
 
                                                 // Send email to the teacher informing about cancelled student
-                                                message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has dropped out of " + collectionInstance.title};
+                                                message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has dropped out of " + collectionInstance.title };
                                                 html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: ownerInstance.email,
@@ -289,10 +307,10 @@ module.exports = function (Collection) {
                                                     });
 
                                                 // Add this participant to the collection's chat room
-                                                collectionInstance.__get__rooms({}, function(err, roomInstances) {
+                                                collectionInstance.__get__rooms({}, function (err, roomInstances) {
                                                     if (!err) {
                                                         if (roomInstances.length > 0) {
-                                                            roomInstances[0].__unlink__participants(participantUserInstance.id, function(err, unlinkedParticipantInstance) {
+                                                            roomInstances[0].__unlink__participants(participantUserInstance.id, function (err, unlinkedParticipantInstance) {
                                                                 if (!err) {
                                                                     console.log('Removed participant from room');
                                                                     // Add a new system message about new participant
@@ -300,7 +318,7 @@ module.exports = function (Collection) {
                                                                         text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " left ",
                                                                         type: 'system'
                                                                     };
-                                                                    roomInstances[0].__create__messages(messageObject, function(err, newMessageInstance) {
+                                                                    roomInstances[0].__create__messages(messageObject, function (err, newMessageInstance) {
                                                                         if (!err) {
                                                                             Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
                                                                             ctx.res.json(participantUserInstance);
@@ -368,9 +386,9 @@ module.exports = function (Collection) {
                     case 'experience':
                         subject = 'Experience submitted for review';
                         break;
-	                case 'session':
-		                subject = 'Account submitted for peer session review';
-		                break;
+                    case 'session':
+                        subject = 'Account submitted for peer session review';
+                        break;
                     default:
                         subject = 'Collection submitted for review';
                         break;
@@ -430,13 +448,13 @@ module.exports = function (Collection) {
 
     Collection.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": ["assessment_rules", "assessment_na_rules"]}, "topics", {"contents": "schedules"}]}, function (err, collectionInstance) {
+        Collection.findById(id, { "include": [{ "owners": "profiles" }, { "assessment_models": ["assessment_rules", "assessment_na_rules"] }, "topics", { "contents": "schedules" }] }, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
                 let ownerId = collectionInstance.toJSON().owners[0].id;
                 let userId = Collection.app.models.peer.getCookieUserId(req);
                 let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
-	            let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
+                let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
                 let contents = collectionInstance.toJSON().contents;
                 let topics = collectionInstance.toJSON().topics;
                 collectionInstance.status = 'active';
@@ -445,7 +463,7 @@ module.exports = function (Collection) {
                 delete collectionInstance.owners;
                 delete collectionInstance.assessment_models;
                 delete collectionInstance.topics;
-                Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
+                Collection.upsertWithWhere({ id: collectionInstance.id }, collectionInstance, function (err, newCollectionInstance) {
                     if (err) {
                         console.log(err);
                         err = new Error(g.f('Error updating collection.'));
@@ -456,38 +474,38 @@ module.exports = function (Collection) {
                     else {
                         let message = '', subject = '';
                         let title = '', description = '', actionUrl = [];
-                        message = { type: collectionInstance.type};
+                        message = { type: collectionInstance.type };
                         switch (collectionInstance.type) {
                             case 'class':
                                 subject = 'Class Approved';
                                 title = 'Class Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Approved';
-	                            title = 'Experience Approved!';
-	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
+                                title = 'Experience Approved!';
+                                description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
                                 break;
-	                        case 'session':
-		                        subject = 'Account Approved for Peer Sessions';
-		                        title = 'Account Approved for Peer Sessions!';
-		                        description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
-		                        break;
+                            case 'session':
+                                subject = 'Account Approved for Peer Sessions';
+                                title = 'Account Approved for Peer Sessions!';
+                                description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
+                                break;
                             default:
                                 subject = 'Collection Approved';
                                 title = 'Collection Approved!';
-	                            description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-	                            actionUrl = [collectionInstance.type,collectionInstance.id,"edit","17"];
+                                description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
                                 break;
                         }
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
                         let html_body = renderer(message);
 
                         // Send email to owner of this collection
-                        Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+                        Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
 
                             if (!err) {
                                 // Send notification to owner
@@ -496,46 +514,46 @@ module.exports = function (Collection) {
                                     title: title,
                                     description: description,
                                     actionUrl: actionUrl
-                                }, function(err, notificationInstance) {
-                                    if(err) {
+                                }, function (err, notificationInstance) {
+                                    if (err) {
                                         cb(err);
                                     }
                                     else {
-                                        notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
-                                            if(err){
+                                        notificationInstance.actor.add(ownerInstance.id, function (err, actorInstance) {
+                                            if (err) {
                                                 cb(err);
                                             }
                                             else {
-                                                notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                                    if(err) {
+                                                notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
+                                                    if (err) {
                                                         cb(err);
                                                     }
                                                     else {
                                                         if (collectionInstance.type === 'session') {
-	                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                            cb(null, { result: 'Collection approved. Email sent to owner.' });
                                                         }
                                                         else {
-	                                                        // Create a new chat room for this collection
-	                                                        let roomValue =  {
-		                                                        name: collectionInstance.title
-	                                                        };
-	                                                        collectionInstance.rooms.create(roomValue, function(err, newRoomInstance) {
-		                                                        if (!err) {
-			                                                        console.log('New chat room created for this collection');
-			                                                        // Add teacher to the collection's new chat room
-			                                                        newRoomInstance.__link__participants(ownerInstance.id, function(err, linkedParticipantInstance) {
-				                                                        if (!err) {
-					                                                        console.log('Added teacher to chat room');
-					                                                        // Add a new system message about new participant
-					                                                        let messageObject = {
-						                                                        text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
-						                                                        type: 'system'
-					                                                        };
-					                                                        newRoomInstance.__create__messages(messageObject, function(err, newMessageInstance) {
-						                                                        if (!err) {
-							                                                        Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
-							                                                        
-							                                                        // Add this collection to blockchain.
+                                                            // Create a new chat room for this collection
+                                                            let roomValue = {
+                                                                name: collectionInstance.title
+                                                            };
+                                                            collectionInstance.rooms.create(roomValue, function (err, newRoomInstance) {
+                                                                if (!err) {
+                                                                    console.log('New chat room created for this collection');
+                                                                    // Add teacher to the collection's new chat room
+                                                                    newRoomInstance.__link__participants(ownerInstance.id, function (err, linkedParticipantInstance) {
+                                                                        if (!err) {
+                                                                            console.log('Added teacher to chat room');
+                                                                            // Add a new system message about new participant
+                                                                            let messageObject = {
+                                                                                text: ownerInstance.toJSON().profiles[0].first_name + " " + ownerInstance.toJSON().profiles[0].last_name + " joined ",
+                                                                                type: 'system'
+                                                                            };
+                                                                            newRoomInstance.__create__messages(messageObject, function (err, newMessageInstance) {
+                                                                                if (!err) {
+                                                                                    Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
+
+                                                                                    // Add this collection to blockchain.
                                                                                     const assessmentRuleKeys = [];
                                                                                     const assessmentRuleValues = [];
                                                                                     const nonAcademicRules = [];
@@ -545,65 +563,65 @@ module.exports = function (Collection) {
                                                                                         assessmentRuleKeys.push(assessmentRule.value);
                                                                                         assessmentRuleValues.push(assessmentRule.gyan);
                                                                                     });
-							                                                        assessmentNARules.forEach(assessmentNARule => {
-								                                                        if (assessmentNARule.value === 'engagement') {
-								                                                            nonAcademicRules[0] = assessmentNARule.gyan;
+                                                                                    assessmentNARules.forEach(assessmentNARule => {
+                                                                                        if (assessmentNARule.value === 'engagement') {
+                                                                                            nonAcademicRules[0] = assessmentNARule.gyan;
                                                                                         } else if (assessmentNARule.value === 'commitment') {
-								                                                            nonAcademicRules[1] = assessmentNARule.gyan;
+                                                                                            nonAcademicRules[1] = assessmentNARule.gyan;
                                                                                         }
-							                                                        });
-							                                                        topics.forEach(topic => {
-								                                                        topicArray.push(topic.name);
-							                                                        });
-							                                                        contents.forEach(content => {
-							                                                           if (content.schedules && content.schedules.length > 0) {
-								                                                           learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
-                                                                                       }
                                                                                     });
-							                                                        learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
-							                                                        console.log('total learning hours are: ' + learningHours);
+                                                                                    topics.forEach(topic => {
+                                                                                        topicArray.push(topic.name);
+                                                                                    });
+                                                                                    contents.forEach(content => {
+                                                                                        if (content.schedules && content.schedules.length > 0) {
+                                                                                            learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
+                                                                                        }
+                                                                                    });
+                                                                                    learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
+                                                                                    console.log('total learning hours are: ' + learningHours);
                                                                                     // Add to blockchain
                                                                                     request
-									                                                        .post({
-										                                                        url: Collection.app.get('protocolUrl') + 'collections',
-										                                                        body: {
-											                                                        uniqueId: collectionInstance.id,
-											                                                        teacherAddress: ownerInstance.ethAddress,
-											                                                        type: collectionInstance.type,
-                                                                                                    learningHours: learningHours,
-											                                                        activityHash: 'NA',
-											                                                        academicGyan: collectionInstance.academicGyan,
-											                                                        nonAcademicGyan: collectionInstance.nonAcademicGyan,
-											                                                        assessmentRuleKeys: assessmentRuleKeys,
-											                                                        assessmentRuleValues: assessmentRuleValues,
-                                                                                                    nonAcademicRules: nonAcademicRules,
-											                                                        topics: topicArray
-										                                                        },
-										                                                        json: true
-									                                                        }, function (err, response, data) {
-									                                                            if (err) {
-										                                                            console.error(err);
-                                                                                                } else {
-										                                                            console.log('Add collection to blockchain: ' + data);
-                                                                                                }
-                                                                                            });
-							
-							                                                        cb(null, { result: 'Collection approved. Email sent to owner.' });
-						                                                        }
-						                                                        else {
-							                                                        cb(new Error('Could not create system message'));
-						                                                        }
-					                                                        });
-				                                                        }
-				                                                        else {
-					                                                        cb(err);
-				                                                        }
-			                                                        });
-		                                                        }
-		                                                        else {
-			                                                        cb(err);
-		                                                        }
-	                                                        });
+                                                                                        .post({
+                                                                                            url: Collection.app.get('protocolUrl') + 'collections',
+                                                                                            body: {
+                                                                                                uniqueId: collectionInstance.id,
+                                                                                                teacherAddress: ownerInstance.ethAddress,
+                                                                                                type: collectionInstance.type,
+                                                                                                learningHours: learningHours,
+                                                                                                activityHash: 'NA',
+                                                                                                academicGyan: collectionInstance.academicGyan,
+                                                                                                nonAcademicGyan: collectionInstance.nonAcademicGyan,
+                                                                                                assessmentRuleKeys: assessmentRuleKeys,
+                                                                                                assessmentRuleValues: assessmentRuleValues,
+                                                                                                nonAcademicRules: nonAcademicRules,
+                                                                                                topics: topicArray
+                                                                                            },
+                                                                                            json: true
+                                                                                        }, function (err, response, data) {
+                                                                                            if (err) {
+                                                                                                console.error(err);
+                                                                                            } else {
+                                                                                                console.log('Add collection to blockchain: ' + data);
+                                                                                            }
+                                                                                        });
+
+                                                                                    cb(null, { result: 'Collection approved. Email sent to owner.' });
+                                                                                }
+                                                                                else {
+                                                                                    cb(new Error('Could not create system message'));
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                        else {
+                                                                            cb(err);
+                                                                        }
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    cb(err);
+                                                                }
+                                                            });
                                                         }
                                                     }
                                                 });
@@ -643,7 +661,7 @@ module.exports = function (Collection) {
 
     Collection.reject = function (id, req, cb) {
         // Find the collection by given ID
-        Collection.findById(id, {"include": {"owners": "profiles"}}, function (err, collectionInstance) {
+        Collection.findById(id, { "include": { "owners": "profiles" } }, function (err, collectionInstance) {
             // if collection exists and the user is logged in
             if (!err && collectionInstance !== null) {
                 let ownerId = collectionInstance.toJSON().owners[0].id;
@@ -652,7 +670,7 @@ module.exports = function (Collection) {
                 collectionInstance.isApproved = false;
                 collectionInstance.approvedBy = '';
                 delete collectionInstance.owners;
-                Collection.upsertWithWhere({id: collectionInstance.id}, collectionInstance, function(err, newCollectionInstance) {
+                Collection.upsertWithWhere({ id: collectionInstance.id }, collectionInstance, function (err, newCollectionInstance) {
                     if (err) {
                         console.log(err);
                         err = new Error(g.f('Error updating collection.'));
@@ -663,38 +681,38 @@ module.exports = function (Collection) {
                     else {
                         let message = '', subject = '';
                         let title = '', description = '', actionUrl = [];
-                        message = { type: collectionInstance.type};
+                        message = { type: collectionInstance.type };
                         switch (collectionInstance.type) {
-	                        case 'class':
-		                        subject = 'Class Rejected';
-		                        title = 'Class Rejected!';
-		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","13"];
-		                        break;
-	                        case 'experience':
-		                        subject = 'Experience Rejected';
-		                        title = 'Experience Rejected!';
-		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","14"];
-		                        break;
-	                        case 'session':
-		                        subject = 'Account Rejected for Peer Sessions';
-		                        title = 'Account Rejected for Peer Sessions!';
-		                        description = "Your account has been rejected for peer sessions. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","15"];
-		                        break;
-	                        default:
-		                        subject = 'Collection Rejected';
-		                        title = 'Collection Rejected!';
-		                        description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-		                        actionUrl = [collectionInstance.type,collectionInstance.id,"edit","14"];
-		                        break;
+                            case 'class':
+                                subject = 'Class Rejected';
+                                title = 'Class Rejected!';
+                                description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "13"];
+                                break;
+                            case 'experience':
+                                subject = 'Experience Rejected';
+                                title = 'Experience Rejected!';
+                                description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "14"];
+                                break;
+                            case 'session':
+                                subject = 'Account Rejected for Peer Sessions';
+                                title = 'Account Rejected for Peer Sessions!';
+                                description = "Your account has been rejected for peer sessions. Edit your details and submit again.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "15"];
+                                break;
+                            default:
+                                subject = 'Collection Rejected';
+                                title = 'Collection Rejected!';
+                                description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "14"];
+                                break;
                         }
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
                         let html_body = renderer(message);
 
                         // Send email to owner of this class
-                        Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+                        Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
 
                             if (!err) {
                                 // Send notification to owner
@@ -703,18 +721,18 @@ module.exports = function (Collection) {
                                     title: title,
                                     description: description,
                                     actionUrl: actionUrl
-                                }, function(err, notificationInstance) {
-                                    if(err) {
+                                }, function (err, notificationInstance) {
+                                    if (err) {
                                         cb(err);
                                     }
                                     else {
-                                        notificationInstance.actor.add(ownerInstance.id, function(err, actorInstance){
-                                            if(err){
+                                        notificationInstance.actor.add(ownerInstance.id, function (err, actorInstance) {
+                                            if (err) {
                                                 cb(err);
                                             }
                                             else {
-                                                notificationInstance.collection.add(collectionInstance.id, function(err, linkedCollectionInst){
-                                                    if(err) {
+                                                notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
+                                                    if (err) {
                                                         cb(err);
                                                     }
                                                     else {
@@ -774,7 +792,7 @@ module.exports = function (Collection) {
                     //Inform all participants that the class is cancelled.
                     participantInstances.forEach((participantInstance) => {
                         // Send email to participants
-                        let message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days."};
+                        let message = { heading: "Your " + collectionInstance.type + " : " + collectionInstance.title + " has been cancelled by the teacher. If you are eligible for refund, your account will be credited within 7 working days." };
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                         let html_body = renderer(message);
                         loopback.Email.send({
@@ -937,7 +955,7 @@ module.exports = function (Collection) {
     });
 
 
-    Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next)   {
+    Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next) {
         let collectionInstance = ctx.instance;
         /*console.log('received instance is: ' + JSON.stringify(collectionInstance));
         console.log("ctx args are: " + JSON.stringify(ctx.args));
@@ -1156,7 +1174,7 @@ module.exports = function (Collection) {
         }
     });
 
-    Collection.beforeRemote('prototype.__create__contents', function (ctx, newInstance, next)   {
+    Collection.beforeRemote('prototype.__create__contents', function (ctx, newInstance, next) {
         console.log('***** ADDING NEW CONTENT TO ACTIVE COLLECTION');
         let collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
@@ -1335,7 +1353,7 @@ module.exports = function (Collection) {
         }
     });
 
-    Collection.beforeRemote('prototype.__destroyById__contents', function (ctx, newInstance, next)   {
+    Collection.beforeRemote('prototype.__destroyById__contents', function (ctx, newInstance, next) {
         console.log('***** DELETING CONTENT OF COLLECTION');
         let collectionInstance = ctx.instance;
         if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
@@ -1505,36 +1523,36 @@ module.exports = function (Collection) {
             }
         }
     });
-    
-    Collection.etherInfo = function(id, req, cb) {
-	    // Get from blockchain
-	    request
-			    .get({
-				    url: protocolUrl + 'collections/' + id,
-			    }, function(err, response, data) {
-				    if (err) {
-					    console.error(err);
-					    cb(err);
-				    } else {
-					    console.log('Got details of collection: ' + data);
-					    cb(null, JSON.parse(data));
-				    }
-			    });
+
+    Collection.etherInfo = function (id, req, cb) {
+        // Get from blockchain
+        request
+            .get({
+                url: protocolUrl + 'collections/' + id,
+            }, function (err, response, data) {
+                if (err) {
+                    console.error(err);
+                    cb(err);
+                } else {
+                    console.log('Got details of collection: ' + data);
+                    cb(null, JSON.parse(data));
+                }
+            });
     };
-	
-	Collection.addToEthereum = function(id, req, cb) {
-		// Find the collection by given ID
-		Collection.findById(id, {"include": [{"owners": "profiles"}, {"assessment_models": ["assessment_rules", "assessment_na_rules"]}, "topics", {"contents": "schedules"}]}, function (err, collectionInstance) {
-			// if collection exists and the user is logged in
-			if (!err && collectionInstance !== null) {
-				let ownerId = collectionInstance.toJSON().owners[0].id;
-				let userId = Collection.app.models.peer.getCookieUserId(req);
-				let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
-				let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
-				let contents = collectionInstance.toJSON().contents;
-				let topics = collectionInstance.toJSON().topics;
-				
-                Collection.app.models.peer.findById(ownerId, {"include": "profiles"}, function (err, ownerInstance) {
+
+    Collection.addToEthereum = function (id, req, cb) {
+        // Find the collection by given ID
+        Collection.findById(id, { "include": [{ "owners": "profiles" }, { "assessment_models": ["assessment_rules", "assessment_na_rules"] }, "topics", { "contents": "schedules" }] }, function (err, collectionInstance) {
+            // if collection exists and the user is logged in
+            if (!err && collectionInstance !== null) {
+                let ownerId = collectionInstance.toJSON().owners[0].id;
+                let userId = Collection.app.models.peer.getCookieUserId(req);
+                let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
+                let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
+                let contents = collectionInstance.toJSON().contents;
+                let topics = collectionInstance.toJSON().topics;
+
+                Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
                     if (!err) {
                         // Add this collection to blockchain.
                         const assessmentRuleKeys = [];
@@ -1564,48 +1582,48 @@ module.exports = function (Collection) {
                         learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
                         console.log('total learning hours are: ' + learningHours);
                         const body = {
-	                        uniqueId: collectionInstance.id,
-	                        teacherAddress: ownerInstance.ethAddress,
-	                        type: collectionInstance.type,
-	                        learningHours: learningHours,
-	                        activityHash: 'NA',
-	                        academicGyan: collectionInstance.academicGyan,
-	                        nonAcademicGyan: collectionInstance.nonAcademicGyan,
-	                        assessmentRuleKeys: assessmentRuleKeys,
-	                        assessmentRuleValues: assessmentRuleValues,
-	                        nonAcademicRules: nonAcademicRules,
-	                        topics: topicArray
+                            uniqueId: collectionInstance.id,
+                            teacherAddress: ownerInstance.ethAddress,
+                            type: collectionInstance.type,
+                            learningHours: learningHours,
+                            activityHash: 'NA',
+                            academicGyan: collectionInstance.academicGyan,
+                            nonAcademicGyan: collectionInstance.nonAcademicGyan,
+                            assessmentRuleKeys: assessmentRuleKeys,
+                            assessmentRuleValues: assessmentRuleValues,
+                            nonAcademicRules: nonAcademicRules,
+                            topics: topicArray
                         };
                         console.log(body);
                         // Add to blockchain
                         request
-                                .post({
-                                    url: protocolUrl + 'collections',
-                                    body: body,
-                                    json: true
-                                }, function (err, response, data) {
-                                    if (err) {
-                                        console.error(err);
-                                        cb(err);
-                                    } else if (response.body.error) {
-                                        cb(response.body.error);
-                                    } else {
-                                        console.log('Add collection to blockchain: ');
-                                        console.log(response);
-	                                    cb(null, data);
-                                    }
-                                });
+                            .post({
+                                url: protocolUrl + 'collections',
+                                body: body,
+                                json: true
+                            }, function (err, response, data) {
+                                if (err) {
+                                    console.error(err);
+                                    cb(err);
+                                } else if (response.body.error) {
+                                    cb(response.body.error);
+                                } else {
+                                    console.log('Add collection to blockchain: ');
+                                    console.log(response);
+                                    cb(null, data);
+                                }
+                            });
                     }
                 });
-			}
-			else {
-				err = new Error(g.f('Invalid Collection with ID: %s', id));
-				err.statusCode = 400;
-				err.code = 'INVALID_COLLECTION';
-				cb(err);
-			}
-		});
-	};
+            }
+            else {
+                err = new Error(g.f('Invalid Collection with ID: %s', id));
+                err.statusCode = 400;
+                err.code = 'INVALID_COLLECTION';
+                cb(err);
+            }
+        });
+    };
 
 
     Collection.remoteMethod(
@@ -1643,29 +1661,29 @@ module.exports = function (Collection) {
             http: { path: '/:id/reject', verb: 'post' }
         }
     );
-	
-	Collection.remoteMethod(
-			'etherInfo',
-			{
-				accepts: [
-					{ arg: 'id', type: 'string', required: true },
-					{ arg: 'req', type: 'object', http: { source: 'req' } }
-				],
-				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/:id/ether', verb: 'get' }
-			}
-	);
-	
-	Collection.remoteMethod(
-			'addToEthereum',
-			{
-				accepts: [
-					{ arg: 'id', type: 'string', required: true },
-					{ arg: 'req', type: 'object', http: { source: 'req' } }
-				],
-				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/:id/ether', verb: 'post' }
-			}
-	);
+
+    Collection.remoteMethod(
+        'etherInfo',
+        {
+            accepts: [
+                { arg: 'id', type: 'string', required: true },
+                { arg: 'req', type: 'object', http: { source: 'req' } }
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/:id/ether', verb: 'get' }
+        }
+    );
+
+    Collection.remoteMethod(
+        'addToEthereum',
+        {
+            accepts: [
+                { arg: 'id', type: 'string', required: true },
+                { arg: 'req', type: 'object', http: { source: 'req' } }
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/:id/ether', verb: 'post' }
+        }
+    );
 
 };
