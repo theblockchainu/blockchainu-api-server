@@ -7,6 +7,7 @@
     "start": "set NODE_ENV=development&& set HTTP=true&& node server/server.js"
   },
   "dependencies": {
+    "aws-sdk": "^2.279.1",
     "bcrypt": "^1.0.2",
     "bcryptjs": "latest",
     "body-parser": "^1.17.2",
@@ -68,6 +69,7 @@
     "twilio-video": "^1.2.2",
     "uid2": "latest",
     "unirest": "^0.5.1",
+    "uuid": "^3.3.2",
     "weak-map": "^1.0.5",
     "yaqrcode": "^0.2.1"
   },
