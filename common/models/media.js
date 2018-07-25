@@ -1,22 +1,33 @@
 var CONTAINERS_URL = '/api/containers/';
 var fs = require('fs');
 const path = require("path");
-module.exports = function(Media) {
+const AWS = require('aws-sdk');
+const uuid = require('uuid/v4');
 
-    Media.upload = function (ctx,options,cb) {
-        if(!options) options = {};
+const s3 = new AWS.S3({
+    accessKeyId: 'AKIAJNBGI45QDD7GUIFQ',
+    secretAccessKey: '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',
+    signatureVersion: 'v4',
+    region: 'us-west-2',
+
+});
+
+module.exports = function (Media) {
+
+    Media.upload = function (ctx, options, cb) {
+        if (!options) options = {};
         ctx.req.params.container = 'peerbuds-dev1290';
         var loggedinPeer = Media.getCookieUserId(ctx.req);
-        if(loggedinPeer) {
-            Media.app.models.container.upload(ctx.req,ctx.result,options,function (err,fileObj) {
-                if(err) {
+        if (loggedinPeer) {
+            Media.app.models.container.upload(ctx.req, ctx.result, options, function (err, fileObj) {
+                if (err) {
                     cb(err);
                 } else {
-                    if(fileObj.files.hasOwnProperty('file'))
+                    if (fileObj.files.hasOwnProperty('file'))
                         var fileInfo = fileObj.files.file[0];
-                    if(fileObj.files.hasOwnProperty('image'))
+                    if (fileObj.files.hasOwnProperty('image'))
                         var fileInfo = fileObj.files.image[0];
-                    if(fileObj.files.hasOwnProperty('video'))
+                    if (fileObj.files.hasOwnProperty('video'))
                         var fileInfo = fileObj.files.video[0];
 
                     Media.create({
@@ -25,20 +36,20 @@ module.exports = function(Media) {
                         name: fileInfo.name,
                         type: fileInfo.type,
                         container: fileInfo.container,
-                        url: CONTAINERS_URL+fileInfo.container+'/download/'+fileInfo.name
-                    },function (err,obj) {
+                        url: CONTAINERS_URL + fileInfo.container + '/download/' + fileInfo.name
+                    }, function (err, obj) {
                         if (err !== null) {
                             console.log("Error in creating media node");
                             cb(err);
                         } else {
-                            obj.owner.add(loggedinPeer, function(err, addedPeerInstance){
-                               if(err) {
-                                   cb(err);
-                               }
-                               else {
-                                   //console.log(addedPeerInstance);
-                                   cb(null, obj);
-                               }
+                            obj.owner.add(loggedinPeer, function (err, addedPeerInstance) {
+                                if (err) {
+                                    cb(err);
+                                }
+                                else {
+                                    //console.log(addedPeerInstance);
+                                    cb(null, obj);
+                                }
                             });
                         }
                     });
@@ -50,17 +61,47 @@ module.exports = function(Media) {
         }
     };
 
-    Media.uploadStream = function (ctx,options,cb) {
-        if(!options) options = {};
+    Media.uploadStream = function (ctx, options, cb) {
+        if (!options) options = {};
         ctx.req.params.container = 'peerbuds-dev1290';
         var loggedinPeer = Media.getCookieUserId(ctx.req);
-        if(loggedinPeer) {
-            var uploadStream = Media.app.models.container.uploadStream(ctx.req.params.container,ctx.req.params.filename,options,function () {});
+        if (loggedinPeer) {
+            var uploadStream = Media.app.models.container.uploadStream(ctx.req.params.container, ctx.req.params.filename, options, function () { });
             //console.log(Object.keys(ctx.req));
             var base64Data = ctx.req.body.replace(/^data:([A-Za-z-+/]+);base64,/, '');
             fs.createReadStream(base64Data).pipe(uploadStream);
             console.log('Success with piping read steam to S3');
             cb(null, {});
+        }
+        else {
+            cb(new Error('Requested API not allowed for unauthenticated requests.'));
+        }
+    };
+
+    Media.getUploadUrl = function (data, ctx, options, cb) {
+        console.log('getUploadUrl');
+        console.log(data);
+        if (!options) options = {};
+        const container = 'peerbuds-dev1290';
+        var loggedinPeer = Media.getCookieUserId(ctx.req);
+        const generatedName = uuid() + '.' + data.ext;
+        if (loggedinPeer) {
+            var params = { Bucket: container, Key: generatedName };
+            console.log('signing');
+            s3.getSignedUrl('putObject', params, (err, urlObj) => {
+                if (err) {
+                    console.log(err);
+                    cb(err);
+                } else {
+                    console.log('The URL is', urlObj);
+                    cb(null, {
+                        uploadUrl: urlObj,
+                        fileName: generatedName,
+                        container: container,
+                        url: CONTAINERS_URL + container + '/download/' + generatedName
+                    });
+                }
+            });
         }
         else {
             cb(new Error('Requested API not allowed for unauthenticated requests.'));
@@ -76,7 +117,7 @@ module.exports = function(Media) {
                 cookie = cookieArray[i].split('=')[1].trim();
             }
         }
-	    console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
+        console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
         return cookie.split(/[ \:.]+/)[0];
     };
 
@@ -85,13 +126,13 @@ module.exports = function(Media) {
         {
             description: 'Uploads a file',
             accepts: [
-                { arg: 'ctx', type: 'object', http: { source:'context' } },
-                { arg: 'options', type: 'object', http:{ source: 'query'} }
+                { arg: 'ctx', type: 'object', http: { source: 'context' } },
+                { arg: 'options', type: 'object', http: { source: 'query' } }
             ],
             returns: {
                 arg: 'fileObject', type: 'object', root: true
             },
-            http: {verb: 'post'}
+            http: { verb: 'post' }
         }
     );
 
@@ -100,13 +141,30 @@ module.exports = function(Media) {
         {
             description: 'Uploads a file stream',
             accepts: [
-                { arg: 'ctx', type: 'object', http: { source:'context' } },
-                { arg: 'options', type: 'object', http:{ source: 'query'} }
+                { arg: 'ctx', type: 'object', http: { source: 'context' } },
+                { arg: 'options', type: 'object', http: { source: 'query' } }
             ],
             returns: {
                 arg: 'fileObject', type: 'object', root: true
             },
-            http: {verb: 'post'}
+            http: { verb: 'post' }
+        }
+    );
+
+
+    Media.remoteMethod(
+        'getUploadUrl',
+        {
+            description: 'Get Upload URL',
+            accepts: [
+                { arg: 'data', type: 'object', http: { source: 'body' } },
+                { arg: 'ctx', type: 'object', http: { source: 'context' } },
+                { arg: 'options', type: 'object', http: { source: 'query' } }
+            ],
+            returns: {
+                arg: 'fileObject', type: 'object', root: true
+            },
+            http: { verb: 'post' }
         }
     );
 
