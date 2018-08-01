@@ -98,7 +98,7 @@
     },
     "accountVerified": {
       "type": "boolean",
-      "default": false
+      "default": true
     },
     "verificationIdUrl": {
       "type": "string"

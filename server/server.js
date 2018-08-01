@@ -339,6 +339,36 @@ app.post('/signup', function (req, res, next) {
                         let stripeResponse = '';
                         stripeTransaction.createCustomer(user, function (err, data) {
                             stripeResponse = data;
+	                        
+                            console.log("NEW USER ACCOUNT CREATED");
+	                        User.dataSource.connector.execute(
+			                        "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
+			                        function (err, results) {
+				                        if (!err) {
+					                        // Send welcome email to user
+					                        let message = { username: profileObject.first_name };
+					                        let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+					                        let html_body = renderer(message);
+					                        loopback.Email.send({
+						                        to: user.email,
+						                        from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
+						                        subject: 'Welcome to peerbuds - thanks for signing up!',
+						                        html: html_body
+					                        })
+							                        .then(function (response) {
+								                        console.log('email sent! - ' + response);
+							                        })
+							                        .catch(function (err) {
+								                        console.log('email error! - ' + err);
+							                        });
+					                        createProfileNode(user);
+					                        loopbackLogin(user);
+				                        }
+				                        else {
+					
+				                        }
+			                        }
+	                        );
                         });
 	
 	                    // Create wallet on blockchain
@@ -386,36 +416,6 @@ app.post('/signup', function (req, res, next) {
 						                       });
                                    }
                                 });
-	                    
-                        console.log("NEW USER ACCOUNT CREATED");
-                        User.dataSource.connector.execute(
-                            "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
-                            function (err, results) {
-                                if (!err) {
-                                    // Send welcome email to user
-                                    let message = { username: profileObject.first_name };
-                                    let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
-                                    let html_body = renderer(message);
-                                    loopback.Email.send({
-                                        to: user.email,
-                                        from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
-                                        subject: 'Welcome to peerbuds - thanks for signing up!',
-                                        html: html_body
-                                    })
-                                        .then(function (response) {
-                                            console.log('email sent! - ' + response);
-                                        })
-                                        .catch(function (err) {
-                                            console.log('email error! - ' + err);
-                                        });
-                                    createProfileNode(user);
-                                    loopbackLogin(user);
-                                }
-                                else {
-
-                                }
-                            }
-                        );
                     }
                 });
             }
@@ -425,14 +425,12 @@ app.post('/signup', function (req, res, next) {
 
 app.post('/convertCurrency', function (req, res, next) {
     let access_key = app.get('currencyLayerKey');
-    //console.log(access_key);
     unirest.get('http://apilayer.net/api/convert')
         .query('access_key=' + access_key)
         .query('from=' + req.body.from)
         .query('to=' + req.body.to)
         .query('amount=' + req.body.amount)
         .end(function (response) {
-            //console.log(response.body);
             res.json(response.body);
         });
 });

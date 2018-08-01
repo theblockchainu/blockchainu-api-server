@@ -43,13 +43,18 @@ module.exports = function(Container) {
 								});
 								writeStream.on('success', function () {
 									//console.log('Upload done. Now downloading correct sized media.');
-									Container.download(container, fileWithSize, req, res, function(err, response2) {
-										if (err) {
-											cb (err);
-										} else {
-											cb (null, response2);
-										}
-									});
+									try {
+										Container.download(container, fileWithSize, req, res, function(err, response2) {
+											if (err) {
+												cb (err);
+											} else {
+												cb (null, response2);
+											}
+										});
+									} catch(err) {
+										console.log(err);
+										cb (err);
+									}
 								});
 								inputStream.pipe(writeStream, {end: false});
 							})

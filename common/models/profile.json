@@ -55,7 +55,7 @@
       "default": "pst"
     },
     "dobMonth": {
-      "type": "string"
+      "type": "number"
     },
     "dobYear": {
       "type": "number"

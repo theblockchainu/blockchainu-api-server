@@ -480,13 +480,13 @@ module.exports = function (Collection) {
                                 subject = 'Class Approved';
                                 title = 'Class Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Approved';
                                 title = 'Experience Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
                                 break;
                             case 'session':
                                 subject = 'Account Approved for Peer Sessions';
@@ -498,7 +498,7 @@ module.exports = function (Collection) {
                                 subject = 'Collection Approved';
                                 title = 'Collection Approved!';
                                 description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
                                 break;
                         }
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
@@ -578,7 +578,7 @@ module.exports = function (Collection) {
                                                                                             learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
                                                                                         }
                                                                                     });
-                                                                                    learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
+                                                                                    learningHours = learningHours === 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
                                                                                     console.log('total learning hours are: ' + learningHours);
                                                                                     // Add to blockchain
                                                                                     request
@@ -687,13 +687,13 @@ module.exports = function (Collection) {
                                 subject = 'Class Rejected';
                                 title = 'Class Rejected!';
                                 description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "13"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
                                 break;
                             case 'experience':
                                 subject = 'Experience Rejected';
                                 title = 'Experience Rejected!';
                                 description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "14"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
                                 break;
                             case 'session':
                                 subject = 'Account Rejected for Peer Sessions';
@@ -705,7 +705,7 @@ module.exports = function (Collection) {
                                 subject = 'Collection Rejected';
                                 title = 'Collection Rejected!';
                                 description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
-                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "14"];
+                                actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
                                 break;
                         }
                         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
@@ -1162,7 +1162,6 @@ module.exports = function (Collection) {
                     else {
                         // This collection has no participants on it. We can edit it but put it back in draft status.
                         ctx.args.data.status = 'draft';
-                        ctx.args.data.isNewInstance = true;
                         next();
                     }
                 });
@@ -1341,7 +1340,6 @@ module.exports = function (Collection) {
                     else {
                         // This collection has no participants on it. We can edit it but put it back in draft status.
                         ctx.args.data.status = 'draft';
-                        ctx.args.data.isNewInstance = true;
                         next();
                     }
                 });
@@ -1499,21 +1497,8 @@ module.exports = function (Collection) {
                         });
                     }
                     else {
-                        // This collection has no participants on it. We can delete its content but change status to draft
-                        let newCollectionData = collectionInstance.toJSON();
-                        newCollectionData.isNewInstance = true;
-                        // Copy all contents from oldInstance to new instance
-                        collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
-                            if (!err && oldContentInstances !== null) {
-                                let resultCollectionInstance = newCollectionData;
-                                resultCollectionInstance['contents'] = oldContentInstances.toJSON();
-                                ctx.res.json(resultCollectionInstance);
-                            }
-                            else {
-                                console.log(err);
-                                next(new Error(g.f('Cannot update collection. Error: ' + err)));
-                            }
-                        });
+	                    // This collection has no participants on it. We can edit it but put it back in draft status.
+	                    next();
                     }
                 });
             }
@@ -1579,7 +1564,7 @@ module.exports = function (Collection) {
                                 learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
                             }
                         });
-                        learningHours = learningHours === 0 ? 1 : learningHours;    // make sure learning hours is never zero.
+                        learningHours = learningHours === 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
                         console.log('total learning hours are: ' + learningHours);
                         const body = {
                             uniqueId: collectionInstance.id,
