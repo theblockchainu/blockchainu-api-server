@@ -318,6 +318,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_certificate_template",
       "keyThrough": "targetId"
+    },
+    "promoCodes": {
+      "type": "hasMany",
+      "model": "promoCode",
+      "foreignKey": "sourceId",
+      "through": "collection_has_promoCode",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

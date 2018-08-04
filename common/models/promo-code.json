@@ -1,0 +1,82 @@
+{
+  "name": "promoCode",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "HasOne": {
+      "relations": [
+        {
+          "model": "collection",
+          "hasManyRelation": "collections",
+          "autoCreate": true
+        }
+      ]
+    },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "peer",
+          "hasManyRelation": "peersAllowed"
+        }
+      ]
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "discountType": {
+      "type": "string"
+    },
+    "discountCurrency": {
+      "type": "string"
+    },
+    "discountValue": {
+      "type": "number"
+    },
+    "validFrom": {
+      "type": "date"
+    },
+    "validTo": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_promoCode",
+      "keyThrough": "sourceId"
+    },
+    "peersAllowed": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "promoCode_has_peer",
+      "keyThrough": "targetId"
+    },
+    "appliedBy": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "promoCode_has_peer",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
