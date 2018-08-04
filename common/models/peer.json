@@ -437,6 +437,20 @@
       "foreignKey": "sourceId",
       "through": "peer_has_certificate",
       "keyThrough": "targetId"
+    },
+    "allowedPromoCodes": {
+      "type": "hasMany",
+      "model": "promoCode",
+      "foreignKey": "targetId",
+      "through": "collection_has_promoCode",
+      "keyThrough": "sourceId"
+    },
+    "promoCodesApplied": {
+      "type": "hasMany",
+      "model": "promoCode",
+      "foreignKey": "sourceId",
+      "through": "peer_applied_promoCode",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

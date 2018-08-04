@@ -832,5 +832,21 @@
   "peer_has_certificate": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "promoCode": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_promoCode": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "promoCode_has_peer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "peer_applied_promoCode": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
