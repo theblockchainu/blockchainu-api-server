@@ -1,13 +1,13 @@
 {
-  "name": "peer_has_certificate",
+  "name": "collection_has_promoCode",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "certificate"
+    "sourceModel": "collection",
+    "targetModel": "promoCode"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "collection": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "certificate": {
+    "promoCode": {
       "type": "belongsTo",
-      "model": "certificate",
+      "model": "promoCode",
       "foreignKey": "targetId"
     }
   },

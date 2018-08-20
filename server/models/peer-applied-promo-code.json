@@ -1,5 +1,5 @@
 {
-  "name": "peer_has_certificate",
+  "name": "peer_applied_promoCode",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -7,7 +7,7 @@
   },
   "neo4j": {
     "sourceModel": "peer",
-    "targetModel": "certificate"
+    "targetModel": "promoCode"
   },
   "properties": {
     "id": {
@@ -28,9 +28,9 @@
       "model": "peer",
       "foreignKey": "sourceId"
     },
-    "certificate": {
+    "promoCode": {
       "type": "belongsTo",
-      "model": "certificate",
+      "model": "promoCode",
       "foreignKey": "targetId"
     }
   },
