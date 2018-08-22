@@ -6,10 +6,7 @@ var moment = require('moment');
 var app = require('../../server/server');
 
 module.exports = function (Comment) {
-
-	Comment.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp'] });
-
-
+	
 	Comment.afterRemote('prototype.__create__upvotes', function (ctx, newUpvotesInstance, next) {
 		// Send email & notification to owner if upvote received
 		var loggedinPeer = Comment.getCookieUserId(ctx.req);

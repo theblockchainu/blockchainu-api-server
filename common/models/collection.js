@@ -8,6 +8,8 @@ let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 
 module.exports = function (Collection) {
+	
+	Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led'] });
 
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
@@ -185,8 +187,8 @@ module.exports = function (Collection) {
                                         .catch(function (err) {
                                             console.log('email error! - ' + err);
                                         });
-                                    next();
                                 });
+	                            next();
                             }
                             else {
                                 next(new Error('Could not find collection owner'));
