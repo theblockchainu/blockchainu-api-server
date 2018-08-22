@@ -39,7 +39,7 @@ try {
     bcrypt = require('bcryptjs');
 }
 
-module.exports = function(Peer) {
+module.exports = function (Peer) {
 
 
 	/**
@@ -58,7 +58,7 @@ module.exports = function(Peer) {
 	 * @callback {Function} fn Callback function
 	 * @promise
 	 */
-    Peer.login = function(credentials, include, fn) {
+    Peer.login = function (credentials, include, fn) {
         let self = this;
         if (typeof include === 'function') {
             fn = include;
@@ -69,7 +69,7 @@ module.exports = function(Peer) {
 
         include = (include || '');
         if (Array.isArray(include)) {
-            include = include.map(function(val) {
+            include = include.map(function (val) {
                 return val.toLowerCase();
             });
         } else {
@@ -86,7 +86,7 @@ module.exports = function(Peer) {
             return fn.promise;
         }
 
-        self.findOne({ where: query }, function(err, peer) {
+        self.findOne({ where: query }, function (err, peer) {
 
             let defaultError = new Error(g.f('login failed'));
             defaultError.statusCode = 401;
@@ -106,7 +106,7 @@ module.exports = function(Peer) {
             }
             else if (peer) {
 
-                peer.hasPassword(credentials.password, function(err, isMatch) {
+                peer.hasPassword(credentials.password, function (err, isMatch) {
                     if (err) {
                         fn(defaultError);
                     }
@@ -164,7 +164,7 @@ module.exports = function(Peer) {
 	 * @promise
 	 */
 
-    Peer.logout = function(tokenId, fn) {
+    Peer.logout = function (tokenId, fn) {
         console.log("Logout function called");
         fn = fn || utils.createPromiseCallback();
 
@@ -178,7 +178,7 @@ module.exports = function(Peer) {
 
         Peer.dataSource.connector.execute(
             "match (:peer)-[:hasToken]->(token:UserToken {id:'" + tokenId + "'}) DETACH DELETE token",
-            function(err, results) {
+            function (err, results) {
                 if (err) {
                     fn(err);
                 }
@@ -202,8 +202,8 @@ module.exports = function(Peer) {
 	 * @callback {Function} callback
 	 * @promise
 	 */
-    Peer.confirm = function(uid, token, redirect, req, res, fn) {
-        this.findById(uid, function(err, user) {
+    Peer.confirm = function (uid, token, redirect, req, res, fn) {
+        this.findById(uid, function (err, user) {
             if (err) {
                 fn(err);
             } else {
@@ -211,66 +211,18 @@ module.exports = function(Peer) {
                     user.verificationToken = null;
                     user.emailVerified = true;
                     user.save()
-                        .then(function(userInstance) {
+                        .then(function (userInstance) {
                             console.log(userInstance);
                             if (redirect !== undefined) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
-                                return Peer.app.models.scholarship.find(
-                                    {
-                                        'where': {
-                                            'type': 'public'
-                                        }
-                                    }
-                                );
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
                             }
                         })
-                        .then(function(scholarshipInstances) {
-                            scholarshipInstances.forEach(function(scholarship) {
-                                scholarship.__link__peers_joined(user.id, function(err, linkedPeerInstance) {
-                                    if (user.ethAddress && user.ethAddress.length > 0) {
-                                        request
-                                            .put({
-                                                url: protocolUrl + 'scholarships/' + scholarship.id + '/peers/rel/' + user.ethAddress,
-                                                json: true
-                                            }, function(err, response, data) {
-                                                if (err) {
-                                                    console.error(err);
-                                                } else {
-                                                    console.log('Added participant to scholarship on blockchain: ' + data);
-                                                }
-                                            });
-                                    }
-                                });
-                            });
-                            return Promise.all(scholarshipInstances);
-                        })
-                        .then(function(scholarshipRelationInstances) {
-                            if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
-                                // Send token in email to user.
-                                const message = {};
-                                const renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
-                                const html_body = renderer(message);
-                                loopback.Email.send({
-                                    to: user.email,
-                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                    subject: 'Peerbuds Global Scholarship',
-                                    html: html_body
-                                })
-                                    .then(function(response) {
-                                        console.log('email sent! - ' + response);
-                                    })
-                                    .catch(function(err) {
-                                        console.log('email error! - ' + err);
-                                    });
-                            }
-                            fn(null, { result: "success" });
-                        })
-                        .catch(function(err) {
+                        .catch(function (err) {
                             fn(err);
                         });
                 } else {
@@ -299,9 +251,9 @@ module.exports = function(Peer) {
 	 * @callback {Function} callback
 	 * @promise
 	 */
-    Peer.sendVerifyEmail = function(uid, email, fn) {
+    Peer.sendVerifyEmail = function (uid, email, fn) {
         fn = fn || utils.createPromiseCallback();
-        this.findById(uid, function(err, user) {
+        this.findById(uid, function (err, user) {
             if (err) {
                 fn(err);
             } else {
@@ -322,15 +274,15 @@ module.exports = function(Peer) {
                         subject: 'Verify your email with peerbuds',
                         html: html_body
                     })
-                        .then(function(response) {
+                        .then(function (response) {
                             console.log('email sent! - ' + response);
                         })
-                        .catch(function(err) {
+                        .catch(function (err) {
                             console.log('email error! - ' + err);
                         });
                     user.verificationToken = verificationToken;
                     user.emailVerified = false;
-                    user.save(function(err) {
+                    user.save(function (err) {
                         if (err) {
                             fn(err);
                         } else {
@@ -348,20 +300,20 @@ module.exports = function(Peer) {
         return fn.promise;
     };
 
-    Peer.confirmSmsOTP = function(req, token, fn) {
+    Peer.confirmSmsOTP = function (req, token, fn) {
 
         let loggedinPeer = Peer.getCookieUserId(req);
 
         //if user is logged in
         if (loggedinPeer) {
-            this.findById(loggedinPeer, function(err, user) {
+            this.findById(loggedinPeer, function (err, user) {
                 if (err) {
                     fn(err);
                 } else {
                     if (user && user.phoneVerificationToken === token) {
                         user.phoneVerificationToken = null;
                         user.phoneVerified = true;
-                        user.save(function(err) {
+                        user.save(function (err) {
                             if (err) {
                                 fn(err);
                             } else {
@@ -400,7 +352,7 @@ module.exports = function(Peer) {
 	 * @callback {Function} callback
 	 * @promise
 	 */
-    Peer.sendVerifySms = function(req, phone, countryCode, fn) {
+    Peer.sendVerifySms = function (req, phone, countryCode, fn) {
 
         fn = fn || utils.createPromiseCallback();
         let loggedinPeer = Peer.getCookieUserId(req);
@@ -411,7 +363,7 @@ module.exports = function(Peer) {
         if (loggedinPeer) {
 
             let phoneNumber = app.models.phone;
-            phoneNumber.find({ 'where': { 'and': [{ 'country_code': countryCode }, { 'subscriber_number': sanitizedPhone }] }, 'include': { 'profilePhoneNumber': 'peer' } }, function(err, phoneNumberInstances) {
+            phoneNumber.find({ 'where': { 'and': [{ 'country_code': countryCode }, { 'subscriber_number': sanitizedPhone }] }, 'include': { 'profilePhoneNumber': 'peer' } }, function (err, phoneNumberInstances) {
                 if (err) {
                     fn(err);
                 } else if ((phoneNumberInstances && phoneNumberInstances.length > 0) && (phone !== '7021517299' && phone !== 7021517299)) {
@@ -441,7 +393,7 @@ module.exports = function(Peer) {
         return fn.promise;
     };
 
-    Peer.generateKnowledgeStory = function(id, data, cb) {
+    Peer.generateKnowledgeStory = function (id, data, cb) {
 
         let knowledgeStory = {
             first_name: "",
@@ -478,7 +430,7 @@ module.exports = function(Peer) {
         cb(null, knowledgeStory);
     };
 
-    let sendPhoneVerificationCodeSms = function(loggedinPeer, phone, countryCode, fn) {
+    let sendPhoneVerificationCodeSms = function (loggedinPeer, phone, countryCode, fn) {
         let formattedPhone = phone.replace(/[^\d]/g, '');
         formattedPhone = '+' + countryCode + formattedPhone;
         // Generate new token for sms
@@ -495,7 +447,7 @@ module.exports = function(Peer) {
             body: message,
             to: formattedPhone,  // Text this number
             from: twilioPhone // From a valid Twilio number
-        }, function(err, message) {
+        }, function (err, message) {
             if (err) {
                 console.error(err);
                 fn(err);
@@ -503,11 +455,11 @@ module.exports = function(Peer) {
             else {
                 //console.log(message);
                 let User = app.models.peer;
-                User.findById(loggedinPeer, { 'include': 'profiles' }, function(err, peerInstance) {
+                User.findById(loggedinPeer, { 'include': 'profiles' }, function (err, peerInstance) {
                     if (err) {
                         fn(err);
                     } else {
-                        Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function(err, profileInstance) {
+                        Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
                             if (err) {
                                 fn(err);
                             } else {
@@ -516,11 +468,11 @@ module.exports = function(Peer) {
                                     subscriber_number: phone,
                                     isPrimary: true
                                 };
-                                profileInstance.__delete__phone_numbers({}, { 'where': { 'isPrimary': true } }, function(err, deletedNumbers) {
+                                profileInstance.__delete__phone_numbers({}, { 'where': { 'isPrimary': true } }, function (err, deletedNumbers) {
                                     if (err) {
                                         fn(err);
                                     } else {
-                                        profileInstance.__create__phone_numbers(phoneNumber, function(err, phoneNumberInstance) {
+                                        profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
                                             if (err) {
                                                 fn(err);
                                             } else {
@@ -529,7 +481,7 @@ module.exports = function(Peer) {
                                                 peerInstance.phoneVerificationToken = phoneToken;
                                                 peerInstance.phoneVerified = false;
                                                 console.log(peerInstance);
-                                                User.upsert(peerInstance.toJSON(), function(err, modifiedPeerInstance) {
+                                                User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
                                                     if (err) {
                                                         fn(err);
                                                     }
@@ -562,7 +514,7 @@ module.exports = function(Peer) {
 	 * @param cb
 	 */
 
-    Peer.resetPassword = function(options, cb) {
+    Peer.resetPassword = function (options, cb) {
         cb = cb || utils.createPromiseCallback();
         if (options.email && options.password && options.verificationToken) {
             console.log('resetting password ');
@@ -621,7 +573,7 @@ module.exports = function(Peer) {
 
     };
 
-    Peer.changePassword = function(options, cb) {
+    Peer.changePassword = function (options, cb) {
         cb = cb || utils.createPromiseCallback();
         if (options.userId && options.oldPassword && options.newPassword) {
             console.log('resetting password ');
@@ -673,11 +625,12 @@ module.exports = function(Peer) {
 
     };
 
-    Peer.setPassword = function(options, cb) {
+    Peer.setPassword = function (options, cb) {
         cb = cb || utils.createPromiseCallback();
         if (options.userId && options.newPassword) {
             console.log('setting password ');
             try {
+                this.validatePassword(options.newPassword);
                 options.newPassword = this.hashPassword(options.newPassword);
             } catch (err) {
                 cb(err);
@@ -686,14 +639,136 @@ module.exports = function(Peer) {
             this.findOne({
                 where: {
                     id: options.userId
-                }
-            }, (err, user) => {
+                },
+                include: 'profiles'
+            }, (err, userInstance) => {
+                let user = userInstance.toJSON();
                 if (user) {
                     console.log('User Found!');
-                    user.updateAttributes({
+                    userInstance.updateAttributes({
                         "password": options.newPassword,
                         "verificationToken": '',
                         "verificationTokenTime": ''
+                    });
+                    let stripeTransaction = app.models.transaction;
+                    let stripeResponse = '';
+                    let profileObject = user.profiles[0];
+                    stripeTransaction.createCustomer(user, (err, data) => {
+                        stripeResponse = data;
+                        console.log("NEW USER ACCOUNT CREATED");
+                        let message = { username: profileObject.first_name };
+                        let renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeSignupStudent.ejs'));
+                        let html_body = renderer(message);
+                        loopback.Email.send({
+                            to: user.email,
+                            from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
+                            subject: 'Welcome to peerbuds - thanks for signing up!',
+                            html: html_body
+                        })
+                            .then(function (response) {
+                                console.log('email sent! - ' + response);
+                            })
+                            .catch(function (err) {
+                                console.log('email error! - ' + err);
+                            });
+                    });
+
+                    // Create wallet on blockchain
+                    console.log('Creating wallet');
+                    request.post({
+                        url: app.get('protocolUrl') + 'peers',
+                        body: {
+                            password: options.newPassword
+                        },
+                        json: true
+                    }, (err, response, data) => {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            Peer.dataSource.connector.execute(
+                                "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
+                                (err, results) => {
+                                    console.log('Created ethereum wallet and saved address in DB');
+                                }
+                            );
+                            // Send welcome email to user
+                            let message = {
+                                userName: profileObject.first_name + ' ' + profileObject.last_name,
+                                userEmail: user.email,
+                                dobMonth: profileObject.dobMonth,
+                                dobDay: profileObject.dobDay,
+                                dobYear: profileObject.dobYear,
+                                stripeId: stripeResponse,
+                                ethWalletId: data
+                            };
+                            let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
+                            let html_body = renderer(message);
+                            loopback.Email.send({
+                                to: 'aakash@peerbuds.com',
+                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                subject: 'New user signup!',
+                                html: html_body
+                            })
+                                .then(function (response) {
+                                    console.log('email sent! - ' + response);
+                                })
+                                .catch(function (err) {
+                                    console.log('email error! - ' + err);
+                                });
+
+                            // Add peer to scholarship
+
+                            Peer.app.models.scholarship.find(
+                                {
+                                    'where': {
+                                        'type': 'public'
+                                    }
+                                }
+                            ).then(function (scholarshipInstances) {
+                                scholarshipInstances.forEach(function (scholarship) {
+                                    scholarship.__link__peers_joined(user.id, function (err, linkedPeerInstance) {
+                                        if (data && data > 0) {
+                                            request
+                                                .put({
+                                                    url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
+                                                    json: true
+                                                }, function (err, response, result) {
+                                                    if (err) {
+                                                        console.error(err);
+                                                    } else {
+                                                        console.log('Added participant to scholarship on blockchain: ' + result);
+                                                    }
+                                                });
+                                        }
+                                    });
+                                });
+                                return Promise.all(scholarshipInstances);
+                            })
+                                .then(function (scholarshipRelationInstances) {
+                                    if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+                                        // Send token in email to user.
+                                        const message = {};
+                                        const renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
+                                        const html_body = renderer(message);
+                                        loopback.Email.send({
+                                            to: user.email,
+                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                            subject: 'Peerbuds Global Scholarship',
+                                            html: html_body
+                                        })
+                                            .then(function (response) {
+                                                console.log('email sent! - ' + response);
+                                            })
+                                            .catch(function (err) {
+                                                console.log('email error! - ' + err);
+                                            });
+                                    }
+                                }).catch(function (err) {
+                                    console.log('Error in joining sholarship');
+                                    console.log(err);
+
+                                });
+                        }
                     });
                     cb(null, {
                         'message': 'Password changed',
@@ -714,9 +789,9 @@ module.exports = function(Peer) {
         }
 
     };
-    Peer.forgotPassword = function(req, body, cb) {
+    Peer.forgotPassword = function (req, body, cb) {
         cb = cb || utils.createPromiseCallback();
-        this.findOne({ where: { email: body.email } }, function(err, user) {
+        this.findOne({ where: { email: body.email } }, function (err, user) {
             if (user) {
                 // Generate new verificationToken
                 let verificationToken = passcode.hotp({
@@ -739,9 +814,9 @@ module.exports = function(Peer) {
                             from: 'Peerbuds <noreply@mx.peerbuds.com>',
                             subject: 'Peerbuds - Account recovery',
                             html: html_body
-                        }).then(function(response) {
+                        }).then(function (response) {
                             cb(null, { email: body.email, sent: true });
-                        }).catch(function(err) {
+                        }).catch(function (err) {
                             cb(err);
                         });
                     }
@@ -756,7 +831,7 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.userCalendar = function(id, cb) {
+    Peer.userCalendar = function (id, cb) {
         let Calendar = Peer.app.models.Calendar;
         let Schedule = Peer.app.models.Schedule;
         let userCalendarData = [];
@@ -874,13 +949,13 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.approve = function(id, req, cb) {
+    Peer.approve = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, { "include": ["socketconnections"] }, function(err, peerInstance) {
+        Peer.findById(id, { "include": ["socketconnections"] }, function (err, peerInstance) {
             if (!err && peerInstance !== null) {
                 let userId = peerInstance.toJSON().id;
                 peerInstance.accountVerified = true;
-                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function(err, newpeerInstance) {
+                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function (err, newpeerInstance) {
                     if (err) {
                         console.log(err);
                         err = new Error(g.f('Error updating Peer.'));
@@ -901,12 +976,12 @@ module.exports = function(Peer) {
                             title: "Account approved!",
                             description: "Your peerbuds account has been approved. Add more details now.",
                             actionUrl: ['console', 'profile', 'edit']
-                        }, function(err, notificationInstance) {
+                        }, function (err, notificationInstance) {
                             if (err) {
                                 cb(err);
                             }
                             else {
-                                notificationInstance.actor.add(peerInstance.id, function(err, actorInstance) {
+                                notificationInstance.actor.add(peerInstance.id, function (err, actorInstance) {
                                     if (err) {
                                         cb(err);
                                     }
@@ -917,10 +992,10 @@ module.exports = function(Peer) {
                                             subject: subject,
                                             html: html_body
                                         })
-                                            .then(function(response) {
+                                            .then(function (response) {
                                                 console.log('email sent! - ' + response);
                                             })
-                                            .catch(function(err) {
+                                            .catch(function (err) {
                                                 console.log('email error! - ' + err);
                                             });
                                         // send out a socket notification to set a cookie for accountApproved
@@ -951,13 +1026,13 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.reject = function(id, req, cb) {
+    Peer.reject = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null) {
                 let userId = peerInstance.toJSON().id;
                 peerInstance.accountVerified = false;
-                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function(err, newpeerInstance) {
+                Peer.upsertWithWhere({ id: peerInstance.id }, peerInstance, function (err, newpeerInstance) {
                     if (err) {
                         console.log(err);
                         err = new Error(g.f('Error updating Peer.'));
@@ -978,12 +1053,12 @@ module.exports = function(Peer) {
                             title: "Account approved!",
                             description: "Your peerbuds account was rejected. Please edit your details and re-submit.",
                             actionUrl: ['console', 'profile', 'verification']
-                        }, function(err, notificationInstance) {
+                        }, function (err, notificationInstance) {
                             if (err) {
                                 cb(err);
                             }
                             else {
-                                notificationInstance.actor.add(peerInstance.id, function(err, actorInstance) {
+                                notificationInstance.actor.add(peerInstance.id, function (err, actorInstance) {
                                     if (err) {
                                         cb(err);
                                     }
@@ -994,10 +1069,10 @@ module.exports = function(Peer) {
                                             subject: subject,
                                             html: html_body
                                         })
-                                            .then(function(response) {
+                                            .then(function (response) {
                                                 console.log('email sent! - ' + response);
                                             })
-                                            .catch(function(err) {
+                                            .catch(function (err) {
                                                 console.log('email error! - ' + err);
                                             });
                                         cb(null, { result: 'Account rejected. Email sent to Owner.' });
@@ -1018,22 +1093,22 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.floatingGyanBalance = function(id, req, cb) {
+    Peer.floatingGyanBalance = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null && peerInstance.ethAddress) {
                 // Get from blockchain
                 request
                     .get({
                         url: protocolUrl + 'gyan/' + peerInstance.ethAddress + '/floating',
-                    }, function(err, response, data) {
+                    }, function (err, response, data) {
                         if (err) {
                             console.error(err);
                             cb(err);
                         } else {
                             console.log('Got floating gyan balance of user: ' + data);
                             if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-                                Peer.app.models.cache.findById('1', function(err, cacheInstance) {
+                                Peer.app.models.cache.findById('1', function (err, cacheInstance) {
                                     if (err) {
                                         cb(err);
                                     } else {
@@ -1060,22 +1135,22 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.fixedGyanBalance = function(id, req, cb) {
+    Peer.fixedGyanBalance = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null && peerInstance.ethAddress) {
                 // Get from blockchain
                 request
                     .get({
                         url: protocolUrl + 'gyan/' + peerInstance.ethAddress + '/fixed',
-                    }, function(err, response, data) {
+                    }, function (err, response, data) {
                         if (err) {
                             console.error(err);
                             cb(err);
                         } else {
                             console.log('Got fixed gyan balance of user: ' + data);
                             if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-                                Peer.app.models.cache.findById('1', function(err, cacheInstance) {
+                                Peer.app.models.cache.findById('1', function (err, cacheInstance) {
                                     if (err) {
                                         cb(err);
                                     } else {
@@ -1102,22 +1177,22 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.potentialKarmaReward = function(id, req, cb) {
+    Peer.potentialKarmaReward = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null && peerInstance.ethAddress) {
                 // Get from blockchain
                 request
                     .get({
                         url: protocolUrl + 'karma/' + peerInstance.ethAddress + '/potentialRewards',
-                    }, function(err, response, data) {
+                    }, function (err, response, data) {
                         if (err) {
                             console.error(err);
                             cb(err);
                         } else {
                             console.log('Got potential karma rewards of user: ' + data);
                             if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-                                Peer.app.models.cache.findById('1', function(err, cacheInstance) {
+                                Peer.app.models.cache.findById('1', function (err, cacheInstance) {
                                     if (err) {
                                         cb(err);
                                     } else {
@@ -1143,22 +1218,22 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.karmaBalance = function(id, req, cb) {
+    Peer.karmaBalance = function (id, req, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null && peerInstance.ethAddress) {
                 // Get from blockchain
                 request
                     .get({
                         url: protocolUrl + 'karma/' + peerInstance.ethAddress,
-                    }, function(err, response, data) {
+                    }, function (err, response, data) {
                         if (err) {
                             console.error(err);
                             cb(err);
                         } else {
                             console.log('Got karma balance of user: ' + data);
                             if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
-                                Peer.app.models.cache.findById('1', function(err, cacheInstance) {
+                                Peer.app.models.cache.findById('1', function (err, cacheInstance) {
                                     if (err) {
                                         cb(err);
                                     } else {
@@ -1184,14 +1259,14 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.fixWallet = function(id, req, body, cb) {
+    Peer.fixWallet = function (id, req, body, cb) {
         // Find the collection by given ID
-        Peer.findById(id, function(err, peerInstance) {
+        Peer.findById(id, function (err, peerInstance) {
             if (!err && peerInstance !== null && peerInstance.ethAddress) {
                 // Already has wallet. Check if it exists on blockchain.
                 cb(null, { result: 'Wallet already exists' });
             } else if (!err && peerInstance !== null && !peerInstance.ethAddress) {
-                peerInstance.hasPassword(body.password, function(err, isMatch) {
+                peerInstance.hasPassword(body.password, function (err, isMatch) {
                     if (err) {
                         cb(err);
                     } else if (isMatch) {
@@ -1203,7 +1278,7 @@ module.exports = function(Peer) {
                                     password: body.password
                                 },
                                 json: true
-                            }, function(err, response, data) {
+                            }, function (err, response, data) {
                                 if (err) {
                                     console.error(err);
                                     cb(err);
@@ -1233,14 +1308,14 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.karmaSupply = function(cb) {
+    Peer.karmaSupply = function (cb) {
 
         // Get from blockchain
         request
             .get({
                 url: protocolUrl + 'karma',
                 json: true
-            }, function(err, response, data) {
+            }, function (err, response, data) {
                 if (err) {
                     console.error(err);
                     cb(err);
@@ -1251,14 +1326,14 @@ module.exports = function(Peer) {
             });
     };
 
-    Peer.blockTransactions = function(id, req, cb) {
+    Peer.blockTransactions = function (id, req, cb) {
         const topics = req.query && req.query.topics ? req.query.topics : '';
         // Get from blockchain
         request
             .get({
                 url: protocolUrl + 'peers/' + id + '/transactions?topics=' + topics,
                 json: true
-            }, function(err, response, data) {
+            }, function (err, response, data) {
                 if (err) {
                     console.error(err);
                     cb(err);
@@ -1271,16 +1346,16 @@ module.exports = function(Peer) {
 
 
     //noinspection JSCheckFunctionSignatures
-    Peer.observe('before delete', function(ctx, next) {
+    Peer.observe('before delete', function (ctx, next) {
 
         Peer.dataSource.connector.execute(
             "match (:peer {id:'" + ctx.where.id + "'})-[:hasToken]->(token:UserToken) DETACH DELETE token",
-            function(err, results) {
+            function (err, results) {
                 if (err) {
                     next(err);
                 }
                 else {
-                    Peer.findById(ctx.where.id, function(err, peerInstance) {
+                    Peer.findById(ctx.where.id, function (err, peerInstance) {
                         if (err) {
                             next(err);
                         } else {
@@ -1295,10 +1370,10 @@ module.exports = function(Peer) {
                                 subject: subject,
                                 html: html_body
                             })
-                                .then(function(response) {
+                                .then(function (response) {
                                     console.log('email sent! - ' + response);
                                 })
-                                .catch(function(err) {
+                                .catch(function (err) {
                                     console.log('email error! - ' + err);
                                 });
                             next();
@@ -1320,7 +1395,7 @@ module.exports = function(Peer) {
 	 * @callback {Function} cb The callback function
 	 * @promise
 	 */
-    Peer.prototype.createAccessToken = function(peer, ttl, options, cb) {
+    Peer.prototype.createAccessToken = function (peer, ttl, options, cb) {
         if (cb === undefined && typeof options === 'function') {
             // createAccessToken(ttl, cb)
             cb = options;
@@ -1338,7 +1413,7 @@ module.exports = function(Peer) {
         let userModel = this.constructor;
         ttl = Math.min(ttl || userModel.settings.ttl, userModel.settings.maxTTL);
 
-        uid(Peer.settings.accessTokenIdLength || DEFAULT_TOKEN_LEN, function(err, guid) {
+        uid(Peer.settings.accessTokenIdLength || DEFAULT_TOKEN_LEN, function (err, guid) {
             if (err) {
                 cb(err);
             } else {
@@ -1352,7 +1427,7 @@ module.exports = function(Peer) {
         return cb.promise;
     };
 
-    Peer.prototype.createProfile = function(profileModel, profileObject, user, cb) {
+    Peer.prototype.createProfile = function (profileModel, profileObject, user, cb) {
         if (cb === undefined && typeof options === 'function') {
             // createAccessToken(ttl, cb)
             cb = options;
@@ -1361,14 +1436,14 @@ module.exports = function(Peer) {
         cb = cb || utils.createPromiseCallback();
         //console.log(user.Id);
 
-        profileModel.create(profileObject, function(err, profileNode) {
+        profileModel.create(profileObject, function (err, profileNode) {
             if (!err && profileNode) {
                 if (profileNode.isNewInstance)
                     console.log("Created new user entry");
 
                 profileModel.dataSource.connector.execute(
                     "match (p:peer {email: '" + user.email + "'}), (pro:profile {id: '" + profileNode.id + "'}) merge (p)-[r:peer_has_profile {id: '" + uuid.v4() + "', sourceId: p.id, targetId: pro.id}]->(pro) return r",
-                    function(err, results) {
+                    function (err, results) {
                         if (!err) {
                             cb(err, user, results);
                         }
@@ -1385,8 +1460,8 @@ module.exports = function(Peer) {
         return cb.promise;
     };
 
-    Peer.prototype.updateProfileNode = function(profileModel, profileObject, user, cb) {
-        Peer.findById(user.id, function(err, modelInstance) {
+    Peer.prototype.updateProfileNode = function (profileModel, profileObject, user, cb) {
+        Peer.findById(user.id, function (err, modelInstance) {
             if (err) {
                 cb(err);
             } else {
@@ -1398,7 +1473,7 @@ module.exports = function(Peer) {
                         } else {
                             if (instances[0]) {
                                 let objId = instances[0].id;
-                                Peer.app.models.profile.upsertWithWhere({ "id": objId }, profileObject, function(err, updatedInstance) {
+                                Peer.app.models.profile.upsertWithWhere({ "id": objId }, profileObject, function (err, updatedInstance) {
                                     if (err) {
                                         cb(err);
                                     }
@@ -1422,10 +1497,10 @@ module.exports = function(Peer) {
         });
     };
 
-    Peer.prototype.hasPassword = function(plain, fn) {
+    Peer.prototype.hasPassword = function (plain, fn) {
         fn = fn || utils.createPromiseCallback();
         if (this.password && plain) {
-            bcrypt.compare(plain, this.password, function(err, isMatch) {
+            bcrypt.compare(plain, this.password, function (err, isMatch) {
                 if (err) return fn(err);
                 fn(null, isMatch);
             });
@@ -1440,7 +1515,7 @@ module.exports = function(Peer) {
 	 * @param {Object} credentials The credential object
 	 * @returns {Object} The normalized credential object
 	 */
-    Peer.normalizeCredentials = function(credentials) {
+    Peer.normalizeCredentials = function (credentials) {
         let query = {};
         credentials = credentials || {};
 
@@ -1455,7 +1530,7 @@ module.exports = function(Peer) {
 	/*!
 	 * Hash the plain password
 	 */
-    Peer.hashPassword = function(plain) {
+    Peer.hashPassword = function (plain) {
         try {
             this.validatePassword(plain);
         } catch (err) {
@@ -1465,7 +1540,7 @@ module.exports = function(Peer) {
         return bcrypt.hashSync(plain, salt);
     };
 
-    Peer.validatePassword = function(plain) {
+    Peer.validatePassword = function (plain) {
         let err;
         if (plain && typeof plain === 'string' && plain.length <= MAX_PASSWORD_LENGTH) {
             return true;
@@ -1481,7 +1556,7 @@ module.exports = function(Peer) {
         throw err;
     };
 
-    Peer._invalidateAccessTokensOfUsers = function(userIds, options, cb) {
+    Peer._invalidateAccessTokensOfUsers = function (userIds, options, cb) {
         if (typeof options === 'function' && cb === undefined) {
             cb = options;
             options = {};
@@ -1498,15 +1573,15 @@ module.exports = function(Peer) {
 
     };
 
-    Peer.afterRemote('prototype.__create__reviewsAboutYou', function(ctx, newReviewInstance, next) {
+    Peer.afterRemote('prototype.__create__reviewsAboutYou', function (ctx, newReviewInstance, next) {
         // A new review was created. Send email to teacher who got review
         let loggedinPeer = Peer.getCookieUserId(ctx.req);
         if (loggedinPeer) {
-            Peer.findById(ctx.instance.id, { include: 'profiles' }, function(err, reviewedPeerInstance) {
+            Peer.findById(ctx.instance.id, { include: 'profiles' }, function (err, reviewedPeerInstance) {
                 if (!err) {
-                    Peer.app.models.collection.findById(newReviewInstance.collectionId, function(err, reviewedCollectionInstance) {
+                    Peer.app.models.collection.findById(newReviewInstance.collectionId, function (err, reviewedCollectionInstance) {
                         if (!err) {
-                            Peer.findById(loggedinPeer, { include: 'profiles' }, function(err, reviewerInstance) {
+                            Peer.findById(loggedinPeer, { include: 'profiles' }, function (err, reviewerInstance) {
                                 if (!err) {
                                     // Send token in email to user.
                                     let message = { reviewedPeerName: reviewedPeerInstance.toJSON().profiles[0].first_name, reviewerName: reviewerInstance.toJSON().profiles[0].first_name + ' ' + reviewerInstance.toJSON().profiles[0].last_name, reviewScore: newReviewInstance.score, reviewDesc: newReviewInstance.description, collectionTitle: reviewedCollectionInstance.title };
@@ -1518,10 +1593,10 @@ module.exports = function(Peer) {
                                         subject: 'You have a new review',
                                         html: html_body
                                     })
-                                        .then(function(response) {
+                                        .then(function (response) {
                                             console.log('email sent! - ' + response);
                                         })
-                                        .catch(function(err) {
+                                        .catch(function (err) {
                                             console.log('email error! - ' + err);
                                         });
                                     next();
@@ -1546,7 +1621,7 @@ module.exports = function(Peer) {
         }
     });
 
-    Peer.getCookieUserId = function(req) {
+    Peer.getCookieUserId = function (req) {
 
         let cookieArray = req.headers.cookie.split(';');
         let cookie = '';
@@ -1562,7 +1637,7 @@ module.exports = function(Peer) {
 	/*!
 	 * Setup an extended user model.
 	 */
-    Peer.setup = function() {
+    Peer.setup = function () {
 
         // We need to call the base class's setup method
         Peer.base.setup.call(this);
@@ -1572,7 +1647,7 @@ module.exports = function(Peer) {
         Peer.settings.maxTTL = Peer.settings.maxTTL || DEFAULT_MAX_TTL;
         Peer.settings.ttl = Peer.settings.ttl || DEFAULT_TTL;
 
-        PeerModel.setter.email = function(value) {
+        PeerModel.setter.email = function (value) {
             if (!PeerModel.settings.caseSensitiveEmail) {
                 this.$email = value.toLowerCase();
             } else {
@@ -1580,7 +1655,7 @@ module.exports = function(Peer) {
             }
         };
 
-        PeerModel.setter.password = function(plain) {
+        PeerModel.setter.password = function (plain) {
             if (typeof plain !== 'string') {
                 return;
             }
@@ -1594,7 +1669,7 @@ module.exports = function(Peer) {
         };
 
         // Make sure emailVerified is not set by creation
-        PeerModel.beforeRemote('create', function(ctx, user, next) {
+        PeerModel.beforeRemote('create', function (ctx, user, next) {
             let body = ctx.req.body;
             if (body && body.emailVerified) {
                 body.emailVerified = false;
@@ -1603,14 +1678,14 @@ module.exports = function(Peer) {
             next();
         });
 
-        PeerModel.afterRemote('create', function(ctx, user, next) {
+        PeerModel.afterRemote('create', function (ctx, user, next) {
             next();
         });
 
-        PeerModel.afterRemote('prototype.__create__joinedrooms', function(ctx, newRoomInstance, next) {
+        PeerModel.afterRemote('prototype.__create__joinedrooms', function (ctx, newRoomInstance, next) {
             console.log("PeerModel create");
             let room = app.models.room;
-            room.createTwilioRoom(newRoomInstance, function(err, data) {
+            room.createTwilioRoom(newRoomInstance, function (err, data) {
                 console.log("Room : " + JSON.stringify(data));
             });
             next();
@@ -1886,9 +1961,9 @@ module.exports = function(Peer) {
             where[pkName] = ctx.instance[pkName];
         }
 
-        ctx.Model.find({ where: where }, function(err, userInstances) {
+        ctx.Model.find({ where: where }, function (err, userInstances) {
             if (err) return next(err);
-            ctx.hookState.originalUserData = userInstances.map(function(u) {
+            ctx.hookState.originalUserData = userInstances.map(function (u) {
                 let user = {};
                 user[pkName] = u[pkName];
                 user.email = u.email;
@@ -1902,7 +1977,7 @@ module.exports = function(Peer) {
                     ctx.instance.emailVerified = false;
                 }
             } else if (ctx.data.email) {
-                emailChanged = ctx.hookState.originalUserData.some(function(data) {
+                emailChanged = ctx.hookState.originalUserData.some(function (data) {
                     return data.email !== ctx.data.email;
                 });
                 if (emailChanged && ctx.Model.settings.emailVerificationRequired) {
@@ -1925,10 +2000,10 @@ module.exports = function(Peer) {
 
         if (!newEmail && !newPassword) return next();
 
-        let userIdsToExpire = ctx.hookState.originalUserData.filter(function(u) {
+        let userIdsToExpire = ctx.hookState.originalUserData.filter(function (u) {
             return (newEmail && u.email !== newEmail) ||
                 (newPassword && u.password !== newPassword);
-        }).map(function(u) {
+        }).map(function (u) {
             return u[pkName];
         });
         ctx.Model._invalidateAccessTokensOfUsers(userIdsToExpire, ctx.options, next);

@@ -339,83 +339,137 @@ app.post('/signup', function (req, res, next) {
                         let stripeResponse = '';
                         stripeTransaction.createCustomer(user, function (err, data) {
                             stripeResponse = data;
-	                        
+
                             console.log("NEW USER ACCOUNT CREATED");
-	                        User.dataSource.connector.execute(
-			                        "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
-			                        function (err, results) {
-				                        if (!err) {
-					                        // Send welcome email to user
-					                        let message = { username: profileObject.first_name };
-					                        let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
-					                        let html_body = renderer(message);
-					                        loopback.Email.send({
-						                        to: user.email,
-						                        from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
-						                        subject: 'Welcome to peerbuds - thanks for signing up!',
-						                        html: html_body
-					                        })
-							                        .then(function (response) {
-								                        console.log('email sent! - ' + response);
-							                        })
-							                        .catch(function (err) {
-								                        console.log('email error! - ' + err);
-							                        });
-					                        createProfileNode(user);
-					                        loopbackLogin(user);
-				                        }
-				                        else {
-					
-				                        }
-			                        }
-	                        );
+                            User.dataSource.connector.execute(
+                                "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
+                                function (err, results) {
+                                    if (!err) {
+                                        // Send welcome email to user
+                                        let message = { username: profileObject.first_name };
+                                        let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+                                        let html_body = renderer(message);
+                                        loopback.Email.send({
+                                            to: user.email,
+                                            from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
+                                            subject: 'Welcome to peerbuds - thanks for signing up!',
+                                            html: html_body
+                                        })
+                                            .then(function (response) {
+                                                console.log('email sent! - ' + response);
+                                            })
+                                            .catch(function (err) {
+                                                console.log('email error! - ' + err);
+                                            });
+                                        createProfileNode(user);
+                                        loopbackLogin(user);
+                                    }
+                                    else {
+
+                                    }
+                                }
+                            );
                         });
-	
-	                    // Create wallet on blockchain
-	                    request
-			                    .post({
-				                    url: app.get('protocolUrl') + 'peers',
-                                    body: {
-				                      password: newUser.password
-                                    },
-				                    json: true
-			                    }, function(err, response, data) {
-			                       if (err) {
-				                       console.error(err);
-                                   } else {
-				                       console.log(data);
-				                       User.dataSource.connector.execute(
-						                       "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
-						                       function (err, results) {
-							                       console.log('Created ethereum wallet and saved address in DB');
-						                       }
-				                       );
-				                       // Send welcome email to user
-				                       let message = {
-					                       userName: profileObject.first_name + ' ' + profileObject.last_name,
-					                       userEmail: user.email,
-					                       dobMonth: profileObject.dobMonth,
-					                       dobDay: profileObject.dobDay,
-					                       dobYear: profileObject.dobYear,
-					                       stripeId: stripeResponse,
-                                           ethWalletId: data
-				                       };
-				                       let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
-				                       let html_body = renderer(message);
-				                       loopback.Email.send({
-					                       to: 'aakash@peerbuds.com',
-					                       from: 'Peerbuds <noreply@mx.peerbuds.com>',
-					                       subject: 'New user signup!',
-					                       html: html_body
-				                       })
-						                       .then(function (response) {
-							                       console.log('email sent! - ' + response);
-						                       })
-						                       .catch(function (err) {
-							                       console.log('email error! - ' + err);
-						                       });
-                                   }
-                                });
+
+                        // Create wallet on blockchain
+                        console.log('Creating wallet');
+                        request
+                            .post({
+                                url: app.get('protocolUrl') + 'peers',
+                                body: {
+                                    password: newUser.password
+                                },
+                                json: true
+                            }, function (err, response, data) {
+                                if (err) {
+                                    console.error(err);
+                                } else {
+                                    console.log(data);
+                                    User.dataSource.connector.execute(
+                                        "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
+                                        function (err, results) {
+                                            console.log('Created ethereum wallet and saved address in DB');
+                                        }
+                                    );
+                                    // Send welcome email to user
+                                    let message = {
+                                        userName: profileObject.first_name + ' ' + profileObject.last_name,
+                                        userEmail: user.email,
+                                        dobMonth: profileObject.dobMonth,
+                                        dobDay: profileObject.dobDay,
+                                        dobYear: profileObject.dobYear,
+                                        stripeId: stripeResponse,
+                                        ethWalletId: data
+                                    };
+                                    let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
+                                    let html_body = renderer(message);
+                                    loopback.Email.send({
+                                        to: 'aakash@peerbuds.com',
+                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        subject: 'New user signup!',
+                                        html: html_body
+                                    })
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
+
+                                    // Add peer to scholarship
+
+                                    User.app.models.scholarship.find(
+                                        {
+                                            'where': {
+                                                'type': 'public'
+                                            }
+                                        }
+                                    ).then(function (scholarshipInstances) {
+                                        scholarshipInstances.forEach(function (scholarship) {
+                                            scholarship.__link__peers_joined(user.id, function (err, linkedPeerInstance) {
+                                                if (data && data > 0) {
+                                                    request
+                                                        .put({
+                                                            url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
+                                                            json: true
+                                                        }, function (err, response, result) {
+                                                            if (err) {
+                                                                console.error(err);
+                                                            } else {
+                                                                console.log('Added participant to scholarship on blockchain: ' + result);
+                                                            }
+                                                        });
+                                                }
+                                            });
+                                        });
+                                        return Promise.all(scholarshipInstances);
+                                    })
+                                        .then(function (scholarshipRelationInstances) {
+                                            if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+                                                // Send token in email to user.
+                                                const message = {};
+                                                const renderer = loopback.template(path.resolve(__dirname, './views/welcomeGlobalScholarship.ejs'));
+                                                const html_body = renderer(message);
+                                                loopback.Email.send({
+                                                    to: user.email,
+                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    subject: 'Peerbuds Global Scholarship',
+                                                    html: html_body
+                                                })
+                                                    .then(function (response) {
+                                                        console.log('email sent! - ' + response);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log('email error! - ' + err);
+                                                    });
+                                            }
+                                        }).catch(function (err) {
+                                            console.log('Error in joining sholarship');
+                                            console.log(err);
+
+                                        });
+                                }
+                            });
                     }
                 });
             }
@@ -437,46 +491,46 @@ app.post('/convertCurrency', function (req, res, next) {
 
 
 app.post('/getKarmaToBurn', function (req, res, next) {
-	request
-			.get({
-				url: app.get('protocolUrl') + 'gyan/' + req.body.gyan + '/karma',
-				json: true
-			}, function(err, response, data) {
-				if (err) {
-					console.error(err);
-					next(err);
-				} else {
-					console.log('Got karma to burn: ' + data);
-					res.json({ karma: data});
-				}
-			});
+    request
+        .get({
+            url: app.get('protocolUrl') + 'gyan/' + req.body.gyan + '/karma',
+            json: true
+        }, function (err, response, data) {
+            if (err) {
+                console.error(err);
+                next(err);
+            } else {
+                console.log('Got karma to burn: ' + data);
+                res.json({ karma: data });
+            }
+        });
 });
 
 app.get('/karmaToDollar', function (req, res, next) {
-	app.models.cache.findById('1', function (err, cacheInstance) {
-		if (err) {
-			next(err);
-		} else {
-			console.log('Got eth rate: ' + cacheInstance.ethRate);
-			const dollarPerEther = parseFloat(cacheInstance.ethRate);
-			const karmaPerEther = app.get('karmaRate');
-			res.json({USD: (req.query.karma * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
-		}
-	});
+    app.models.cache.findById('1', function (err, cacheInstance) {
+        if (err) {
+            next(err);
+        } else {
+            console.log('Got eth rate: ' + cacheInstance.ethRate);
+            const dollarPerEther = parseFloat(cacheInstance.ethRate);
+            const karmaPerEther = app.get('karmaRate');
+            res.json({ USD: (req.query.karma * (1 / karmaPerEther) * dollarPerEther).toFixed(2) });
+        }
+    });
 });
 
 app.get('/gyanToDollar', function (req, res, next) {
-	app.models.cache.findById('1', function (err, cacheInstance) {
-		if (err) {
-			next(err);
-		} else {
-			console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
-			const dollarPerEther = parseFloat(cacheInstance.ethRate);
-			const karmaRewardPerGyan = parseInt(cacheInstance.karmaMintRate) * 0.65 * Math.max((1 / parseInt(cacheInstance.gyanEarnRate)), 1);
-			const karmaPerEther = app.get('karmaRate');
-			res.json({USD: (req.query.gyan * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2)});
-		}
-	});
+    app.models.cache.findById('1', function (err, cacheInstance) {
+        if (err) {
+            next(err);
+        } else {
+            console.log('Got eth rate in dollars: ' + cacheInstance.ethRate);
+            const dollarPerEther = parseFloat(cacheInstance.ethRate);
+            const karmaRewardPerGyan = parseInt(cacheInstance.karmaMintRate) * 0.65 * Math.max((1 / parseInt(cacheInstance.gyanEarnRate)), 1);
+            const karmaPerEther = app.get('karmaRate');
+            res.json({ USD: (req.query.gyan * karmaRewardPerGyan * (1 / karmaPerEther) * dollarPerEther).toFixed(2) });
+        }
+    });
 });
 
 app.get('/login', function (req, res, next) {
@@ -533,7 +587,7 @@ app.start = function (httpOnly) {
         let baseUrl = (httpOnly ? 'http://' : 'https://') + app.get('host') + ':' + app.get('port');
         app.emit('started', baseUrl);
         console.log('Web server listening at: %s', baseUrl);
-	    
+
         if (app.get('loopback-component-explorer')) {
             let explorerPath = app.get('loopback-component-explorer').mountPath;
             console.log('Browse your REST API at %s%s', baseUrl, explorerPath);
