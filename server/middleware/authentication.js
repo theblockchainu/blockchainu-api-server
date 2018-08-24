@@ -13,7 +13,8 @@ module.exports = function(options) {
 			'emailSubscription',
 			'guestContact',
 			'country',
-			'currency'
+			'currency',
+			'language'
 	];
 	
 	const getHeaderAccessToken = function (req) {
