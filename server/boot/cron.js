@@ -57,7 +57,7 @@ module.exports = function setupCron(server) {
 				});
 				
 				// Index all collections
-				server.models.collection.find(function (err, collectionInstances) {
+				server.models.collection.find({where: {status: 'active'}}, function (err, collectionInstances) {
 					makebulk(collectionInstances, 'collection', 'type', function(response){
 						//console.log("Indexing Collections: " + JSON.stringify(response));
 						if(response.length > 0) {
