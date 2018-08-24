@@ -79,7 +79,7 @@ module.exports = function (Assessmentresult) {
 									difficultyLevel: assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].difficultyLevel,
 									gyanEarned: gyanEarned,
 									expiryDate: certificateTemplate.expiryDate,
-									QRCode: qrcode('https://peerbuds.com/certificate/' + certificateInstance.id, {
+									QRCode: qrcode('https://theblockchainu.com/certificate/' + certificateInstance.id, {
 										size: 125
 									})
 								});
@@ -178,7 +178,7 @@ module.exports = function (Assessmentresult) {
 												} else {
 													console.log('UpdatedInstance');
 													console.log(displayHtml);
-													let html_body = ' <html> <head> <title>Peerbuds</title>   </head>  <body> <div>  ' + displayHtml + ' </div> </body> </html>';
+													let html_body = ' <html> <head> <title>The Blockchain University</title>   </head>  <body> <div>  ' + displayHtml + ' </div> </body> </html>';
 													var attachment = {
 														data: intoStream(updatedInstance.stringifiedJSON),
 														filename: 'certificate.json',
@@ -187,7 +187,7 @@ module.exports = function (Assessmentresult) {
 													};
 													loopback.Email.send({
 														to: assessmentResultInstanceJSON.assessees[0].email,
-														from: 'Peerbuds <noreply@mx.peerbuds.com>',
+														from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 														subject: 'Your certificate for ' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].type + ': ' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].title,
 														html: html_body,
 														attachments: [attachment]

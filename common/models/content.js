@@ -29,7 +29,7 @@ module.exports = function (Content) {
 									var html_body = renderer(message);
 									loopback.Email.send({
 										to: incomingCollectionInstance.toJSON().owners[0].email,
-										from: 'Peerbuds <noreply@mx.peerbuds.com>',
+										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 										subject: 'New Session Request',
 										html: html_body
 									})
@@ -94,7 +94,7 @@ module.exports = function (Content) {
 							var html_body = renderer(message);
 							loopback.Email.send({
 								to: incomingCollectionInstance.toJSON().owners[0].email,
-								from: 'Peerbuds <noreply@mx.peerbuds.com>',
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 								subject: 'New RSVP for activity',
 								html: html_body
 							})
@@ -160,7 +160,7 @@ module.exports = function (Content) {
 										var html_body = renderer(message);
 										loopback.Email.send({
 											to: studentInstances[0].toJSON().email,
-											from: 'Peerbuds <noreply@mx.peerbuds.com>',
+											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 											subject: 'Peer session request approved!',
 											html: html_body
 										})
@@ -195,7 +195,7 @@ module.exports = function (Content) {
 										var html_body = renderer(message);
 										loopback.Email.send({
 											to: studentInstances[0].toJSON().email,
-											from: 'Peerbuds <noreply@mx.peerbuds.com>',
+											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 											subject: 'Peer session request rejected!',
 											html: html_body
 										})

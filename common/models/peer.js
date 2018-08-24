@@ -270,8 +270,8 @@ module.exports = function (Peer) {
                     console.log(verificationToken);
                     loopback.Email.send({
                         to: email,
-                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                        subject: 'Verify your email with peerbuds',
+                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                        subject: 'Verify your email with The Blockchain University',
                         html: html_body
                     })
                         .then(function (response) {
@@ -374,7 +374,7 @@ module.exports = function (Peer) {
                         }
                     });
                     if (!belongsToUser) {
-                        let errResult = new Error(g.f('This number is already associated with another peerbuds account.'));
+                        let errResult = new Error(g.f('This number is already associated with another Blockchain University account.'));
                         errResult.statusCode = 400;
                         errResult.code = 'DUPLICATE NUMBER';
                         fn(errResult);
@@ -441,7 +441,7 @@ module.exports = function (Peer) {
 
         let client = new twilio(twilioSid, twilioToken);
 
-        let message = "Verify your mobile number with peerbuds using code: " + phoneToken;
+        let message = "Verify your mobile number with The Blockchain University using code: " + phoneToken;
 
         client.messages.create({
             body: message,
@@ -661,8 +661,8 @@ module.exports = function (Peer) {
                         let html_body = renderer(message);
                         loopback.Email.send({
                             to: user.email,
-                            from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
-                            subject: 'Welcome to peerbuds - thanks for signing up!',
+                            from: 'Sahil & Aakash <noreply@mx.theblockchainu.com>',
+                            subject: 'Welcome to The Blockchain University - thanks for signing up!',
                             html: html_body
                         })
                             .then(function (response) {
@@ -704,8 +704,8 @@ module.exports = function (Peer) {
                             let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
                             let html_body = renderer(message);
                             loopback.Email.send({
-                                to: 'aakash@peerbuds.com',
-                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                to: 'aakash@theblockchainu.com',
+                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                 subject: 'New user signup!',
                                 html: html_body
                             })
@@ -752,8 +752,8 @@ module.exports = function (Peer) {
                                         const html_body = renderer(message);
                                         loopback.Email.send({
                                             to: user.email,
-                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                            subject: 'Peerbuds Global Scholarship',
+                                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                            subject: 'The Blockchain University Global Scholarship',
                                             html: html_body
                                         })
                                             .then(function (response) {
@@ -811,8 +811,8 @@ module.exports = function (Peer) {
                         let html_body = renderer(message);
                         loopback.Email.send({
                             to: body.email,
-                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                            subject: 'Peerbuds - Account recovery',
+                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                            subject: 'The Blockchain University - Account recovery',
                             html: html_body
                         }).then(function (response) {
                             cb(null, { email: body.email, sent: true });
@@ -974,7 +974,7 @@ module.exports = function (Peer) {
                         peerInstance.__create__notifications({
                             type: "action",
                             title: "Account approved!",
-                            description: "Your peerbuds account has been approved. Add more details now.",
+                            description: "Your Blockchain University account has been approved. Add more details now.",
                             actionUrl: ['console', 'profile', 'edit']
                         }, function (err, notificationInstance) {
                             if (err) {
@@ -988,7 +988,7 @@ module.exports = function (Peer) {
                                     else {
                                         loopback.Email.send({
                                             to: peerInstance.email,
-                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                             subject: subject,
                                             html: html_body
                                         })
@@ -1051,7 +1051,7 @@ module.exports = function (Peer) {
                         peerInstance.__create__notifications({
                             type: "action",
                             title: "Account approved!",
-                            description: "Your peerbuds account was rejected. Please edit your details and re-submit.",
+                            description: "Your Blockchain University account was rejected. Please edit your details and re-submit.",
                             actionUrl: ['console', 'profile', 'verification']
                         }, function (err, notificationInstance) {
                             if (err) {
@@ -1065,7 +1065,7 @@ module.exports = function (Peer) {
                                     else {
                                         loopback.Email.send({
                                             to: peerInstance.email,
-                                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                             subject: subject,
                                             html: html_body
                                         })
@@ -1366,7 +1366,7 @@ module.exports = function (Peer) {
                             let html_body = renderer(message);
                             loopback.Email.send({
                                 to: peerInstance.email,
-                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                 subject: subject,
                                 html: html_body
                             })
@@ -1589,7 +1589,7 @@ module.exports = function (Peer) {
                                     let html_body = renderer(message);
                                     loopback.Email.send({
                                         to: ctx.instance.email,
-                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                         subject: 'You have a new review',
                                         html: html_body
                                     })

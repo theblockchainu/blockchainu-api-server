@@ -10,7 +10,7 @@ module.exports = function (Accreditation) {
         // var html_body = renderer(message);
         // loopback.Email.send({
         //     to: assessmentResultInstance.toJSON().assessees[0].email,
-        //     from: 'Peerbuds <noreply@mx.peerbuds.com>',
+        //     from: 'Peerbuds <noreply@mx.theblockchainu.com>',
         //     subject: 'Your result for ' + collectionType + ': ' + collectionTitle,
         //     html: html_body
         // })

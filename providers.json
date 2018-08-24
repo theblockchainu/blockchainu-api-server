@@ -5,12 +5,12 @@
     "usernameField": "email",
     "passwordField": "password",
     "authPath": "/auth/local",
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "failureFlash": true,
     "setAccessToken": true,
     "json": true,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "facebook-login": {
     "provider": "facebook",
@@ -26,14 +26,14 @@
       "email",
       "updated_time"
     ],
-    "clientID": "287639704995097",
-    "clientSecret": "9097377e23a5b4d77ae0b2a788263aef",
+    "clientID": "259905964647344",
+    "clientSecret": "ac68b32376a71fbb4a7d55101390d2cf",
     "callbackURL": "/auth/facebook/callback",
     "authPath": "/auth/facebook",
     "callbackPath": "/auth/facebook/callback",
     "passReqToCallback": true,
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "email",
       "user_friends",
@@ -41,19 +41,19 @@
     ],
     "failureFlash": true,
     "json": false,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "google-login": {
     "provider": "google",
     "module": "passport-google-oauth",
     "strategy": "OAuth2Strategy",
-    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
-    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
+    "clientID": "515274143451-ose463321i8jju8k79t1tj5lafgfe0ho.apps.googleusercontent.com",
+    "clientSecret": "fxmzjjUoTX056THxXR0BRnJL",
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
@@ -64,7 +64,7 @@
     "approvalPrompt": "force",
     "passReqToCallback": true,
     "json": false,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "twitter-login": {
     "provider": "twitter",
@@ -78,18 +78,18 @@
     "consumerKey": "{twitter-consumer-key}",
     "consumerSecret": "{twitter-consumer-secret}",
     "failureFlash": true,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "facebook-link": {
     "provider": "facebook",
     "module": "passport-facebook",
-    "clientID": "287639704995097",
-    "clientSecret": "9097377e23a5b4d77ae0b2a788263aef",
+    "clientID": "259905964647344",
+    "clientSecret": "ac68b32376a71fbb4a7d55101390d2cf",
     "callbackURL": "/link/facebook/callback",
     "authPath": "/link/facebook",
     "callbackPath": "/link/facebook/callback",
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "email",
       "user_friends",
@@ -98,19 +98,19 @@
     "link": true,
     "failureFlash": true,
     "session": true,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "google-link": {
     "provider": "google",
     "module": "passport-google-oauth",
     "strategy": "OAuth2Strategy",
-    "clientID": "710964511329-fpmpidmo0363qod5a9107u7vj1p5ukv3.apps.googleusercontent.com",
-    "clientSecret": "bCZ5JueuNkdCjC7PVA8uoWms",
+    "clientID": "515274143451-ose463321i8jju8k79t1tj5lafgfe0ho.apps.googleusercontent.com",
+    "clientSecret": "fxmzjjUoTX056THxXR0BRnJL",
     "callbackURL": "/link/google/callback",
     "authPath": "/link/google",
     "callbackPath": "/link/google/callback",
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
@@ -121,7 +121,7 @@
     "accessType": "offline",
     "approvalPrompt": "force",
     "session": true,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   },
   "linkedin-login": {
     "provider": "linkedin",
@@ -129,8 +129,8 @@
     "callbackURL": "/auth/linkedin/callback",
     "authPath": "/auth/linkedin",
     "callbackPath": "/auth/linkedin/callback",
-    "successRedirect": "https://peerbuds.com/home",
-    "failureRedirect": "https://peerbuds.com/login",
+    "successRedirect": "https://theblockchainu.com/home",
+    "failureRedirect": "https://theblockchainu.com/login",
     "clientID": "8127t6ennuwft1",
     "clientSecret": "6oFiodWubyfkHuET",
     "scope": [
@@ -140,6 +140,6 @@
     ],
     "json": false,
     "session": true,
-    "domain": ".peerbuds.com"
+    "domain": ".theblockchainu.com"
   }
 }

@@ -102,7 +102,7 @@ module.exports = function (Collection) {
                                                                             let html_body = renderer(message);
                                                                             loopback.Email.send({
                                                                                 to: participantUserInstance.email,
-                                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                                                                 subject: '[Welcome] ' + collectionInstance.title,
                                                                                 html: html_body
                                                                             })
@@ -119,7 +119,7 @@ module.exports = function (Collection) {
                                                                             html_body = renderer(message);
                                                                             loopback.Email.send({
                                                                                 to: ownerInstance.email,
-                                                                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                                                                 subject: 'New participant @ ' + collectionInstance.title,
                                                                                 html: html_body
                                                                             })
@@ -177,7 +177,7 @@ module.exports = function (Collection) {
                                     let html_body = renderer(message);
                                     loopback.Email.send({
                                         to: participant.email,
-                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                         subject: 'New announcement from teacher',
                                         html: html_body
                                     })
@@ -281,7 +281,7 @@ module.exports = function (Collection) {
                                                 let html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: participantUserInstance.email,
-                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                                     subject: 'Participation cancelled : ' + collectionInstance.title,
                                                     html: html_body
                                                 })
@@ -297,7 +297,7 @@ module.exports = function (Collection) {
                                                 html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: ownerInstance.email,
-                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                                     subject: 'Dropped student @ ' + collectionInstance.title,
                                                     html: html_body
                                                 })
@@ -404,7 +404,7 @@ module.exports = function (Collection) {
 
                         loopback.Email.send({
                             to: peerInstance.toJSON().email,
-                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                             subject: subject,
                             html: html_body
                         })
@@ -634,7 +634,7 @@ module.exports = function (Collection) {
 
                                 loopback.Email.send({
                                     to: ownerInstance.email,
-                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                     subject: subject,
                                     html: html_body
                                 })
@@ -748,7 +748,7 @@ module.exports = function (Collection) {
 
                                 loopback.Email.send({
                                     to: ownerInstance.email,
-                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                     subject: subject,
                                     html: html_body
                                 })
@@ -799,7 +799,7 @@ module.exports = function (Collection) {
                         let html_body = renderer(message);
                         loopback.Email.send({
                             to: participantInstance.email,
-                            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                             subject: collectionInstance.type + ' cancelled : ' + collectionInstance.title,
                             html: html_body
                         })

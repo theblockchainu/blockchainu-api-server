@@ -1,6 +1,6 @@
 name 'devserver'
-maintainer 'PeerBuds Inc.'
-maintainer_email 'aakash.bansal@klouddata.com'
+maintainer 'The Blockchain U Inc.'
+maintainer_email 'aakash@theblockchainu.com'
 license 'all_rights'
 description 'Installs/Configures devserver'
 long_description 'Installs/Configures devserver'

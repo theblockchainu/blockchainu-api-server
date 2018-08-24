@@ -351,8 +351,8 @@ app.post('/signup', function (req, res, next) {
                                         let html_body = renderer(message);
                                         loopback.Email.send({
                                             to: user.email,
-                                            from: 'Sahil & Aakash <noreply@mx.peerbuds.com>',
-                                            subject: 'Welcome to peerbuds - thanks for signing up!',
+                                            from: 'Sahil & Aakash <noreply@mx.theblockchainu.com>',
+                                            subject: 'Welcome to The Blockchain University - thanks for signing up!',
                                             html: html_body
                                         })
                                             .then(function (response) {
@@ -404,8 +404,8 @@ app.post('/signup', function (req, res, next) {
                                     let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
                                     let html_body = renderer(message);
                                     loopback.Email.send({
-                                        to: 'aakash@peerbuds.com',
-                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        to: 'aakash@theblockchainu.com',
+                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                         subject: 'New user signup!',
                                         html: html_body
                                     })
@@ -452,8 +452,8 @@ app.post('/signup', function (req, res, next) {
                                                 const html_body = renderer(message);
                                                 loopback.Email.send({
                                                     to: user.email,
-                                                    from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                                                    subject: 'Peerbuds Global Scholarship',
+                                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                                    subject: 'The Blockchain University Global Scholarship',
                                                     html: html_body
                                                 })
                                                     .then(function (response) {

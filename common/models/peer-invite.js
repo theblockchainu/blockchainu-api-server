@@ -34,8 +34,8 @@ module.exports = function (Peerinvite) {
                     let html_body = renderer(message);
                     return loopback.Email.send({
                         to: inviteInstance.email,
-                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
-                        subject: 'You have a been invited to try peerbuds',
+                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                        subject: 'You have a been invited to try The Blockchain University',
                         html: html_body
                     });
                 })

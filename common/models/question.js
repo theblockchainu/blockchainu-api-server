@@ -69,7 +69,7 @@ module.exports = function(Question) {
 							var html_body = renderer(message);
 							loopback.Email.send({
 								to: questionInstance.toJSON().peer[0].email,
-								from: 'Peerbuds <noreply@mx.peerbuds.com>',
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 								subject: 'New upvote on question',
 								html: html_body
 							})
@@ -156,7 +156,7 @@ module.exports = function(Question) {
 								let html_body = renderer(message);
 								loopback.Email.send({
 									to: answerInst.peer()[0].email,
-									from: 'Peerbuds <noreply@mx.peerbuds.com>',
+									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 									subject: 'Answer accepted!',
 									html: html_body
 								})

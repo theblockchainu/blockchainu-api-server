@@ -1,5 +1,5 @@
 {
-  "name": "peerbuds",
+  "name": "theblockchainu-server",
   "version": "1.0.1",
   "main": "server/server.js",
   "scripts": {
@@ -82,6 +82,6 @@
     "type": "",
     "url": ""
   },
-  "license": "All Rights Reserved Peerbuds Inc.",
-  "description": "peerbuds"
+  "license": "All Rights Reserved TheBlockchainU Inc.",
+  "description": "theblockchainu"
 }

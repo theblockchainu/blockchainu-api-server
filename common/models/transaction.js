@@ -36,7 +36,7 @@ module.exports = function (Transaction) {
 
     /**
      * Create stripe customer account by using email id
-     * and update peer node by adding stripe customer id 
+     * and update peer node by adding stripe customer id
      */
     Transaction.createCustomer = function (data, cb) {
 
@@ -66,7 +66,7 @@ module.exports = function (Transaction) {
 
     /**
      * edit stripe customer
-     * params - 
+     * params -
      * customerId - stripe customer id
      * data => ref https://stripe.com/docs/api#customer_object
      */
@@ -94,12 +94,12 @@ module.exports = function (Transaction) {
     //Sources and Cards related functions here
 
     /**
-     * data - should contain type of source, 
-     * 
+     * data - should contain type of source,
+     *
      * token inside data - generated from card detail page,
-     * if its bank account details from which source to be created 
-     * then reffer https://stripe.com/docs/api#customer_bank_account_object 
-     * customer - stripe customer id 
+     * if its bank account details from which source to be created
+     * then reffer https://stripe.com/docs/api#customer_bank_account_object
+     * customer - stripe customer id
      */
     Transaction.createSource = function (req, customer, data, cb) {
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
@@ -133,7 +133,7 @@ module.exports = function (Transaction) {
 
 
     /**
-     * Get a card details by card id for customer from customer id 
+     * Get a card details by card id for customer from customer id
      */
     Transaction.getACard = function (req, customerId, cardId, cb) {
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
@@ -156,7 +156,7 @@ module.exports = function (Transaction) {
     };
 
     /**
-     * Get all card details for customer by customer id 
+     * Get all card details for customer by customer id
      */
     Transaction.listAllCards = function (req, customerId, cb) {
         var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
@@ -179,7 +179,7 @@ module.exports = function (Transaction) {
     };
 
     /**
-     * Edit card details by card id for customer by customer id 
+     * Edit card details by card id for customer by customer id
      * data - https://stripe.com/docs/api#card_object
      */
     Transaction.editCard = function (req, customerId, cardId, data, cb) {
@@ -202,7 +202,7 @@ module.exports = function (Transaction) {
     };
 
     /**
-     * Delete card details by card id for customer by customer id 
+     * Delete card details by card id for customer by customer id
      */
     Transaction.deleteCard = function (req, customerId, cardId, cb) {
 
@@ -224,7 +224,7 @@ module.exports = function (Transaction) {
 
     // Bank Account related functions goes here
     /**
-     * Retrive bank details by account id for customer by customer id 
+     * Retrive bank details by account id for customer by customer id
      */
     Transaction.retriveBankAccount = function (req, customerId, accId, cb) {
 
@@ -248,7 +248,7 @@ module.exports = function (Transaction) {
     };
 
     /**
-     * List all bank accounts for customer by customer id 
+     * List all bank accounts for customer by customer id
      */
     Transaction.listBankAccounts = function (req, customerId, cb) {
 
@@ -381,7 +381,7 @@ module.exports = function (Transaction) {
 					                                var html_body = renderer(message);
 					                                loopback.Email.send({
 						                                to: content.toJSON().collections[0].owners[0].email,
-						                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+						                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 						                                subject: 'Session with ' + peerInstance.toJSON().profiles[0].first_name + ' is confirmed!',
 						                                html: html_body
 					                                })
@@ -415,7 +415,7 @@ module.exports = function (Transaction) {
                                     var html_body = renderer(message);
                                     loopback.Email.send({
                                         to: peerInstance.email,
-                                        from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                         subject: 'Your payment receipt',
                                         html: html_body
                                     })

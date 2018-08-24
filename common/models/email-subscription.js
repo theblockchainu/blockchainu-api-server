@@ -13,15 +13,15 @@ module.exports = function(Emailsubscription) {
 
         let message, subject;
         message = {
-        	heading: "We have received your request to be notified about peerbuds's platform updates.\n\nOur team is working super hard to change how knowledge is shared and recognized.\n\nWe will keep you notified as we move closer to sharing this vision with the world."
+        	heading: "We have received your request to be notified about The Blockchain University's platform updates.\n\nOur team is working super hard to change how knowledge is shared and recognized.\n\nWe will keep you notified as we move closer to sharing this vision with the world."
         };
-        subject = 'Thank you for subscribing to peerbuds';
+        subject = 'Thank you for subscribing to The Blockchain University';
 
         let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
         let html_body = renderer(message);
         loopback.Email.send({
             to: email,
-            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
             subject: subject,
             html: html_body
         })
@@ -37,8 +37,8 @@ module.exports = function(Emailsubscription) {
 	
 	    html_body = renderer(message);
 	    loopback.Email.send({
-		    to: 'aakash@peerbuds.com',
-		    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+		    to: 'aakash@theblockchainu.com',
+		    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 		    subject: subject,
 		    html: html_body
 	    })

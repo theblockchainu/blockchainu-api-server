@@ -26,7 +26,7 @@ module.exports = function (Requestedtopic) {
                 var renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
                 var html_body = renderer(message);
                 loopback.Email.send({
-                    to: 'Peerbuds <noreply@mx.peerbuds.com>',
+                    to: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                     from: peerInstance.email,
                     subject: 'New Topic Request - ' + topic.name,
                     html: html_body

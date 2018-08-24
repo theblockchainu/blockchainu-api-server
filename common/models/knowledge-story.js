@@ -38,7 +38,7 @@ module.exports = function (Knowledgestory) {
                             let html_body = renderer(message);
                             loopback.Email.send({
                                 to: knowledgeStoryInstance.protagonist()[0].email,
-                                from: 'Peerbuds <noreply@mx.peerbuds.com>',
+                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
                                 subject: storyViewerName + ' has requested to view your knowledge story',
                                 html: html_body
                             })
@@ -104,7 +104,7 @@ module.exports = function (Knowledgestory) {
 							    let html_body = renderer(message);
 							    loopback.Email.send({
 								    to: viewInstance.email,
-								    from: 'Peerbuds <noreply@mx.peerbuds.com>',
+								    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 								    subject: ownerName + ' has ' + knowledgeStoryInstance.status + ' your knowledge story request',
 								    html: html_body
 							    })

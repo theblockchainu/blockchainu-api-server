@@ -188,7 +188,7 @@ module.exports = function setupCron(server) {
 												let html_body = renderer(message);
 												loopback.Email.send({
 													to: participantInstance.email,
-													from: 'Peerbuds <noreply@mx.peerbuds.com>',
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Write a review for ' + collection.owners()[0].profiles()[0].first_name + ' ' + collection.owners()[0].profiles()[0].last_name,
 													html: html_body
 												})
@@ -227,7 +227,7 @@ module.exports = function setupCron(server) {
 												html_body = renderer(message);
 												loopback.Email.send({
 													to: participantInstance.email,
-													from: 'Peerbuds <noreply@mx.peerbuds.com>',
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Your summary for ' + _.upperFirst(collection.title),
 													html: html_body
 												})
@@ -258,7 +258,7 @@ module.exports = function setupCron(server) {
 											let html_body = renderer(message);
 											loopback.Email.send({
 												to: collection.owners()[0].email,
-												from: 'Peerbuds <noreply@mx.peerbuds.com>',
+												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 												subject: 'Assess performance of your students',
 												html: html_body
 											})
@@ -300,7 +300,7 @@ module.exports = function setupCron(server) {
 											html_body = renderer(message);
 											loopback.Email.send({
 												to: collection.owners()[0].email,
-												from: 'Peerbuds <noreply@mx.peerbuds.com>',
+												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 												subject: 'Your summary for ' + _.upperFirst(collection.title),
 												html: html_body
 											})
@@ -336,7 +336,7 @@ module.exports = function setupCron(server) {
 												const html_body = renderer(message);
 												loopback.Email.send({
 													to: participantInstance.email,
-													from: 'Peerbuds <noreply@mx.peerbuds.com>',
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Upcoming ' + collection.type + ' -- ' + _.upperFirst(collection.title),
 													html: html_body
 												})
@@ -365,7 +365,7 @@ module.exports = function setupCron(server) {
 									const html_body = renderer(message);
 									loopback.Email.send({
 										to: collection.owners()[0].email,
-										from: 'Peerbuds <noreply@mx.peerbuds.com>',
+										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 										subject: 'Upcoming ' + collection.type + ' cohort -- ' + _.upperFirst(collection.title),
 										html: html_body
 									})
@@ -544,7 +544,7 @@ module.exports = function setupCron(server) {
 																	let html_body = renderer(message);
 																	loopback.Email.send({
 																		to: participantInstance.email,
-																		from: 'Peerbuds <noreply@mx.peerbuds.com>',
+																		from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 																		subject: 'Upcoming ' + content.type + ' activity',
 																		html: html_body
 																	})
@@ -590,7 +590,7 @@ module.exports = function setupCron(server) {
 																let html_body = renderer(message);
 																loopback.Email.send({
 																	to: collection.owners()[0].email,
-																	from: 'Peerbuds <noreply@mx.peerbuds.com>',
+																	from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 																	subject: 'Upcoming ' + content.type + ' activity',
 																	html: html_body
 																})
@@ -668,7 +668,7 @@ module.exports = function setupCron(server) {
 												let html_body = renderer(message);
 												loopback.Email.send({
 													to: sessionParticipants[0].email,
-													from: 'Peerbuds <noreply@mx.peerbuds.com>',
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Upcoming peer session with ' + collection.owners()[0].profiles()[0].first_name,
 													html: html_body
 												})
@@ -683,7 +683,7 @@ module.exports = function setupCron(server) {
 												html_body = renderer(message);
 												loopback.Email.send({
 													to: collection.owners()[0].email,
-													from: 'Peerbuds <noreply@mx.peerbuds.com>',
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Upcoming peer session with ' + sessionParticipants[0].profiles()[0].first_name,
 													html: html_body
 												})

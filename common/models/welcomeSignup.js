@@ -12,14 +12,14 @@ module.exports = function (Emailsubscription) {
         if (!email) return next();
 
         var message, subject;
-        message = { heading: "Thank you for teaching on Peerbuds. We hope you have an enriching experience" };
-        subject = 'We have received your class submission. Our team is working super hard to change how education is gained and shared. We will keep you notified as our we move closer to sharing this vision with the world. \n\nPeerbuds Team \nSilicon Valley';
+        message = { heading: "Thank you for teaching on The Blockchain University. We hope you have an enriching experience" };
+        subject = 'We have received your class submission. Our team is working super hard to change how education is gained and shared. We will keep you notified as our we move closer to sharing this vision with the world. \n\nThe Blockchain U Team \nSilicon Valley';
 
         var renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeSignupTeacher.ejs'));
         var html_body = renderer(message);
         loopback.Email.send({
             to: email,
-            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
             subject: subject,
             html: html_body
         })

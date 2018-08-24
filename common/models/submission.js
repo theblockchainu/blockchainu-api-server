@@ -22,7 +22,7 @@ module.exports = function(Submission) {
 							var html_body = renderer(message);
 							loopback.Email.send({
 								to: submissionInstance.toJSON().peer[0].email,
-								from: 'Peerbuds <noreply@mx.peerbuds.com>',
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 								subject: 'New upvote on submission',
 								html: html_body
 							})

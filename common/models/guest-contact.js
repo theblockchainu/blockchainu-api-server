@@ -22,7 +22,7 @@ module.exports = function (Guestcontact) {
         let html_body = renderer(message);
         loopback.Email.send({
             to: email,
-            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
             subject: subject,
             html: html_body
         })
@@ -41,8 +41,8 @@ module.exports = function (Guestcontact) {
         let rendererAdmin = loopback.template(path.resolve(__dirname, '../../server/views/newQueryAdmin.ejs'));
         let html_admin_body = rendererAdmin(messageAdmin);
         loopback.Email.send({
-            to: 'aakash@peerbuds.com',
-            from: 'Peerbuds <noreply@mx.peerbuds.com>',
+            to: 'aakash@theblockchainu.com',
+            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
             subject: 'New User Query! for' + ctx.instance.message,
             html: html_admin_body
         })

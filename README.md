@@ -1,2 +1,2 @@
 # api-server
-PeerBuds API Server
+The Blockchain University API Server
