@@ -5,7 +5,7 @@
     "usernameField": "email",
     "passwordField": "password",
     "authPath": "/auth/local",
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
     "failureFlash": true,
     "setAccessToken": true,
@@ -32,7 +32,7 @@
     "authPath": "/auth/facebook",
     "callbackPath": "/auth/facebook/callback",
     "passReqToCallback": true,
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "email",
@@ -52,7 +52,7 @@
     "callbackURL": "/auth/google/callback",
     "authPath": "/auth/google",
     "callbackPath": "/auth/google/callback",
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -88,7 +88,7 @@
     "callbackURL": "/link/facebook/callback",
     "authPath": "/link/facebook",
     "callbackPath": "/link/facebook/callback",
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "email",
@@ -109,7 +109,7 @@
     "callbackURL": "/link/google/callback",
     "authPath": "/link/google",
     "callbackPath": "/link/google/callback",
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
     "scope": [
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -129,10 +129,10 @@
     "callbackURL": "/auth/linkedin/callback",
     "authPath": "/auth/linkedin",
     "callbackPath": "/auth/linkedin/callback",
-    "successRedirect": "https://theblockchainu.com/home",
+    "successRedirect": "https://theblockchainu.com",
     "failureRedirect": "https://theblockchainu.com/login",
-    "clientID": "8127t6ennuwft1",
-    "clientSecret": "6oFiodWubyfkHuET",
+    "clientID": "8116cakhg59cl4",
+    "clientSecret": "b1YWZHpWDYpgt5CR",
     "scope": [
       "r_basicprofile",
       "r_emailaddress",
