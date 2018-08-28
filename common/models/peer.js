@@ -217,6 +217,7 @@ module.exports = function (Peer) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
+	                            fn(null, { result: "success" });
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));

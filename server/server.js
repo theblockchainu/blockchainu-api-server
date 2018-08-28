@@ -166,7 +166,7 @@ app.post('/signup', function (req, res, next) {
     profileObject.dobYear = req.body.dobYear;
     profileObject.promoOptIn = req.body.promoOptIn;
     let returnTo = req.headers.origin + '/' + req.query.returnTo;
-    const cookieDomain = req.headers.origin.split('//')[1];
+    const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
     if (newUser.email && newUser.username) {
