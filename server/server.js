@@ -166,7 +166,7 @@ app.post('/signup', function (req, res, next) {
     profileObject.dobYear = req.body.dobYear;
     profileObject.promoOptIn = req.body.promoOptIn;
     let returnTo = req.headers.origin + '/' + req.query.returnTo;
-    const cookieDomain = req.headers.origin.split('//')[1];
+    const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
     if (newUser.email && newUser.username) {
@@ -278,11 +278,10 @@ app.post('/signup', function (req, res, next) {
                         domain: cookieDomain,
                         maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
                     });
-                    return res.redirect(returnTo);
-                    /*return res.json({
-                        'access_token': accessToken[0].token.properties.id,
-                        userId: user.id
-                    });*/
+                    // return res.redirect(returnTo);
+                    res.send({
+                        'status': 'success'
+                    });
                 });
             } else {
                 console.log("no access token");
@@ -326,152 +325,169 @@ app.post('/signup', function (req, res, next) {
                 });
             }
             else {
+                console.log('Email not present in database. Creating user Now')
                 User.create(newUser, function (err, user) {
-
                     if (err) {
                         return res.json({
                             'status': 'failed',
                             'reason': 'Err: ' + err
                         });
                     } else {
-
+                        console.log('New User Created. Setting Passwords');
                         setPassword(newUser.password);
-
                         let stripeTransaction = app.models.transaction;
                         let stripeResponse = '';
+                        console.log('Creating Stripe customer');
                         stripeTransaction.createCustomer(user, function (err, data) {
-                            stripeResponse = data;
+                            console.log('Stripe create');
+                            console.log(data);
+                            if (err) {
+                                console.log('Error in creating stripe customer');
+                                return res.json({
+                                    'status': 'failed',
+                                    'reason': 'Err: ' + err
+                                });
+                            } else {
+                                stripeResponse = data;
+                                console.log("NEW USER ACCOUNT CREATED");
+                                User.dataSource.connector.execute(
+                                    "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
+                                    (err, results) => {
+                                        if (!err) {
+                                            // Send welcome email to user
+                                            let message = { username: profileObject.first_name };
+                                            let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+                                            let html_body = renderer(message);
+                                            loopback.Email.send({
+                                                to: user.email,
+                                                from: 'Sahil & Aakash <noreply@mx.theblockchainu.com>',
+                                                subject: 'Welcome to The Blockchain University - thanks for signing up!',
+                                                html: html_body
+                                            })
+                                                .then(function (response) {
+                                                    console.log('Welcome to The Blockchain University - thanks for signing up! email sent!' + response);
+                                                })
+                                                .catch(function (err) {
+                                                    console.log('Welcome to The Blockchain University - thanks for signing up! email error! - ' + err);
+                                                });
+                                            console.log('Craeting profile ');
+                                            createProfileNode(user);
+                                            console.log('Creating wallet');
+                                            createWallet();
+                                            console.log('Logging in user');
+                                            loopbackLogin(user);
+                                        } else {
+                                            console.log('Error in setting password');
+                                            return res.json({
+                                                'status': 'failed',
+                                                'reason': 'Err: ' + err
+                                            });
+                                        }
+                                    }
+                                );
+                            }
+                        });
 
-                            console.log("NEW USER ACCOUNT CREATED");
-                            User.dataSource.connector.execute(
-                                "MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
-                                function (err, results) {
-                                    if (!err) {
+                        let createWallet = () => {
+                            // Create wallet on blockchain
+                            request
+                                .post({
+                                    url: app.get('protocolUrl') + 'peers',
+                                    body: {
+                                        password: newUser.password
+                                    },
+                                    json: true
+                                }, function (err, response, data) {
+                                    if (err) {
+                                        console.error(err);
+                                    } else {
+                                        console.log(data);
+                                        User.dataSource.connector.execute(
+                                            "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
+                                            function (err, results) {
+                                                console.log('Created ethereum wallet and saved address in DB');
+                                            }
+                                        );
                                         // Send welcome email to user
-                                        let message = { username: profileObject.first_name };
-                                        let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
+                                        let message = {
+                                            userName: profileObject.first_name + ' ' + profileObject.last_name,
+                                            userEmail: user.email,
+                                            dobMonth: profileObject.dobMonth,
+                                            dobDay: profileObject.dobDay,
+                                            dobYear: profileObject.dobYear,
+                                            stripeId: stripeResponse,
+                                            ethWalletId: data
+                                        };
+                                        let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
                                         let html_body = renderer(message);
                                         loopback.Email.send({
-                                            to: user.email,
-                                            from: 'Sahil & Aakash <noreply@mx.theblockchainu.com>',
-                                            subject: 'Welcome to The Blockchain University - thanks for signing up!',
+                                            to: 'aakash@theblockchainu.com',
+                                            from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                            subject: 'New user signup!',
                                             html: html_body
                                         })
                                             .then(function (response) {
-                                                console.log('email sent! - ' + response);
+                                                console.log('New user signup! email sent! - ' + response);
                                             })
                                             .catch(function (err) {
-                                                console.log('email error! - ' + err);
+                                                console.log('New user signup! email error! - ' + err);
                                             });
-                                        createProfileNode(user);
-                                        loopbackLogin(user);
-                                    }
-                                    else {
 
-                                    }
-                                }
-                            );
-                        });
+                                        // Add peer to scholarship
 
-                        // Create wallet on blockchain
-                        console.log('Creating wallet');
-                        request
-                            .post({
-                                url: app.get('protocolUrl') + 'peers',
-                                body: {
-                                    password: newUser.password
-                                },
-                                json: true
-                            }, function (err, response, data) {
-                                if (err) {
-                                    console.error(err);
-                                } else {
-                                    console.log(data);
-                                    User.dataSource.connector.execute(
-                                        "MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
-                                        function (err, results) {
-                                            console.log('Created ethereum wallet and saved address in DB');
-                                        }
-                                    );
-                                    // Send welcome email to user
-                                    let message = {
-                                        userName: profileObject.first_name + ' ' + profileObject.last_name,
-                                        userEmail: user.email,
-                                        dobMonth: profileObject.dobMonth,
-                                        dobDay: profileObject.dobDay,
-                                        dobYear: profileObject.dobYear,
-                                        stripeId: stripeResponse,
-                                        ethWalletId: data
-                                    };
-                                    let renderer = loopback.template(path.resolve(__dirname, 'views/newSignupAdmin.ejs'));
-                                    let html_body = renderer(message);
-                                    loopback.Email.send({
-                                        to: 'aakash@theblockchainu.com',
-                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                        subject: 'New user signup!',
-                                        html: html_body
-                                    })
-                                        .then(function (response) {
-                                            console.log('email sent! - ' + response);
-                                        })
-                                        .catch(function (err) {
-                                            console.log('email error! - ' + err);
-                                        });
-
-                                    // Add peer to scholarship
-
-                                    User.app.models.scholarship.find(
-                                        {
-                                            'where': {
-                                                'type': 'public'
+                                        User.app.models.scholarship.find(
+                                            {
+                                                'where': {
+                                                    'type': 'public'
+                                                }
                                             }
-                                        }
-                                    ).then(function (scholarshipInstances) {
-                                        scholarshipInstances.forEach(function (scholarship) {
-                                            scholarship.__link__peers_joined(user.id, function (err, linkedPeerInstance) {
-                                                if (data && data > 0) {
-                                                    request
-                                                        .put({
-                                                            url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
-                                                            json: true
-                                                        }, function (err, response, result) {
-                                                            if (err) {
-                                                                console.error(err);
-                                                            } else {
-                                                                console.log('Added participant to scholarship on blockchain: ' + result);
-                                                            }
+                                        ).then(function (scholarshipInstances) {
+                                            scholarshipInstances.forEach(function (scholarship) {
+                                                scholarship.__link__peers_joined(user.id, function (err, linkedPeerInstance) {
+                                                    if (data && data > 0) {
+                                                        request
+                                                            .put({
+                                                                url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
+                                                                json: true
+                                                            }, function (err, response, result) {
+                                                                if (err) {
+                                                                    console.error(err);
+                                                                } else {
+                                                                    console.log('Added participant to scholarship on blockchain: ' + result);
+                                                                }
+                                                            });
+                                                    }
+                                                });
+                                            });
+                                            return Promise.all(scholarshipInstances);
+                                        })
+                                            .then(function (scholarshipRelationInstances) {
+                                                if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+                                                    // Send token in email to user.
+                                                    const message = {};
+                                                    const renderer = loopback.template(path.resolve(__dirname, './views/welcomeGlobalScholarship.ejs'));
+                                                    const html_body = renderer(message);
+                                                    loopback.Email.send({
+                                                        to: user.email,
+                                                        from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                                        subject: 'The Blockchain University Global Scholarship',
+                                                        html: html_body
+                                                    })
+                                                        .then(function (response) {
+                                                            console.log('The Blockchain University Global Scholarship email sent! - ' + response);
+                                                        })
+                                                        .catch(function (err) {
+                                                            console.log('The Blockchain University Global Scholarship email error! - ' + err);
                                                         });
                                                 }
-                                            });
-                                        });
-                                        return Promise.all(scholarshipInstances);
-                                    })
-                                        .then(function (scholarshipRelationInstances) {
-                                            if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
-                                                // Send token in email to user.
-                                                const message = {};
-                                                const renderer = loopback.template(path.resolve(__dirname, './views/welcomeGlobalScholarship.ejs'));
-                                                const html_body = renderer(message);
-                                                loopback.Email.send({
-                                                    to: user.email,
-                                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                                    subject: 'The Blockchain University Global Scholarship',
-                                                    html: html_body
-                                                })
-                                                    .then(function (response) {
-                                                        console.log('email sent! - ' + response);
-                                                    })
-                                                    .catch(function (err) {
-                                                        console.log('email error! - ' + err);
-                                                    });
-                                            }
-                                        }).catch(function (err) {
-                                            console.log('Error in joining sholarship');
-                                            console.log(err);
+                                            }).catch(function (err) {
+                                                console.log('Error in joining sholarship');
+                                                console.log(err);
 
-                                        });
-                                }
-                            });
+                                            });
+                                    }
+                                });
+                        }
                     }
                 });
             }
