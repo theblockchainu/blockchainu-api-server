@@ -37,5 +37,6 @@
   "protocolUrl": "https://one0x.com/v1/",
   "karmaRate": 400000,
   "ccavenueWorkingKey": "FC6F1EE8D88C71848598431291678EF4",
-  "ccavenueAccessCode": "AVVD79FH99BY37DVYB"
+  "ccavenueAccessCode": "AVVD79FH99BY37DVYB",
+  "ccavenueMerchantId": "188304"
 }

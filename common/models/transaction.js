@@ -3,6 +3,7 @@ var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
 var workingKey = app.get('ccavenueWorkingKey');
 var accessCode = app.get('ccavenueAccessCode');
+var merchantId = app.get('ccavenueMerchantId');
 var stripe = require('stripe')(stripeKey);
 var path = require('path');
 var moment = require('moment');
@@ -499,16 +500,25 @@ module.exports = function (Transaction) {
 		//if user is logged in
 		if (loggedinPeer) {
 			
+			const temp = [];
+			for (let p in data) {
+				if (data.hasOwnProperty(p)) {
+					temp.push(encodeURIComponent(p) + '=' + encodeURIComponent(data[p]));
+				}
+			}
+			const dataqs = temp.join('&');
+			
 			let m = crypto.createHash('md5');
 			m.update(workingKey);
 			const key = m.digest();
-			console.log(key.length);
 			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
 			let cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
-			let encoded = cipher.update(data.toString(), 'utf8', 'hex');
+			console.log(dataqs);
+			let encoded = cipher.update(dataqs, 'utf8', 'hex');
 			encoded += cipher.final('hex');
 			
-			cb(null, encoded);
+			const iframeSrc = '<iframe  width="482" height="500" scrolling="No" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encoded + '&access_code=' + accessCode + '"></iframe>';
+			cb(null, iframeSrc);
 			
 		} else {
 			var err = new Error('Invalid access');
