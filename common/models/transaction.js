@@ -1,10 +1,13 @@
 'use strict';
 var app = require('../../server/server');
 var stripeKey = app.get('stripeKey');
+var workingKey = app.get('ccavenueWorkingKey');
+var accessCode = app.get('ccavenueAccessCode');
 var stripe = require('stripe')(stripeKey);
 var path = require('path');
 var moment = require('moment');
 var loopback = require('../../node_modules/loopback/lib/loopback');
+var crypto = require('crypto');
 
 module.exports = function (Transaction) {
 
@@ -485,7 +488,60 @@ module.exports = function (Transaction) {
             err.code = 'INVALID_ACCESS';
             cb(err);
         }
-    }
+    };
+	
+	/**
+	 * Get encrypted data to be sent to CC Avenue in iFrame request
+	 */
+	Transaction.ccavenueEncryptData = function (req, data, cb) {
+		
+		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+		//if user is logged in
+		if (loggedinPeer) {
+			
+			let m = crypto.createHash('md5');
+			m.update(workingKey);
+			const key = m.digest();
+			console.log(key.length);
+			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
+			let cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+			let encoded = cipher.update(data.toString(), 'utf8', 'hex');
+			encoded += cipher.final('hex');
+			
+			cb(null, encoded);
+			
+		} else {
+			var err = new Error('Invalid access');
+			err.code = 'INVALID_ACCESS';
+			cb(err);
+		}
+	};
+	
+	/**
+	 * Get encrypted data to be sent to CC Avenue in iFrame request
+	 */
+	Transaction.ccavenueDecryptData = function (req, data, cb) {
+		
+		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+		//if user is logged in
+		if (loggedinPeer) {
+			
+			let m = crypto.createHash('md5');
+			m.update(workingKey);
+			const key = m.digest();
+			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
+			let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+			let decoded = decipher.update(data.encText,'hex','utf8');
+			decoded += decipher.final('utf8');
+			
+			cb(null, decoded);
+			
+		} else {
+			var err = new Error('Invalid access');
+			err.code = 'INVALID_ACCESS';
+			cb(err);
+		}
+	};
 
     // Customer Remote methods
     Transaction.remoteMethod('getCustomer', {
@@ -633,6 +689,30 @@ module.exports = function (Transaction) {
         }],
         returns: { arg: 'contentObject', type: 'object', root: true },
         http: { verb: 'post', path: '/transfer-fund' }
-    }
-    );
+    });
+	
+	// CC Avenue Encrypt Data - Remote methods
+	Transaction.remoteMethod('ccavenueEncryptData', {
+		description: 'Get CC Avenue Encrypted Request',
+		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+			{
+				arg: 'data', type: 'object', http: { source: 'body' },
+				description: "data should match as mentioned by ccavenue api", required: true
+			}],
+		returns: { arg: 'contentObject', type: 'object', root: true },
+		http: { verb: 'post', path: '/ccavenueencryptdata' }
+	});
+	
+	// CC Avenue Decrypt Data - Remote methods
+	Transaction.remoteMethod('ccavenueDecryptData', {
+		description: 'Get CC Avenue Decrypted Data',
+		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+			{
+				arg: 'data', type: 'object', http: { source: 'body' },
+				description: "encrypted string from cc avenue", required: true
+			}],
+		returns: { arg: 'contentObject', type: 'object', root: true },
+		http: { verb: 'post', path: '/ccavenuedecryptdata' }
+	});
+	
 };

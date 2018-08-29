@@ -35,5 +35,7 @@
   "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
   "uniqueDeveloperCode": "aakash",
   "protocolUrl": "http://localhost:5000/v1/",
-  "karmaRate": 400000
+  "karmaRate": 400000,
+  "ccavenueWorkingKey": "FC6F1EE8D88C71848598431291678EF4",
+  "ccavenueAccessCode": "AVVD79FH99BY37DVYB"
 }
