@@ -9,6 +9,7 @@ var path = require('path');
 var moment = require('moment');
 var loopback = require('../../node_modules/loopback/lib/loopback');
 var crypto = require('crypto');
+var qs = require('querystring');
 
 module.exports = function (Transaction) {
 
@@ -530,8 +531,13 @@ module.exports = function (Transaction) {
 	/**
 	 * Get encrypted data to be sent to CC Avenue in iFrame request
 	 */
-	Transaction.ccavenueResponse = function (req, data, cb) {
-			console.log(data);
+	Transaction.ccavenueResponse = function (req, res, data, cb) {
+		
+		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+		
+		//if user is logged in
+		if (loggedinPeer) {
+		 
 			let m = crypto.createHash('md5');
 			m.update(workingKey);
 			const key = m.digest();
@@ -539,8 +545,33 @@ module.exports = function (Transaction) {
 			let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
 			let decoded = decipher.update(data.encResp,'hex','utf8');
 			decoded += decipher.final('utf8');
-			console.log(decoded);
-			cb(null, decoded);
+			const responseData = qs.parse(decoded);
+			console.log(responseData);
+				
+            Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
+                if (!err && peerInstance !== null) {
+                    peerInstance.transactions.create(responseData, function (err, transferInstance) {
+                        if (err) {
+                            transferInstance.destroy();
+                            res.redirect('/paymentError');
+                        } else {
+                            if (responseData.order_status === 'Success') {
+                                // txn success
+	                            res.redirect(responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+                            } else {
+	                            res.redirect(responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
+                            }
+                        }
+                    });
+                }
+                else {
+	                res.redirect('/paymentError');
+                }
+            });
+			
+		} else {
+			res.redirect('/paymentError');
+        }
 	};
 
     // Customer Remote methods
@@ -707,6 +738,7 @@ module.exports = function (Transaction) {
 	Transaction.remoteMethod('ccavenueResponse', {
 		description: 'Get CC Avenue Decrypted Data',
 		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+			{ arg: 'res', type: 'object', http: { source: 'res' } },
 			{
 				arg: 'data', type: 'object', http: { source: 'body' },
 				description: "encrypted string from cc avenue", required: true
