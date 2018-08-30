@@ -517,7 +517,7 @@ module.exports = function (Transaction) {
 			let encoded = cipher.update(dataqs, 'utf8', 'hex');
 			encoded += cipher.final('hex');
 			
-			const iframeSrc = '<iframe  width="482" height="500" scrolling="No" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encoded + '&access_code=' + accessCode + '"></iframe>';
+			const iframeSrc = '<iframe  width="100%" height="600px" scrolling="No" frameborder="0" #paymentFrame id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encoded + '&access_code=' + accessCode + '"></iframe>';
 			cb(null, iframeSrc);
 			
 		} else {
