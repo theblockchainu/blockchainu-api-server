@@ -10,6 +10,7 @@ var moment = require('moment');
 var loopback = require('../../node_modules/loopback/lib/loopback');
 var crypto = require('crypto');
 var qs = require('querystring');
+var clientUrl = app.get('clientUrl');
 
 module.exports = function (Transaction) {
 
@@ -553,24 +554,24 @@ module.exports = function (Transaction) {
                     peerInstance.transactions.create(responseData, function (err, transferInstance) {
                         if (err) {
                             transferInstance.destroy();
-                            res.redirect('/paymentError');
+                            res.redirect(clientUrl + '/paymentError');
                         } else {
                             if (responseData.order_status === 'Success') {
                                 // txn success
-	                            res.redirect(responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+	                            res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
                             } else {
-	                            res.redirect(responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
+	                            res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
                             }
                         }
                     });
                 }
                 else {
-	                res.redirect('/paymentError');
+	                res.redirect(clientUrl + '/paymentError');
                 }
             });
 			
 		} else {
-			res.redirect('/paymentError');
+			res.redirect(clientUrl + '/paymentError');
         }
 	};
 

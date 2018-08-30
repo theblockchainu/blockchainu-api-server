@@ -35,8 +35,9 @@
   "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
   "uniqueDeveloperCode": "aakash",
   "protocolUrl": "http://localhost:5000/v1/",
+  "clientUrl": "http://localhost:8080",
   "karmaRate": 400000,
-  "ccavenueWorkingKey": "FC6F1EE8D88C71848598431291678EF4",
-  "ccavenueAccessCode": "AVVD79FH99BY37DVYB",
+  "ccavenueWorkingKey": "5E4DD2288BD2458F6EC225B206D362F7",
+  "ccavenueAccessCode": "AVDX80FH10CK81XDKC",
   "ccavenueMerchantId": "188304"
 }

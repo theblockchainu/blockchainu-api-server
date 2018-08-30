@@ -1,13 +1,13 @@
 {
-  "name": "peer_applied_promoCode",
+  "name": "profile_has_billingaddress",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "promoCode"
+    "sourceModel": "profile",
+    "targetModel": "billingaddress"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "profile": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "profile",
       "foreignKey": "sourceId"
     },
-    "promoCode": {
+    "billingaddress": {
       "type": "belongsTo",
-      "model": "promoCode",
+      "model": "billingaddress",
       "foreignKey": "targetId"
     }
   },

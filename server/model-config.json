@@ -848,5 +848,13 @@
   "peer_applied_promoCode": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "billingaddress": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "profile_has_billingaddress": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
