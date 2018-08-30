@@ -539,6 +539,7 @@ module.exports = function (Transaction) {
 			let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
 			let decoded = decipher.update(data.encResp,'hex','utf8');
 			decoded += decipher.final('utf8');
+			console.log(decoded);
 			cb(null, decoded);
 	};
 
@@ -710,7 +711,6 @@ module.exports = function (Transaction) {
 				arg: 'data', type: 'object', http: { source: 'body' },
 				description: "encrypted string from cc avenue", required: true
 			}],
-		returns: { arg: 'contentObject', type: 'object', root: true },
 		http: { verb: 'post', path: '/ccavenueResponse' }
 	});
 	
