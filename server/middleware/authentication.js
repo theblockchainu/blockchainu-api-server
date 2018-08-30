@@ -5,7 +5,8 @@ module.exports = function(options) {
 	
 	const exemptUrls = [
 			'api/peers/forgotPassword',
-			'api/peers/resetPassword'
+			'api/peers/resetPassword',
+			'api/ccavenueResponse'
 	];
 	
 	const exemptModels = [

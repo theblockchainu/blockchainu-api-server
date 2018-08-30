@@ -530,27 +530,16 @@ module.exports = function (Transaction) {
 	/**
 	 * Get encrypted data to be sent to CC Avenue in iFrame request
 	 */
-	Transaction.ccavenueDecryptData = function (req, data, cb) {
-		
-		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
-		//if user is logged in
-		if (loggedinPeer) {
-			
+	Transaction.ccavenueResponse = function (req, data, cb) {
+			console.log(data);
 			let m = crypto.createHash('md5');
 			m.update(workingKey);
 			const key = m.digest();
 			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
 			let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-			let decoded = decipher.update(data.encText,'hex','utf8');
+			let decoded = decipher.update(data.encResp,'hex','utf8');
 			decoded += decipher.final('utf8');
-			
 			cb(null, decoded);
-			
-		} else {
-			var err = new Error('Invalid access');
-			err.code = 'INVALID_ACCESS';
-			cb(err);
-		}
 	};
 
     // Customer Remote methods
@@ -714,7 +703,7 @@ module.exports = function (Transaction) {
 	});
 	
 	// CC Avenue Decrypt Data - Remote methods
-	Transaction.remoteMethod('ccavenueDecryptData', {
+	Transaction.remoteMethod('ccavenueResponse', {
 		description: 'Get CC Avenue Decrypted Data',
 		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
 			{
@@ -722,7 +711,7 @@ module.exports = function (Transaction) {
 				description: "encrypted string from cc avenue", required: true
 			}],
 		returns: { arg: 'contentObject', type: 'object', root: true },
-		http: { verb: 'post', path: '/ccavenuedecryptdata' }
+		http: { verb: 'post', path: '/ccavenueResponse' }
 	});
 	
 };
