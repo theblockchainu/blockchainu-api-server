@@ -1348,6 +1348,8 @@ module.exports = function (Peer) {
 
     //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function (ctx, next) {
+        
+        console.log('Entering delete user hook: ' + JSON.stringify(ctx.where));
 
         Peer.dataSource.connector.execute(
             "match (:peer {id:'" + ctx.where.id + "'})-[:hasToken]->(token:UserToken) DETACH DELETE token",
@@ -1356,33 +1358,51 @@ module.exports = function (Peer) {
                     next(err);
                 }
                 else {
-                    Peer.findById(ctx.where.id, function (err, peerInstance) {
-                        if (err) {
-                            next(err);
-                        } else {
-                            let message = {};
-                            let subject = 'Account rejected';
-
-                            let renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountRejected.ejs'));
-                            let html_body = renderer(message);
-                            loopback.Email.send({
-                                to: peerInstance.email,
-                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                subject: subject,
-                                html: html_body
+                    let peerInstance;
+                    Peer.findById(ctx.where.id, {include: ['identities', 'credentials', 'profiles']})
+                            .then((peerInstance1) => {
+                                peerInstance = peerInstance1;
+                                return peerInstance.__destroyById__profiles(peerInstance.profiles()[0].id);
                             })
-                                .then(function (response) {
-                                    console.log('email sent! - ' + response);
+                            .then(res => {
+                                if (peerInstance.credentials && peerInstance.credentials().length > 0) {
+                                    return peerInstance.credentials.destroy();
+                                } else {
+                                    return utils.createPromiseCallback();
+                                }
+                            })
+                            .then(res => {
+                                if (peerInstance.identities && peerInstance.identities().length > 0) {
+                                    return peerInstance.identities.destroy()
+                                } else {
+                                    return utils.createPromiseCallback();
+                                }
+                            })
+                            .then(res => {
+                                let message = {};
+                                let subject = 'Account deleted';
+    
+                                let renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountDeleted.ejs'));
+                                let html_body = renderer(message);
+                                loopback.Email.send({
+                                    to: peerInstance.email,
+                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                    subject: subject,
+                                    html: html_body
                                 })
-                                .catch(function (err) {
-                                    console.log('email error! - ' + err);
-                                });
-                            next();
-                        }
-                    });
+                                        .then(function (response) {
+                                            console.log('email sent! - ' + response);
+                                        })
+                                        .catch(function (err) {
+                                            console.log('email error! - ' + err);
+                                        });
+                                next();
+                            })
+                            .catch(err => {
+                                next(err);
+                            });
                 }
-            }
-        );
+            });
     });
 
 	/**
