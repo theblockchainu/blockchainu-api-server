@@ -9,7 +9,7 @@ let request = require('request');
 
 module.exports = function (Collection) {
 	
-	Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led'] });
+	Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab'] });
 
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
@@ -561,17 +561,29 @@ module.exports = function (Collection) {
                                                                                     const nonAcademicRules = [];
                                                                                     const topicArray = [];
                                                                                     let learningHours = 0;
-                                                                                    assessmentRules.forEach(assessmentRule => {
-                                                                                        assessmentRuleKeys.push(assessmentRule.value);
-                                                                                        assessmentRuleValues.push(assessmentRule.gyan);
-                                                                                    });
-                                                                                    assessmentNARules.forEach(assessmentNARule => {
-                                                                                        if (assessmentNARule.value === 'engagement') {
-                                                                                            nonAcademicRules[0] = assessmentNARule.gyan;
-                                                                                        } else if (assessmentNARule.value === 'commitment') {
-                                                                                            nonAcademicRules[1] = assessmentNARule.gyan;
-                                                                                        }
-                                                                                    });
+                                                                                    if (assessmentRules !== undefined) {
+	                                                                                    assessmentRules.forEach(assessmentRule => {
+		                                                                                    assessmentRuleKeys.push(assessmentRule.value);
+		                                                                                    assessmentRuleValues.push(assessmentRule.gyan);
+	                                                                                    });
+                                                                                    } else {
+                                                                                        assessmentRuleKeys.push('pass');
+	                                                                                    assessmentRuleKeys.push('fail');
+	                                                                                    assessmentRuleValues.push(100);
+	                                                                                    assessmentRuleValues.push(1);
+                                                                                    }
+                                                                                    if (assessmentNARules !== undefined) {
+	                                                                                    assessmentNARules.forEach(assessmentNARule => {
+		                                                                                    if (assessmentNARule.value === 'engagement') {
+			                                                                                    nonAcademicRules[0] = assessmentNARule.gyan;
+		                                                                                    } else if (assessmentNARule.value === 'commitment') {
+			                                                                                    nonAcademicRules[1] = assessmentNARule.gyan;
+		                                                                                    }
+	                                                                                    });
+                                                                                    } else {
+	                                                                                    nonAcademicRules[0] = 50;
+	                                                                                    nonAcademicRules[1] = 50;
+                                                                                    }
                                                                                     topics.forEach(topic => {
                                                                                         topicArray.push(topic.name);
                                                                                     });
