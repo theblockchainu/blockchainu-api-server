@@ -39,6 +39,33 @@ module.exports = function setupCron(server) {
 		})
 	};
 	
+	/*let tempJob = new CronJob('*!/20 * * * * *', function() {
+				
+				server.models.peer.find({include: 'profiles'}, function(err, peerInstances) {
+					if (err) {
+						console.log(err);
+					} else {
+						peerInstances.forEach(peerInstance => {
+							if (peerInstance.profiles().length > 1) {
+								console.log('Found multiple profiles for: ' + peerInstance.id);
+								server.models.profile.destroyById(peerInstance.profiles()[1].id, function(err, resp) {
+									if (err) {
+										console.log(err);
+									} else {
+										console.log('Deleted profile id: ' + peerInstance.profiles()[1].id + '. With result: ' + JSON.stringify(resp));
+									}
+								});
+							}
+						});
+					}
+				});
+			}, function() {
+				// Callback function when job ends.
+			},
+			true,
+			'UTC'
+	);*/
+	
 	// Setup cron to index data on ES
 	//let indexingJob = new CronJob('*/20 * * * * *', function() {
 	let indexingJob = new CronJob('00 00 * * * *', function() {
@@ -138,6 +165,8 @@ module.exports = function setupCron(server) {
 	/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
 			function() {
 				console.info('\n\n********\nRunning midnight cron job. Functions: \n- Check for completed cohorts - mark them complete - send summary and reminders\n- Check upcoming cohorts and send reminder emails to student and teacher\n**********\n\n');
+				
+				// Try Karma Rewards
 				request
 						.post({
 							url: protocolUrl + 'karma/mintRewards',
@@ -148,7 +177,27 @@ module.exports = function setupCron(server) {
 							} else {
 								console.log('Tried karma minting: ' + JSON.stringify(data1));
 							}
+							// Send email to admin about status
+							let message = {
+								result: JSON.stringify(data1),
+								error: err
+							};
+							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/karmaRewardStatus.ejs'));
+							let html_body = renderer(message);
+							loopback.Email.send({
+								to: 'aakash@theblockchainu.com',
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+								subject: 'Attempted Karma rewards',
+								html: html_body
+							})
+									.then(function (response) {
+										console.log('email sent! - ');
+									})
+									.catch(function (err) {
+										console.log('email error! - ' + err);
+									});
 						});
+				
 				server.models.collection.find({'where': {'and': [{'status': 'active'}, {'type': {'neq': 'session'}}]}, 'include': ['calendars', {'contents': 'schedules'}, 'topics', {'comments': 'peer'}, 'participants', {'owners': 'profiles'}]}, function(err, collectionInstances){
 					collectionInstances.forEach(collection => {
 						if (collection.calendars() !== undefined) {
@@ -388,6 +437,9 @@ module.exports = function setupCron(server) {
 			true,
 			'UTC'
 	);
+	
+	
+	
 	
 	// Runs once every 10 minutes
 	const upcomingActivityCron = new CronJob('00 */10 * * * *',
