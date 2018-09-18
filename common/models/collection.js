@@ -8,8 +8,8 @@ let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 
 module.exports = function (Collection) {
-	
-	// Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led'] });
+
+    // Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led'] });
 
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
@@ -188,7 +188,7 @@ module.exports = function (Collection) {
                                             console.log('email error! - ' + err);
                                         });
                                 });
-	                            next();
+                                next();
                             }
                             else {
                                 next(new Error('Could not find collection owner'));
@@ -455,8 +455,8 @@ module.exports = function (Collection) {
             if (!err && collectionInstance !== null) {
                 let ownerId = collectionInstance.toJSON().owners[0].id;
                 let userId = Collection.app.models.peer.getCookieUserId(req);
-                let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
-                let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
+                let assessmentRules = collectionInstance.toJSON().assessment_models[0] ? collectionInstance.toJSON().assessment_models[0].assessment_rules : [];
+                let assessmentNARules = collectionInstance.toJSON().assessment_models[0] ? collectionInstance.toJSON().assessment_models[0].assessment_na_rules : [];
                 let contents = collectionInstance.toJSON().contents;
                 let topics = collectionInstance.toJSON().topics;
                 collectionInstance.status = 'active';
@@ -1499,8 +1499,8 @@ module.exports = function (Collection) {
                         });
                     }
                     else {
-	                    // This collection has no participants on it. We can edit it but put it back in draft status.
-	                    next();
+                        // This collection has no participants on it. We can edit it but put it back in draft status.
+                        next();
                     }
                 });
             }
