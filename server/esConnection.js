@@ -11,8 +11,8 @@ var client = new elasticsearch.Client( {
     connectionClass: require('http-aws-es'),
     amazonES: {
         "region": "us-east-1",
-        "accessKey": "AKIAJNBGI45QDD7GUIFQ",
-        "secretKey": "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"
+        "accessKey": "AKIAJ2ZSU5G465EDNDLA",
+        "secretKey": "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"
     },
     apiVersion: "5.5",
     log: "error",

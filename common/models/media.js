@@ -5,8 +5,8 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid/v4');
 
 const s3 = new AWS.S3({
-    accessKeyId: 'AKIAJNBGI45QDD7GUIFQ',
-    secretAccessKey: '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',
+    accessKeyId: 'AKIAJ2ZSU5G465EDNDLA',
+    secretAccessKey: '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',
     signatureVersion: 'v4',
     region: 'us-west-2',
 
