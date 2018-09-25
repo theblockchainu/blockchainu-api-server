@@ -16,6 +16,14 @@
         "answers"
       ]
     },
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "topic",
+          "hasManyRelation": "topics"
+        }
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
@@ -106,6 +114,13 @@
       "foreignKey": "targetId",
       "through": "community_has_question",
       "keyThrough": "sourceId"
+    },
+    "topics": {
+      "type": "hasMany",
+      "model": "topic",
+      "foreignKey": "sourceId",
+      "through": "question_has_topic",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

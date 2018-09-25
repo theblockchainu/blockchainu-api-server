@@ -856,5 +856,9 @@
   "profile_has_billingaddress": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "question_has_topic": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

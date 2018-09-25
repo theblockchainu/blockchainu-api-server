@@ -90,6 +90,13 @@
       "foreignKey": "targetId",
       "through": "accreditation_has_topics",
       "keyThrough": "sourceId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "question",
+      "foreignKey": "targetId",
+      "through": "question_has_topic",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
