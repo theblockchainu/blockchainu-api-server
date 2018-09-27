@@ -860,5 +860,13 @@
   "question_has_topic": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "reward": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "collection_has_reward": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -325,6 +325,13 @@
       "foreignKey": "sourceId",
       "through": "collection_has_promoCode",
       "keyThrough": "targetId"
+    },
+    "rewards": {
+      "type": "hasMany",
+      "model": "reward",
+      "foreignKey": "targetId",
+      "through": "collection_has_reward",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
