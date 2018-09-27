@@ -1,13 +1,13 @@
 {
-  "name": "question_has_topic",
+  "name": "collection_has_reward",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "question",
-    "targetModel": "topic"
+    "sourceModel": "collection",
+    "targetModel": "reward"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "question": {
+    "collection": {
       "type": "belongsTo",
-      "model": "question",
+      "model": "collection",
       "foreignKey": "sourceId"
     },
-    "topic": {
+    "reward": {
       "type": "belongsTo",
-      "model": "topic",
+      "model": "reward",
       "foreignKey": "targetId"
     }
   },
