@@ -64,7 +64,7 @@ module.exports = function(Question) {
 						if (!err) {
 							loggedinPeerInstance = loggedinPeerInstance.toJSON();
 							// Send email to owner
-							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'question',  itemText: questionInstance.toJSON().text};
+							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'question',  itemText: questionInstance.toJSON().text, itemId: questionInstance.toJSON().id};
 							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newUpvoteToOwner.ejs'));
 							var html_body = renderer(message);
 							loopback.Email.send({
