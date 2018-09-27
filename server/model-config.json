@@ -868,5 +868,9 @@
   "collection_has_reward": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "notification_has_question": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

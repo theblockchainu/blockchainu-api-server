@@ -1,18 +1,17 @@
 {
-  "name": "collection_has_reward",
+  "name": "notification_has_question",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "collection",
-    "targetModel": "reward"
+    "sourceModel": "notification",
+    "targetModel": "question"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "id": true
+      "type": "string"
     },
     "sourceId": {
       "type": "string"
@@ -23,14 +22,14 @@
   },
   "validations": [],
   "relations": {
-    "collection": {
+    "notification": {
       "type": "belongsTo",
-      "model": "collection",
+      "model": "notification",
       "foreignKey": "sourceId"
     },
-    "reward": {
+    "question": {
       "type": "belongsTo",
-      "model": "reward",
+      "model": "question",
       "foreignKey": "targetId"
     }
   },

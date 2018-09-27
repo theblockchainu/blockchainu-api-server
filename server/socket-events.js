@@ -235,6 +235,41 @@ exports = module.exports = function (io) {
 		            }
 	            });
             }
+            else if (view.viewedModelName === 'community') {
+	            app.models.community.findById(view.community.id, function(err, communityInstance) {
+		            var viewer = view.viewer;
+		            delete view.community;
+		            delete view.viewer;
+		            if (err) {
+			            console.log(err);
+		            }
+		            else {
+			            // create a view node
+			            communityInstance.views.create(view, function (err, newViewInstance) {
+				            if (err) {
+					            console.log(err);
+				            }
+				            else {
+					            // add a peer relation to the new view node
+					            app.models.peer.findById(viewer.id, function (err, peerInstance) {
+						            if (err) {
+							            console.log("User for this view Not Found");
+						            } else {
+							            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
+								            if (err) {
+									            console.log(err);
+								            } else {
+									            //console.log(addedPeerInstance);
+									            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+								            }
+							            });
+						            }
+					            });
+				            }
+			            });
+		            }
+	            });
+            }
             else {
                 console.log('no function to handle view for this model');
             }

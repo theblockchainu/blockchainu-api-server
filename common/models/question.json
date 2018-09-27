@@ -125,6 +125,13 @@
       "foreignKey": "sourceId",
       "through": "question_has_topic",
       "keyThrough": "targetId"
+    },
+    "notification": {
+      "type": "hasMany",
+      "model": "notification",
+      "foreignKey": "targetId",
+      "through": "notification_has_question",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

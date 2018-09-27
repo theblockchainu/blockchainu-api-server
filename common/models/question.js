@@ -81,9 +81,7 @@ module.exports = function(Question) {
 									});
 							
 							var actionUrl = [];
-							if (questionInstance.toJSON().communities) {
-								actionUrl = ['community', questionInstance.toJSON().communities[0].id];
-							}
+							actionUrl = ['question', questionInstance.id];
 							// Create notification
 							var Notification = app.models.notification;
 							var notifData = {
@@ -92,7 +90,7 @@ module.exports = function(Question) {
 								description: "%username% has upvoted your question.",
 								actionUrl: actionUrl
 							};
-							Notification.createNotification(questionInstance.toJSON().peer[0].id, loggedinPeerInstance.id, notifData, 'community', questionInstance.toJSON().communities[0].id, function (err, notificationInstance) {
+							Notification.createNotification(questionInstance.toJSON().peer[0].id, loggedinPeerInstance.id, notifData, 'question', questionInstance.id, function (err, notificationInstance) {
 								if (!err) {
 									console.log(notificationInstance);
 								}
@@ -168,9 +166,7 @@ module.exports = function(Question) {
 										});
 								
 								let actionUrl = [];
-								if (questionInst.communities()) {
-									actionUrl = ['community', questionInst.communities()[0].id];
-								}
+								actionUrl = ['question', questionInst.id];
 								
 								request
 										.put({
@@ -194,7 +190,7 @@ module.exports = function(Question) {
 									description: "%username% has accepted your answer.",
 									actionUrl: actionUrl
 								};
-								Notification.createNotification(answerInst.peer()[0].id, questionInst.peer()[0].id, notifData, 'community', questionInst.communities()[0].id, function(err, notificationInstance) {
+								Notification.createNotification(answerInst.peer()[0].id, questionInst.peer()[0].id, notifData, 'question', questionInst.id, function(err, notificationInstance) {
 									if (!err) {
 										console.log('Notification created for user: ' + notificationInstance);
 										cb(null, answerInst);
