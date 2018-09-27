@@ -7,7 +7,7 @@ module.exports = function(Container) {
 	
 	Container.downloadSize = function (container, size, file, req, res, cb) {
 		req.params.container = 'peerbuds-dev1290';
-		var loggedinPeer = Container.getCookieUserId(req);
+		// var loggedinPeer = Container.getCookieUserId(req);
 		var fileWithSize = size + '/' + file;
 		
 		if(0 !== ALLOWED_RESOLUTIONS.size && !ALLOWED_RESOLUTIONS.has(size) ) {
@@ -71,7 +71,7 @@ module.exports = function(Container) {
 		});
 	};
 	
-	Container.getCookieUserId = function (req) {
+	/*Container.getCookieUserId = function (req) {
 		
 		var cookieArray = req.headers.cookie.split(';');
 		var cookie = '';
@@ -82,7 +82,7 @@ module.exports = function(Container) {
 		}
 		console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
 		return cookie.split(/[ \:.]+/)[0];
-	};
+	};*/
 	
 	Container.remoteMethod(
 			'downloadSize',
