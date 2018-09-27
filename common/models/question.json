@@ -21,6 +21,10 @@
         {
           "model": "topic",
           "hasManyRelation": "topics"
+        },
+        {
+          "model": "community",
+          "hasManyRelation": "communities"
         }
       ]
     },
