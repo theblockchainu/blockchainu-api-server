@@ -103,24 +103,24 @@ exports = module.exports = function (io) {
         });
 
         socket.on('message', function (messageNotification) {
-            console.log('MessageNotification', messageNotification);
+            //console.log('MessageNotification', messageNotification);
             sendNotification(messageNotification);
         });
 
         socket.on('notification', function (newNotification) {
-            console.log('NewNotification', messageNotification);
+            //console.log('NewNotification', messageNotification);
             sendNotification(newNotification);
         });
 
         socket.on('startView', function (view) {
             var connUser = findById(users, view.viewer.id);
-            console.log('startView', view);
+            //console.log('startView', view);
             startView(view, connUser);
         });
 
         socket.on('endView', function (view) {
             var connUser = findById(users, view.viewer.id);
-            console.log('endView', view);
+            //console.log('endView', view);
             endView(view, connUser);
         });
 

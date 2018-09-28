@@ -212,7 +212,7 @@ module.exports = function (Peer) {
                     user.emailVerified = true;
                     user.save()
                         .then(function (userInstance) {
-                            console.log(userInstance);
+                            //console.log(userInstance);
                             if (redirect !== undefined) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
@@ -481,7 +481,7 @@ module.exports = function (Peer) {
                                                 delete peerInstance.toJSON().profiles;
                                                 peerInstance.phoneVerificationToken = phoneToken;
                                                 peerInstance.phoneVerified = false;
-                                                console.log(peerInstance);
+                                                //console.log(peerInstance);
                                                 User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
                                                     if (err) {
                                                         fn(err);
@@ -737,7 +737,8 @@ module.exports = function (Peer) {
                                                     if (err) {
                                                         console.error(err);
                                                     } else {
-                                                        console.log('Added participant to scholarship on blockchain: ' + result);
+                                                        console.log('Added participant to scholarship on blockchain: ');
+                                                        console.log(result);
                                                     }
                                                 });
                                         }
@@ -1349,7 +1350,7 @@ module.exports = function (Peer) {
     //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function (ctx, next) {
         
-        console.log('Entering delete user hook: ' + JSON.stringify(ctx.where));
+        //console.log('Entering delete user hook: ' + JSON.stringify(ctx.where));
 
         Peer.dataSource.connector.execute(
             "match (:peer {id:'" + ctx.where.id + "'})-[:hasToken]->(token:UserToken) DETACH DELETE token",

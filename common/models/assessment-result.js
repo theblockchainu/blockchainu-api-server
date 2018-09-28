@@ -87,7 +87,7 @@ module.exports = function (Assessmentresult) {
 											size: 125
 										})
 									});
-									console.log('DISPLAY HTML READY: ' + displayHtml);
+									console.log('DISPLAY HTML READY');
 									console.log('NOW PREPARING CERTIFICATE JSON');
 									const certificate = {
 										"type": "certificate",
@@ -149,6 +149,7 @@ module.exports = function (Assessmentresult) {
 									console.log('HASHING CERTIFICATE JSON');
 									const hash = sha256(JSON.stringify(certificate));
 									console.log('CERTIFICATE HASH READY: ' + hash);
+									console.log('RECORDING HASH ON BLOCKCHAIN...');
 									request
 											.put({
 												url: protocolUrl + 'collections/' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id + '/peers/' + assessmentResultInstanceJSON.assessees[0].ethAddress,
@@ -185,10 +186,47 @@ module.exports = function (Assessmentresult) {
 															console.log(error);
 														} else {
 															console.log('SAVED CERTIFICATE JSON WITH HASH IN CENTRAL DB');
-															let html_body = ' <html> <head> <title>The Blockchain University</title>   </head>  <body> <div>  ' + displayHtml + ' </div> </body> </html>';
+															let html_body = ' <html> <head> <title>The Blockchain University</title></head>  <body> <div> <div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">' +
+																	'<div style="vertical-align: middle; ">' +
+																	'<img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>' +
+																	'</div>' +
+																	'<div style="font-weight: 800; font-size: 30px; margin-top: 40px; text-transform: capitalize;">' +
+																	'Congratulations!' +
+																	'</div>' +
+																	'<div>' +
+																	'<div style="font-size: 17px; margin-top: 25px;">' +
+																	'Hi ' + assessmentResultInstanceJSON.assessees[0].profiles[0].first_name +
+																	'<br><br>' +
+																	'Your certificate is ready.' +
+																	'<br><br>' +
+																	'You can share your certificate with anyone using this link -' +
+																	'<a href="https://theblockchainu.com/certificate/' + updatedInstance.id + '" style="white-space: pre-wrap; color: #33bd9e;"><b>https://theblockchainu.com/certificate/' + updatedInstance.id + '</b></a>' +
+																	'<br><br>' +
+																	'<div style="line-height: 2.5rem;">' +
+																	'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
+																	'</div><br/><br/>' +
+																	'<div style="font-size:12px; color: #777777;">' +
+																	'Also attached in this email is your certificate backup file which you should save on your local computer. The <b>certificate.json</b> can also be shared with future employers.' +
+																	'</div>' +
+																	'</div>' +
+																	'</div>' +
+																	'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
+																	'Cheers,' +
+																	'<br>' +
+																	'The Blockchain U Team' +
+																	'</div>' +
+																	'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
+																	displayHtml +
+																	'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
+																	'<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">' +
+																	'Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U' +
+																	'<br><br>' +
+																	'Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538' +
+																	'</div>' +
+																	'</div> </div> </body> </html>';
 															var attachment = {
 																data: intoStream(updatedInstance.stringifiedJSON),
-																filename: 'certificate.json',
+																filename: 'Smart Certificate_' + assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].title + '.json',
 																knownLength: updatedInstance.stringifiedJSON.length,
 																contentType: 'application/json'
 															};

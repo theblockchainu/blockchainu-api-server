@@ -593,7 +593,7 @@ module.exports = function(Collection) {
                                                                                         }
                                                                                     });
                                                                                     learningHours = learningHours === 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
-                                                                                    console.log('total learning hours are: ' + learningHours);
+                                                                                    //console.log('total learning hours are: ' + learningHours);
                                                                                     // Add to blockchain
                                                                                     request
                                                                                         .post({
@@ -616,7 +616,8 @@ module.exports = function(Collection) {
                                                                                             if (err) {
                                                                                                 console.error(err);
                                                                                             } else {
-                                                                                                console.log('Add collection to blockchain: ' + data);
+                                                                                                console.log('Add collection to blockchain: ');
+                                                                                                console.log(data);
                                                                                             }
                                                                                         });
 
@@ -1579,7 +1580,7 @@ module.exports = function(Collection) {
                             }
                         });
                         learningHours = learningHours === 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
-                        console.log('total learning hours are: ' + learningHours);
+                        //console.log('total learning hours are: ' + learningHours);
                         const body = {
                             uniqueId: collectionInstance.id,
                             teacherAddress: ownerInstance.ethAddress,
@@ -1593,7 +1594,7 @@ module.exports = function(Collection) {
                             nonAcademicRules: nonAcademicRules,
                             topics: topicArray
                         };
-                        console.log(body);
+                        //console.log(body);
                         // Add to blockchain
                         request
                             .post({

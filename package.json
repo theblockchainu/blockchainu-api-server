@@ -37,7 +37,7 @@
     "loopback-component-storage": "^3.2.0",
     "loopback-connector-es": "1.4.0",
     "loopback-connector-mailgun": "0.0.8",
-    "loopback-connector-neo4j-cypher": "0.0.6",
+    "loopback-connector-neo4j-cypher": "0.0.7",
     "loopback-connector-neo4j-graphs": "latest",
     "loopback-ds-timestamp-mixin": "^3.4.1",
     "moment": "^2.19.1",
