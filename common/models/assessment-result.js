@@ -202,7 +202,7 @@ module.exports = function (Assessmentresult) {
 																	'You can share your certificate with anyone using this link -' +
 																	'<a href="https://theblockchainu.com/certificate/' + updatedInstance.id + '" style="white-space: pre-wrap; color: #33bd9e;"><b>https://theblockchainu.com/certificate/' + updatedInstance.id + '</b></a>' +
 																	'<br><br>' +
-																	'<div style="line-height: 2.5rem;">' +
+																	'<div style="line-height: 3.2rem;">' +
 																	'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
 																	'</div><br/><br/>' +
 																	'<div style="font-size:12px; color: #777777;">' +
