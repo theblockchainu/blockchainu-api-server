@@ -161,6 +161,10 @@
     "subCategory": {
       "type": "string",
       "default": "workshop"
+    },
+    "resultsAnnounced": {
+      "type": "boolean",
+      "defaut": "false"
     }
   },
   "validations": [],
@@ -329,9 +333,9 @@
     "rewards": {
       "type": "hasMany",
       "model": "reward",
-      "foreignKey": "targetId",
+      "foreignKey": "sourceId",
       "through": "collection_has_reward",
-      "keyThrough": "sourceId"
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
