@@ -43,6 +43,9 @@
     },
     "file_url": {
       "type": "string"
+    },
+    "git_url": {
+      "type": "string"
     }
   },
   "validations": [],

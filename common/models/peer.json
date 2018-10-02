@@ -451,6 +451,13 @@
       "foreignKey": "sourceId",
       "through": "peer_applied_promoCode",
       "keyThrough": "targetId"
+    },
+    "rewards": {
+      "type": "hasMany",
+      "model": "reward",
+      "foreignKey": "targetId",
+      "through": "reward_has_participant",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

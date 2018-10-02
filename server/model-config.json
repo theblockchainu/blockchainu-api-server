@@ -872,5 +872,9 @@
   "notification_has_question": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "reward_has_participant": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
