@@ -1685,5 +1685,16 @@ module.exports = function(Collection) {
             http: { path: '/:id/ether', verb: 'post' }
         }
     );
+	
+	Collection.remoteMethod(
+			'fetchTrending',
+			{
+				accepts: [
+					{ arg: 'req', type: 'object', http: { source: 'req' } },
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/trending', verb: 'get' }
+			}
+	);
 
 };

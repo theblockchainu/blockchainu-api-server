@@ -20,6 +20,9 @@
     },
     "stringifiedJSON": {
       "type": "string"
+    },
+    "stringifiedJSONWithoutSignature": {
+      "type": "string"
     }
   },
   "validations": [],

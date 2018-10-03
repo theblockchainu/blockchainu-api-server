@@ -1098,7 +1098,7 @@ module.exports = function (Peer) {
     Peer.floatingGyanBalance = function (id, req, cb) {
         // Find the collection by given ID
         Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null && peerInstance.ethAddress) {
+            if (!err && peerInstance !== null && peerInstance.ethAddress && peerInstance.ethAddress.substring(0, 2) === '0x') {
                 // Get from blockchain
                 request
                     .get({
@@ -1140,7 +1140,7 @@ module.exports = function (Peer) {
     Peer.fixedGyanBalance = function (id, req, cb) {
         // Find the collection by given ID
         Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null && peerInstance.ethAddress) {
+            if (!err && peerInstance !== null && peerInstance.ethAddress && peerInstance.ethAddress.substring(0, 2) === '0x') {
                 // Get from blockchain
                 request
                     .get({
@@ -1182,7 +1182,7 @@ module.exports = function (Peer) {
     Peer.potentialKarmaReward = function (id, req, cb) {
         // Find the collection by given ID
         Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null && peerInstance.ethAddress) {
+            if (!err && peerInstance !== null && peerInstance.ethAddress && peerInstance.ethAddress.substring(0, 2) === '0x') {
                 // Get from blockchain
                 request
                     .get({
@@ -1223,7 +1223,7 @@ module.exports = function (Peer) {
     Peer.karmaBalance = function (id, req, cb) {
         // Find the collection by given ID
         Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null && peerInstance.ethAddress) {
+            if (!err && peerInstance !== null && peerInstance.ethAddress && peerInstance.ethAddress.substring(0, 2) === '0x') {
                 // Get from blockchain
                 request
                     .get({
@@ -1264,10 +1264,10 @@ module.exports = function (Peer) {
     Peer.fixWallet = function (id, req, body, cb) {
         // Find the collection by given ID
         Peer.findById(id, function (err, peerInstance) {
-            if (!err && peerInstance !== null && peerInstance.ethAddress) {
+            if (!err && peerInstance !== null && peerInstance.ethAddress && peerInstance.ethAddress.substring(0, 2) === '0x') {
                 // Already has wallet. Check if it exists on blockchain.
                 cb(null, { result: 'Wallet already exists' });
-            } else if (!err && peerInstance !== null && !peerInstance.ethAddress) {
+            } else if (!err && peerInstance !== null && (!peerInstance.ethAddress || peerInstance.ethAddress.substring(0, 2) !== '0x')) {
                 peerInstance.hasPassword(body.password, function (err, isMatch) {
                     if (err) {
                         cb(err);
@@ -1345,6 +1345,14 @@ module.exports = function (Peer) {
                 }
             });
     };
+	
+	Peer.fetchTrending = function (req, cb) {
+		const trendingIds = [
+		        'e7c3eb57-1180-4876-9758-7431746641fc',
+                '3332fe86-0ba8-4418-81b7-3e20989b389f',
+                'ff34c6cf-4beb-443f-be60-237d9261b7c9'
+        ];
+	};
 
 
     //noinspection JSCheckFunctionSignatures
@@ -1929,6 +1937,17 @@ module.exports = function (Peer) {
                 http: { path: '/:id/blockTransactions', verb: 'get' }
             }
         );
+	
+	    PeerModel.remoteMethod(
+			    'fetchTrending',
+			    {
+				    accepts: [
+					    { arg: 'req', type: 'object', http: { source: 'req' } },
+				    ],
+				    returns: { arg: 'result', type: 'object', root: true },
+				    http: { path: '/trending', verb: 'get' }
+			    }
+	    );
 
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
