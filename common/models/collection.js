@@ -9,7 +9,10 @@ let request = require('request');
 
 module.exports = function (Collection) {
 
-    Collection.validatesInclusionOf('subCategory', { in: ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab', 'bug', 'competitive', 'hackathon', 'hiring'] });
+    Collection.validatesInclusionOf('subCategory', {
+        in:
+            ['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab', 'bug', 'competitive', 'hackathon', 'hiring', 'token']
+    });
 
     Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
         // New participant added to collection. Notify collection owner.
@@ -1734,17 +1737,17 @@ module.exports = function (Collection) {
             http: { path: '/:id/ether', verb: 'post' }
         }
     );
-	
-	Collection.remoteMethod(
-			'fetchTrending',
-			{
-				accepts: [
-					{ arg: 'req', type: 'object', http: { source: 'req' } },
-				],
-				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/trending', verb: 'get' }
-			}
-	);
+
+    Collection.remoteMethod(
+        'fetchTrending',
+        {
+            accepts: [
+                { arg: 'req', type: 'object', http: { source: 'req' } },
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/trending', verb: 'get' }
+        }
+    );
 
     Collection.remoteMethod(
         'announceResult',
