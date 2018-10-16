@@ -182,8 +182,9 @@ exports = module.exports = function (io) {
                             else {
                                 // add a peer relation to the new view node
                                 app.models.peer.findById(viewer.id, function (err, peerInstance) {
-                                    if (err) {
+                                    if (err || !peerInstance) {
                                         console.log("User for this view Not Found");
+	                                    io.sendEmitToUser(connUser, 'startedView', newViewInstance);
                                     } else {
                                         newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
                                             if (err) {
@@ -217,8 +218,9 @@ exports = module.exports = function (io) {
 				            else {
 					            // add a peer relation to the new view node
 					            app.models.peer.findById(viewer.id, function (err, peerInstance) {
-						            if (err) {
+						            if (err || !peerInstance) {
 							            console.log("User for this view Not Found");
+							            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
 						            } else {
 							            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
 								            if (err) {
@@ -252,8 +254,9 @@ exports = module.exports = function (io) {
 				            else {
 					            // add a peer relation to the new view node
 					            app.models.peer.findById(viewer.id, function (err, peerInstance) {
-						            if (err) {
+						            if (err || !peerInstance) {
 							            console.log("User for this view Not Found");
+							            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
 						            } else {
 							            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
 								            if (err) {

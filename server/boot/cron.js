@@ -205,7 +205,7 @@ module.exports = function setupCron(server) {
 								const collectionCalendarEndDate = moment(calendar.endDate);
 								const collectionCalendarStartDate = moment(calendar.startDate);
 								const now = moment();
-								if (calendar.status !== 'complete' && collectionCalendarEndDate.diff(now) <= 0) {
+								if (calendar.status !== 'complete' && collectionCalendarEndDate.add(1, 'days').diff(now) <= 0) {
 									// Mark the calendar as complete
 									const newCalendar = calendar;
 									newCalendar.status = 'complete';
