@@ -1,0 +1,74 @@
+<html>
+
+<head>
+    <title>The Blockchain University</title>
+</head>
+
+<body>
+    <h1>The Blockchain University</h1>
+    <hr />
+    <p>This Week's Highlights</p>
+    <% if (newPrograms.length>2) { %>
+    <h2><strong>Programs Added Last Week</strong></h2>
+    <table border="0" cellpadding="2px" style="width: 100%;">
+        <tbody>
+            <tr>
+                <% for(var i=0; i < newPrograms.length; i++) { %>
+                <td>
+                    <img src="<%= newPrograms[i].imageUrl%>" alt=""  height="300" />
+                    <p><strong>
+                            <%= newPrograms[i].title%></strong></p>
+                    <p>Starting on
+                        <%= newPrograms[i].startDate %>
+                    </p>
+                </td>
+                <% } %>
+            </tr>
+        </tbody>
+    </table>
+    <% } %>
+    <% if (upcomingPrograms.length>2) { %>
+    <h2><strong>Upcoming Programs</strong></h2>
+    <table border="0" cellpadding="2px" style="width: 100%;">
+        <tbody>
+            <tr>
+                <% for(var i=0; i < upcomingPrograms.length; i++) { %>
+                <td>
+                    <img src="<%= upcomingPrograms[i].imageUrl%>" alt=""  height="300" />
+                    <p><strong>
+                            <%= upcomingPrograms[i].title%></strong></p>
+                    <p>Starting on
+                        <%= upcomingPrograms[i].startDate %>
+                    </p>
+                </td>
+                <% } %>
+            </tr>
+        </tbody>
+    </table>
+    <% } %>
+    <% if (trendingPrograms.length>2) { %>
+    <h2><strong>Trending programs</strong></h2>
+    <table border="0" cellpadding="2px" style="width: 100%;">
+        <tbody>
+            <tr>
+                <% for(var i=0; i < trendingPrograms.length; i++) { %>
+                <td>
+                    <img src="<%= trendingPrograms[i].imageUrl%>" alt=""  height="300" />
+                    <p><strong>
+                            <%= trendingPrograms[i].title%></strong></p>
+                    <p>Starting on
+                        <%= trendingPrograms[i].startDate %>
+                    </p>
+                </td>
+                <% } %>
+            </tr>
+        </tbody>
+    </table>
+    <% } %>
+    <div>Cheers, <br /> The Blockchain U Team</div>
+    <hr />
+    <div>Sent with <span>&hearts;</span> from The Blockchain U <br /><br /> Peerbuds, Inc., 4580 Automall Pkwy,
+        Fremont, CA 94539</div>
+</body>
+
+</html>
