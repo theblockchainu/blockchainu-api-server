@@ -876,5 +876,9 @@
   "reward_has_participant": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "peer_followed_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
