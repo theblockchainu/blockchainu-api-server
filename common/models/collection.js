@@ -251,39 +251,41 @@ module.exports = function (Collection) {
                             }
                         });
 
-                        upComingCalendars.sort((a, b) => {
-                            const startMomentA = moment(a.startDate);
-                            const startMomentB = moment(b.startDate);
-                            return startMomentA.diff(startMomentB);
-                        });
+                        if (upComingCalendars.length > 0) {
+                            upComingCalendars.sort((a, b) => {
+                                const startMomentA = moment(a.startDate);
+                                const startMomentB = moment(b.startDate);
+                                return startMomentA.diff(startMomentB);
+                            });
 
-                        calendarInstance.collection[0].peersFollowing.forEach((peer) => {
-                            let message = {
-                                participantName: peer.profiles[0].first_name + ' ' + peer.profiles[0].last_name,
-                                calendars: upComingCalendars,
-                                collectionId: calendarInstance.collection[0].id,
-                                type: calendarInstance.collection[0].type,
-                                collectionTitle: calendarInstance.collection[0].title
-                            };
-                            console.log(message);
-                            let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newCohortAdded.ejs'));
-                            let html_body = renderer(message);
-                            console.info('fetching peers');
+                            calendarInstance.collection[0].peersFollowing.forEach((peer) => {
+                                let message = {
+                                    participantName: peer.profiles[0].first_name + ' ' + peer.profiles[0].last_name,
+                                    calendars: upComingCalendars,
+                                    collectionId: calendarInstance.collection[0].id,
+                                    type: calendarInstance.collection[0].type,
+                                    collectionTitle: calendarInstance.collection[0].title
+                                };
+                                console.log(message);
+                                let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newCohortAdded.ejs'));
+                                let html_body = renderer(message);
+                                console.info('fetching peers');
 
-                            // console.log(peerInstances);
+                                // console.log(peerInstances);
 
-                            loopback.Email.send({
-                                to: peer.email,
-                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                subject: 'New Cohorts Added to ',
-                                html: html_body
-                            },
-                                (err, mail) => {
-                                    console.log('email sent to' + peer.email);
-                                }
-                            );
+                                loopback.Email.send({
+                                    to: peer.email,
+                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                    subject: 'New Cohorts Added to ',
+                                    html: html_body
+                                },
+                                    (err, mail) => {
+                                        console.log('email sent to' + peer.email);
+                                    }
+                                );
 
-                        });
+                            });
+                        }
                     } else {
                         console.log('calendar not found');
 
