@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.279.1",
+    "base64-img": "^1.0.4",
     "bcrypt": "^3.0.0",
     "bcryptjs": "latest",
     "body-parser": "^1.17.2",

@@ -1,13 +1,13 @@
 {
-  "name": "reward_has_participant",
+  "name": "peer_followed_collection",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "reward",
-    "targetModel": "peer"
+    "sourceModel": "peer",
+    "targetModel": "collection"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "reward": {
-      "type": "belongsTo",
-      "model": "reward",
-      "foreignKey": "sourceId"
-    },
     "peer": {
       "type": "belongsTo",
       "model": "peer",
+      "foreignKey": "sourceId"
+    },
+    "collection": {
+      "type": "belongsTo",
+      "model": "collection",
       "foreignKey": "targetId"
     }
   },

@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <title>The Blockchain University</title>
+</head>
+
+<body>
+    <h1>The Blockchain University</h1>
+    <p>Hi <strong>
+            <%= participantName %> </strong>,</p>
+    <p>The
+        <%= type %>
+        <%= collectionTitle %> you had subscribed to, has added new cohorts. These are the upcoming cohorts in the
+        <%= type %>.</p>
+    <ul>
+        <% for(var i=0; i < calendars.length; i++) { %>
+        <li>
+            <%= calendars[i].formated %>
+        </li>
+        <% } %>
+    </ul>
+    <p> <a href="http://theblockchainu.com/<%= type %>/<%= collectionId %>">Click here</a> to join a cohort, before it
+        fills.</p>
+
+    <div>Cheers, <br /> The Blockchain U Team</div>
+    <hr />
+    <div>Sent with <span>&hearts;</span> from The Blockchain U <br /><br /> Peerbuds, Inc., 4580 Automall Pkwy,
+        Fremont, CA 94539</div>
+</body>
+
+</html>

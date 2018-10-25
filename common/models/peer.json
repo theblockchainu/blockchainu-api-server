@@ -458,6 +458,13 @@
       "foreignKey": "targetId",
       "through": "reward_has_participant",
       "keyThrough": "sourceId"
+    },
+    "collectionsFollowing": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "peer_followed_collection",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
