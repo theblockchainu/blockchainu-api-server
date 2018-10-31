@@ -1763,6 +1763,82 @@ module.exports = function (Collection) {
 
     }
 
+    Collection.fetchTrending = function (req, cb) {
+        const queryObj = req.query;
+        const today = moment();
+        const searchQuery = JSON.parse(queryObj['filter']);
+        searchQuery['order'] = 'createdAt DESC';
+        searchQuery['include'] = searchQuery['include'].concat(['calendars', 'views', { 'owners': ['reviewsAboutYou'] }]);
+        Collection.find(searchQuery, (err, allCollectionInstances) => {
+            if (err) {
+                cb(err);
+            } else {
+                const resultArray = [];
+                let collectionInstances = [];
+                allCollectionInstances.forEach(collectionInstance => {
+                    const collection = collectionInstance.toJSON();
+                    if (collection.status === 'active') {
+                        let hasActiveCalendar = false;
+                        if (collection.calendars) {
+                            collection.calendars.forEach(calendar => {
+                                if (moment(calendar.endDate).diff(today, 'days') >= -1) {
+                                    hasActiveCalendar = true;
+                                    return;
+                                }
+                            });
+                        }
+                        if (collection.owners && collection.owners[0].reviewsAboutYou) {
+                            collection.rating = this.calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
+                            collection.ratingCount = this.calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
+                        }
+                        if (hasActiveCalendar || collection.type === 'guide') {
+                            console.log('collection.rating ' + collection.rating);
+
+                            console.log('collection.ratingCount ' + collection.ratingCount);
+                            collectionInstances.push(collection);
+                        }
+                    }
+                });
+                collectionInstances.sort((a, b) => {
+                    if (a.views.length > b.views.length) {
+                        return 1;
+                    } else if (a.views.length < b.views.length) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                });
+                for (let i = 0; i < collectionInstances.length && resultArray.length < 6; i++) {
+                    const element = collectionInstances[i];
+                    resultArray.push(element);
+                }
+                collectionInstances = collectionInstances.slice(3);
+                for (let i = 0; i < collectionInstances.length && resultArray.length < 3; i++) {
+                    const collection = collectionInstances[i];
+                    resultArray.push(collection);
+                }
+                cb(null, resultArray);
+            }
+        });
+
+    }
+
+    Collection.calculateCollectionRating = function (collectionId, reviewArray) {
+        let reviewScore = 0;
+        for (const reviewObject of reviewArray) {
+            if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewScore += reviewObject.score; }
+        }
+        return (reviewScore / (reviewArray.length * 5)) * 5;
+    }
+
+    Collection.calculateCollectionRatingCount = function (collectionId, reviewArray) {
+        let reviewCount = 0;
+        for (const reviewObject of reviewArray) {
+            if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewCount++; }
+        }
+        return reviewCount;
+    }
+
     Collection.remoteMethod(
         'submitForReview',
         {
