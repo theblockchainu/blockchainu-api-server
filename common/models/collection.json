@@ -165,6 +165,9 @@
     "resultsAnnounced": {
       "type": "boolean",
       "defaut": "false"
+    },
+    "customUrl": {
+      "type": "string"
     }
   },
   "validations": [],
