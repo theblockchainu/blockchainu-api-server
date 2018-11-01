@@ -1800,9 +1800,9 @@ module.exports = function (Collection) {
                     }
                 });
                 collectionInstances.sort((a, b) => {
-                    if (a.views.length > b.views.length) {
+                    if (a.views.length < b.views.length) {
                         return 1;
-                    } else if (a.views.length < b.views.length) {
+                    } else if (a.views.length > b.views.length) {
                         return -1;
                     } else {
                         return 0;
