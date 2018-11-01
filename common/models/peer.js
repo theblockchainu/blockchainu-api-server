@@ -217,7 +217,7 @@ module.exports = function (Peer) {
                                 if (!res) {
                                     fn(new Error(g.f('The transport does not support HTTP redirects.')));
                                 }
-	                            fn(null, { result: "success" });
+                                fn(null, { result: "success" });
                             }
                             else {
                                 fn(new Error(g.f('Redirect is not defined.')));
@@ -1345,19 +1345,77 @@ module.exports = function (Peer) {
                 }
             });
     };
-	
-	Peer.fetchTrending = function (req, cb) {
-		const trendingIds = [
-		        'e7c3eb57-1180-4876-9758-7431746641fc',
-                '3332fe86-0ba8-4418-81b7-3e20989b389f',
-                'ff34c6cf-4beb-443f-be60-237d9261b7c9'
-        ];
-	};
 
+    Peer.fetchTrending = function (req, cb) {
+        //needs to be updated to a redis cache db instead
+
+        const trendingIds = [
+            '75a2aac4-bddd-4cd6-b967-d5b9d05f7a8e', // abhijeet
+            'e7c3eb57-1180-4876-9758-7431746641fc', // sahil
+            '3332fe86-0ba8-4418-81b7-3e20989b389f', // akash
+            'd60de369-8962-466a-8f2b-dbad1a77b383', // lawrence
+            'cd253120-c073-4e41-af42-2e1b74b1a431'  // gnana
+        ];
+
+        const queryObj = req.query;
+        const today = moment();
+        const searchQuery = JSON.parse(queryObj['filter']);
+
+        searchQuery['include'] = searchQuery['include'].concat(
+            [
+                'reviewsAboutYou',
+                'topicsTeaching',
+                {
+                    'relation': 'ownedCollections',
+                    'scope': {
+                        'where': {
+                            'type': 'session'
+                        }
+                    }
+                }
+            ]
+        );
+        searchQuery['where'] = { 'id': { 'inq': trendingIds } };
+
+        Peer.find(searchQuery, (err, result) => {
+            let isTeacher = false;
+            const peersList = [];
+            for (const responseObject of result) {
+                const responseObj = responseObject.toJSON();
+                responseObj.rating = this.calculateRating(responseObj.reviewsAboutYou);
+                const topics = [];
+                if (responseObj.topicsTeaching) {
+                    responseObj.topicsTeaching.forEach(topicObj => {
+                        topics.push(topicObj.name);
+                    });
+                }
+                if (topics.length > 0) {
+                    responseObj.topics = topics;
+                } else {
+                    topics.push('No topics selected');
+                    responseObj.topics = topics;
+                }
+                peersList.push(responseObj);
+            }
+            cb(null, peersList);
+        });
+    }
+
+    Peer.calculateRating = function (reviewArray) {
+        if (reviewArray && reviewArray.length > 0) {
+            let reviewScore = 0;
+            for (const reviewObject of reviewArray) {
+                reviewScore += reviewObject.score;
+            }
+            return (reviewScore / (reviewArray.length * 5)) * 5;
+        } else {
+            return 0;
+        }
+    }
 
     //noinspection JSCheckFunctionSignatures
     Peer.observe('before delete', function (ctx, next) {
-        
+
         //console.log('Entering delete user hook: ' + JSON.stringify(ctx.where));
 
         Peer.dataSource.connector.execute(
@@ -1368,48 +1426,48 @@ module.exports = function (Peer) {
                 }
                 else {
                     let peerInstance;
-                    Peer.findById(ctx.where.id, {include: ['identities', 'credentials', 'profiles']})
-                            .then((peerInstance1) => {
-                                peerInstance = peerInstance1;
-                                return peerInstance.__destroyById__profiles(peerInstance.profiles()[0].id);
+                    Peer.findById(ctx.where.id, { include: ['identities', 'credentials', 'profiles'] })
+                        .then((peerInstance1) => {
+                            peerInstance = peerInstance1;
+                            return peerInstance.__destroyById__profiles(peerInstance.profiles()[0].id);
+                        })
+                        .then(res => {
+                            if (peerInstance.credentials && peerInstance.credentials().length > 0) {
+                                return peerInstance.credentials.destroy();
+                            } else {
+                                return utils.createPromiseCallback();
+                            }
+                        })
+                        .then(res => {
+                            if (peerInstance.identities && peerInstance.identities().length > 0) {
+                                return peerInstance.identities.destroy()
+                            } else {
+                                return utils.createPromiseCallback();
+                            }
+                        })
+                        .then(res => {
+                            let message = {};
+                            let subject = 'Account deleted';
+
+                            let renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountDeleted.ejs'));
+                            let html_body = renderer(message);
+                            loopback.Email.send({
+                                to: peerInstance.email,
+                                from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+                                subject: subject,
+                                html: html_body
                             })
-                            .then(res => {
-                                if (peerInstance.credentials && peerInstance.credentials().length > 0) {
-                                    return peerInstance.credentials.destroy();
-                                } else {
-                                    return utils.createPromiseCallback();
-                                }
-                            })
-                            .then(res => {
-                                if (peerInstance.identities && peerInstance.identities().length > 0) {
-                                    return peerInstance.identities.destroy()
-                                } else {
-                                    return utils.createPromiseCallback();
-                                }
-                            })
-                            .then(res => {
-                                let message = {};
-                                let subject = 'Account deleted';
-    
-                                let renderer = loopback.template(path.resolve(__dirname, '../../server/views/accountDeleted.ejs'));
-                                let html_body = renderer(message);
-                                loopback.Email.send({
-                                    to: peerInstance.email,
-                                    from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                    subject: subject,
-                                    html: html_body
+                                .then(function (response) {
+                                    console.log('email sent! - ' + response);
                                 })
-                                        .then(function (response) {
-                                            console.log('email sent! - ' + response);
-                                        })
-                                        .catch(function (err) {
-                                            console.log('email error! - ' + err);
-                                        });
-                                next();
-                            })
-                            .catch(err => {
-                                next(err);
-                            });
+                                .catch(function (err) {
+                                    console.log('email error! - ' + err);
+                                });
+                            next();
+                        })
+                        .catch(err => {
+                            next(err);
+                        });
                 }
             });
     });
@@ -1937,17 +1995,17 @@ module.exports = function (Peer) {
                 http: { path: '/:id/blockTransactions', verb: 'get' }
             }
         );
-	
-	    PeerModel.remoteMethod(
-			    'fetchTrending',
-			    {
-				    accepts: [
-					    { arg: 'req', type: 'object', http: { source: 'req' } },
-				    ],
-				    returns: { arg: 'result', type: 'object', root: true },
-				    http: { path: '/trending', verb: 'get' }
-			    }
-	    );
+
+        PeerModel.remoteMethod(
+            'fetchTrending',
+            {
+                accepts: [
+                    { arg: 'req', type: 'object', http: { source: 'req' } },
+                ],
+                returns: { arg: 'result', type: 'object', root: true },
+                http: { path: '/trending', verb: 'get' }
+            }
+        );
 
         PeerModel.validate('email', emailValidator, {
             message: g.f('Must provide a valid email')
