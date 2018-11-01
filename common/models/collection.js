@@ -49,7 +49,7 @@ module.exports = function (Collection) {
                             let ownerInstance = ownerInstances[0];
                             ownerInstance.__create__notifications({
                                 type: "action",
-                                title: "New participant!",
+                                title: "New Participant!",
                                 description: "%username% joined %collectionTitle%",
                                 actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", participantInstance.calendarId]
                             }, function (err, notificationInstance) {
@@ -124,7 +124,7 @@ module.exports = function (Collection) {
                                                                                 loopback.Email.send({
                                                                                     to: ownerInstance.email,
                                                                                     from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-                                                                                    subject: 'New participant @ ' + collectionInstance.title,
+                                                                                    subject: 'New Participant for ' + collectionInstance.title,
                                                                                     html: html_body
                                                                                 })
                                                                                     .then(function (response) {
@@ -1761,7 +1761,7 @@ module.exports = function (Collection) {
             }
         });
 
-    }
+    };
 
     Collection.fetchTrending = function (req, cb) {
         const queryObj = req.query;
@@ -1811,7 +1811,7 @@ module.exports = function (Collection) {
                                 }
                             });
                         }
-                        if (collection.owners && collection.owners[0].reviewsAboutYou) {
+                        if (collection.owners && collection.owners.length > 0 && collection.owners[0].reviewsAboutYou) {
                             collection.rating = this.calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
                             collection.ratingCount = this.calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
                         }
@@ -1847,7 +1847,7 @@ module.exports = function (Collection) {
             }
         });
 
-    }
+    };
 
     Collection.calculateCollectionRating = function (collectionId, reviewArray) {
         let reviewScore = 0;
@@ -1855,7 +1855,7 @@ module.exports = function (Collection) {
             if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewScore += reviewObject.score; }
         }
         return (reviewScore / (reviewArray.length * 5)) * 5;
-    }
+    };
 
     Collection.calculateCollectionRatingCount = function (collectionId, reviewArray) {
         let reviewCount = 0;
@@ -1863,7 +1863,7 @@ module.exports = function (Collection) {
             if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewCount++; }
         }
         return reviewCount;
-    }
+    };
 
     Collection.remoteMethod(
         'submitForReview',

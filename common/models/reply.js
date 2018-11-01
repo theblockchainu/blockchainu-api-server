@@ -16,22 +16,6 @@ module.exports = function(Reply) {
 					Reply.app.models.peer.findById(loggedinPeer, {include: 'profiles'}, function(err, loggedinPeerInstance) {
 						if (!err) {
 							loggedinPeerInstance = loggedinPeerInstance.toJSON();
-							// Send email to owner
-							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'reply',  itemText: replyInstance.toJSON().description};
-							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newUpvoteToOwner.ejs'));
-							var html_body = renderer(message);
-							loopback.Email.send({
-								to: replyInstance.toJSON().peer[0].email,
-								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'New upvote on reply',
-								html: html_body
-							})
-									.then(function (response) {
-										console.log('email sent! - ' + response);
-									})
-									.catch(function (err) {
-										console.log('email error! - ' + err);
-									});
 							
 							var actionUrl = [];
 							var notificationConnectedNode, notificationConnectedNodeId;
@@ -52,19 +36,37 @@ module.exports = function(Reply) {
 								notificationConnectedNode = 'community';
 								notificationConnectedNodeId = replyInstance.toJSON().comments[0].communities[0].id;
 							} else if (replyInstance.toJSON().comments[0].questions) {
-								actionUrl = ['community', replyInstance.toJSON().comments[0].questions[0].communities[0].id];
-								notificationConnectedNode = 'community';
-								notificationConnectedNodeId = replyInstance.toJSON().comments[0].questions[0].communities[0].id;
+								actionUrl = ['question', replyInstance.toJSON().comments[0].questions[0].id];
+								notificationConnectedNode = 'question';
+								notificationConnectedNodeId = replyInstance.toJSON().comments[0].questions[0].id;
 							} else if (replyInstance.toJSON().comments[0].answers) {
-								actionUrl = ['community', replyInstance.toJSON().comments[0].answers[0].questions[0].communities[0].id];
-								notificationConnectedNode = 'community';
-								notificationConnectedNodeId = replyInstance.toJSON().comments[0].answers[0].questions[0].communities[0].id;
+								actionUrl = ['question', replyInstance.toJSON().comments[0].answers[0].questions[0].id];
+								notificationConnectedNode = 'question';
+								notificationConnectedNodeId = replyInstance.toJSON().comments[0].answers[0].questions[0].id;
 							}
+							
+							// Send email to owner
+							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'reply',  itemText: replyInstance.toJSON().description, itemNode: notificationConnectedNode, itemId: notificationConnectedNodeId};
+							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newUpvoteToOwner.ejs'));
+							var html_body = renderer(message);
+							loopback.Email.send({
+								to: replyInstance.toJSON().peer[0].email,
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+								subject: 'New upvote on your reply',
+								html: html_body
+							})
+									.then(function (response) {
+										console.log('email sent! - ' + response);
+									})
+									.catch(function (err) {
+										console.log('email error! - ' + err);
+									});
+							
 							// Create notification
 							var Notification = app.models.notification;
 							var notifData = {
 								type: "action",
-								title: "New upvote on reply!",
+								title: "New upvote on your reply!",
 								description: "%username% has upvoted your reply to a comment.",
 								actionUrl: actionUrl
 							};

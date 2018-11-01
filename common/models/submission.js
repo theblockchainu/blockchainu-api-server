@@ -17,13 +17,13 @@ module.exports = function(Submission) {
 						if (!err) {
 							loggedinPeerInstance = loggedinPeerInstance.toJSON();
 							// Send email to owner
-							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'submission',  itemText: submissionInstance.toJSON().description};
+							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'submission',  itemText: submissionInstance.toJSON().description, itemNode: submissionInstance.toJSON().contents[0].collections[0].type, itemId: submissionInstance.toJSON().contents[0].collections[0].id};
 							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newUpvoteToOwner.ejs'));
 							var html_body = renderer(message);
 							loopback.Email.send({
 								to: submissionInstance.toJSON().peer[0].email,
 								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'New upvote on submission',
+								subject: 'New upvote on your project submission',
 								html: html_body
 							})
 									.then(function (response) {
@@ -41,8 +41,8 @@ module.exports = function(Submission) {
 							var Notification = app.models.notification;
 							var notifData = {
 								type: "action",
-								title: "New upvote on submission!",
-								description: "%username% has upvoted your submission.",
+								title: "New upvote on project submission!",
+								description: "%username% has upvoted your project submission.",
 								actionUrl: actionUrl
 							};
 							Notification.createNotification(submissionInstance.toJSON().peer[0].id, loggedinPeerInstance.id, notifData, 'collection', submissionInstance.toJSON().contents[0].collections[0].id, function (err, notificationInstance) {

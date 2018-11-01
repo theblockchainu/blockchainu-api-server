@@ -64,13 +64,13 @@ module.exports = function(Question) {
 						if (!err) {
 							loggedinPeerInstance = loggedinPeerInstance.toJSON();
 							// Send email to owner
-							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'question',  itemText: questionInstance.toJSON().text, itemId: questionInstance.toJSON().id};
+							var message = { actorName: loggedinPeerInstance.profiles[0].first_name + ' ' + loggedinPeerInstance.profiles[0].last_name, itemType: 'question',  itemText: questionInstance.toJSON().text, itemNode: 'question', itemId: questionInstance.toJSON().id};
 							var renderer = loopback.template(path.resolve(__dirname, '../../server/views/newUpvoteToOwner.ejs'));
 							var html_body = renderer(message);
 							loopback.Email.send({
 								to: questionInstance.toJSON().peer[0].email,
 								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'New upvote on question',
+								subject: 'New upvote on your question',
 								html: html_body
 							})
 									.then(function (response) {
@@ -86,7 +86,7 @@ module.exports = function(Question) {
 							var Notification = app.models.notification;
 							var notifData = {
 								type: "action",
-								title: "New upvote on question!",
+								title: "New upvote on your question!",
 								description: "%username% has upvoted your question.",
 								actionUrl: actionUrl
 							};
