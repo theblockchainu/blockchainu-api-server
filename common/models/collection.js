@@ -1767,7 +1767,7 @@ module.exports = function (Collection) {
         const queryObj = req.query;
         const today = moment();
         const searchQuery = JSON.parse(queryObj['filter']);
-        searchQuery['order'] = 'createdAt DESC';
+        searchQuery['order'] = 'createdAt ASC';
         searchQuery['include'] = searchQuery['include'].concat(['calendars', 'views', { 'owners': ['reviewsAboutYou'] }]);
         Collection.find(searchQuery, (err, allCollectionInstances) => {
             if (err) {
