@@ -1767,20 +1767,44 @@ module.exports = function (Collection) {
         const queryObj = req.query;
         const today = moment();
         const searchQuery = JSON.parse(queryObj['filter']);
-        searchQuery['order'] = 'createdAt ASC';
-        searchQuery['include'] = searchQuery['include'].concat(['calendars', 'views', { 'owners': ['reviewsAboutYou'] }]);
+        searchQuery['order'] = 'createdAt DESC';
+        searchQuery['include'] = searchQuery['include'].concat([
+            'calendars',
+            'views',
+            { 'contents': ['schedules', 'locations'] },
+            { 'owners': ['reviewsAboutYou'] }
+        ]);
         Collection.find(searchQuery, (err, allCollectionInstances) => {
             if (err) {
                 cb(err);
             } else {
-                const resultArray = [];
+                let resultArray = [];
                 let collectionInstances = [];
                 allCollectionInstances.forEach(collectionInstance => {
                     const collection = collectionInstance.toJSON();
                     if (collection.status === 'active') {
                         let hasActiveCalendar = false;
+                        if (collection.type === 'experience' && collection.contents) {
+                            let experienceLocation = 'Unknown location';
+                            let lat = 37.5293864;
+                            let lng = -122.008471;
+                            collection.contents.forEach(content => {
+                                if (content.locations && content.locations.length > 0
+                                    && content.locations[0].city !== undefined
+                                    && content.locations[0].city.length > 0
+                                    && content.locations[0].map_lat !== undefined
+                                    && content.locations[0].map_lat.length > 0) {
+                                    experienceLocation = content.locations[0].city;
+                                    lat = parseFloat(content.locations[0].map_lat);
+                                    lng = parseFloat(content.locations[0].map_lng);
+                                }
+                            });
+                            collection.location = experienceLocation;
+                            collection.lat = lat;
+                            collection.lng = lng;
+                        }
                         if (collection.calendars) {
-                            collection.calendars.forEach(calendar => {
+                            collection.calendars.some(calendar => {
                                 if (moment(calendar.endDate).diff(today, 'days') >= -1) {
                                     hasActiveCalendar = true;
                                     return;
@@ -1793,30 +1817,32 @@ module.exports = function (Collection) {
                         }
                         if (hasActiveCalendar || collection.type === 'guide') {
                             console.log('collection.rating ' + collection.rating);
-
                             console.log('collection.ratingCount ' + collection.ratingCount);
                             collectionInstances.push(collection);
                         }
                     }
                 });
+
+                const latestCollections = [];
+
+                for (let i = 0; i < collectionInstances.length && latestCollections.length < 2; i++) {
+                    latestCollections.push(collectionInstances[i]);
+                }
+                const popularCollections = [];
+                collectionInstances = collectionInstances.slice(2);
                 collectionInstances.sort((a, b) => {
-                    if (a.views.length < b.views.length) {
-                        return 1;
-                    } else if (a.views.length > b.views.length) {
+                    if (a.views.length > b.views.length) {
                         return -1;
+                    } else if (a.views.length < b.views.length) {
+                        return 1;
                     } else {
                         return 0;
                     }
                 });
-                for (let i = 0; i < collectionInstances.length && resultArray.length < 6; i++) {
-                    const element = collectionInstances[i];
-                    resultArray.push(element);
+                for (let i = 0; i < collectionInstances.length && popularCollections.length < 3; i++) {
+                    popularCollections.push(collectionInstances[i]);
                 }
-                collectionInstances = collectionInstances.slice(3);
-                for (let i = 0; i < collectionInstances.length && resultArray.length < 3; i++) {
-                    const collection = collectionInstances[i];
-                    resultArray.push(collection);
-                }
+                resultArray = popularCollections.concat(latestCollections);
                 cb(null, resultArray);
             }
         });
