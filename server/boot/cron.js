@@ -71,8 +71,8 @@ module.exports = function setupCron(server) {
 	);*/
 
 	// Setup cron to index data on ES
-	//let indexingJob = new CronJob('*/20 * * * * *', function() {
-	let indexingJob = new CronJob('00 00 * * * *', function () {
+	let indexingJob = new CronJob('*/20 * * * * *', function() {
+	//let indexingJob = new CronJob('00 00 * * * *', function () {
 
 		console.info("\n\n************\nRunning hourly cron job. Functions: \n- Index all new models to elastic search server.\n**********\n\n");
 
@@ -82,7 +82,7 @@ module.exports = function setupCron(server) {
 				//console.log("Indexing Peers: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'peer', function (response) {
-						//console.log(response);
+						console.log(response[0].index.error);
 					});
 				}
 			});
@@ -90,11 +90,11 @@ module.exports = function setupCron(server) {
 
 		// Index all collections
 		server.models.collection.find({ where: { status: 'active' } }, function (err, collectionInstances) {
-			makebulk(collectionInstances, 'collection', 'type', function (response) {
+			makebulk(collectionInstances, 'collection', 'none', function (response) {
 				//console.log("Indexing Collections: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'collection', function (response) {
-						//console.log(response);
+						console.log(response);
 					});
 				}
 			});
@@ -102,11 +102,11 @@ module.exports = function setupCron(server) {
 
 		// Index all contents
 		server.models.content.find(function (err, contentInstance) {
-			makebulk(contentInstance, 'content', 'type', function (response) {
+			makebulk(contentInstance, 'content', 'none', function (response) {
 				//console.log("Indexing Contents: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'content', function (response) {
-						//console.log(response);
+						console.log(response);
 					});
 				}
 			});
@@ -118,7 +118,7 @@ module.exports = function setupCron(server) {
 				//console.log("Indexing Topics: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'topic', function (response) {
-						//console.log(response);
+						console.log(response);
 					});
 				}
 			});
@@ -126,11 +126,11 @@ module.exports = function setupCron(server) {
 
 		// Index all communities
 		server.models.community.find(function (err, communityInstances) {
-			makebulk(communityInstances, 'community', 'type', function (response) {
+			makebulk(communityInstances, 'community', 'none', function (response) {
 				//console.log("Indexing Community: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'community', function (response) {
-						//console.log(response);
+						console.log(response);
 					});
 				}
 			});
@@ -138,11 +138,11 @@ module.exports = function setupCron(server) {
 
 		// Index all contacts
 		server.models.contact.find(function (err, contactInstances) {
-			makebulk(contactInstances, 'contact', 'provider', function (response) {
+			makebulk(contactInstances, 'contact', 'none', function (response) {
 				//console.log("Indexing Contacts: " + JSON.stringify(response));
 				if (response.length > 0) {
 					indexall(response, 'contact', function (response) {
-						//console.log(response);
+						console.log(response);
 					});
 				}
 			});
@@ -152,7 +152,9 @@ module.exports = function setupCron(server) {
 		server.models.question.find(function (err, questionInstances) {
 			makebulk(questionInstances, 'question', 'none', function (response) {
 				if (response.length > 0) {
-					indexall(response, 'question', function (response) { });
+					indexall(response, 'question', function (response) {
+						console.log(response);
+					});
 				}
 			});
 		});
