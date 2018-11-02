@@ -94,7 +94,6 @@ module.exports = function (Collection) {
                                                                                     }, function (err, response, data) {
                                                                                         if (err) {
                                                                                             console.error(err);
-                                                                                            next(err);
                                                                                         } else {
                                                                                             console.log('Recorded student participation on blockchain ' + data);
                                                                                         }
@@ -1865,6 +1864,59 @@ module.exports = function (Collection) {
         return reviewCount;
     };
 
+    Collection.fixDatabase = function (req, cb) {
+        Collection.find((err, collectionInstances) => {
+            const promiseArray = [];
+            collectionInstances.forEach(collectionInstance => {
+                promiseArray.push(this.setCustomUrl(collectionInstance));
+            });
+            Promise.all(promiseArray)
+                .then(res => {
+                    cb(null, true);
+                }).catch(err => {
+                    cb(err);
+                })
+        })
+    }
+
+    Collection.setCustomUrl = async function (collectionInstance) {
+        console.log(collectionInstance.title);
+
+        if (collectionInstance.title) {
+            const titleUrl = collectionInstance.title.replace(/ /g, '-');
+            let suffix = null;
+            let unique = false;
+            let finalUrl;
+            while (!unique) {
+                let testUrl = titleUrl;
+                if (suffix) {
+                    testUrl += '-' + suffix.toString();
+                }
+                const query = {
+                    'where': {
+                        'customUrl': testUrl
+                    }
+                }
+                const data = await Collection.find(query);
+                if (data && data.length > 0) {
+                    if (suffix) {
+                        suffix++;
+                    } else {
+                        suffix = 1;
+                    }
+                } else {
+                    unique = true;
+                    finalUrl = testUrl;
+                }
+            }
+            collectionInstance.customUrl = finalUrl;
+            collectionInstance.save();
+            return true;
+        } else {
+            return true;
+        }
+    }
+
     Collection.remoteMethod(
         'submitForReview',
         {
@@ -1945,6 +1997,17 @@ module.exports = function (Collection) {
             ],
             returns: { arg: 'result', type: 'object', root: true },
             http: { path: '/:id/announceResult', verb: 'post' }
+        }
+    );
+
+    Collection.remoteMethod(
+        'fixDatabase',
+        {
+            accepts: [
+                { arg: 'req', type: 'object', http: { source: 'req' } }
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/fixDatabase', verb: 'get' }
         }
     );
 
