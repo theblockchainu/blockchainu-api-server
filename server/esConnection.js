@@ -4,7 +4,7 @@ var client = new elasticsearch.Client( {
     hosts: [
         {
             "protocol": "https",
-            "host": "search-peerbuds-ql7jgie76k6ul5rzrbj3e2adcm.us-east-1.es.amazonaws.com",
+            "host": "search-theblockchainu-lffodx6wmavggohb6y3uamyrze.us-east-1.es.amazonaws.com",
             "port": 443
         }
     ],
@@ -14,7 +14,7 @@ var client = new elasticsearch.Client( {
         "accessKey": "AKIAJ2ZSU5G465EDNDLA",
         "secretKey": "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"
     },
-    apiVersion: "5.5",
+    apiVersion: "6.x",
     log: "error",
     requestTimeout: 30000
 });
