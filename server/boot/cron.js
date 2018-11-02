@@ -89,7 +89,7 @@ module.exports = function setupCron(server) {
 		});
 
 		// Index all collections
-		server.models.collection.find({ where: { status: 'active' } }, function (err, collectionInstances) {
+		server.models.collection.find({ include: 'topics', where: { status: 'active' } }, function (err, collectionInstances) {
 			makebulk(collectionInstances, 'collection', 'none', function (response) {
 				//console.log("Indexing Collections: " + JSON.stringify(response));
 				if (response.length > 0) {
