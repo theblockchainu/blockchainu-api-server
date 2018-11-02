@@ -94,7 +94,6 @@ module.exports = function (Collection) {
                                                                                     }, function (err, response, data) {
                                                                                         if (err) {
                                                                                             console.error(err);
-                                                                                            next(err);
                                                                                         } else {
                                                                                             console.log('Recorded student participation on blockchain ' + data);
                                                                                         }
