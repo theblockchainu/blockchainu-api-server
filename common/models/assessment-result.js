@@ -293,15 +293,16 @@ module.exports = function (Assessmentresult) {
 														'</div> </div> </body> </html>';
 												const attachment = {
 													data: intoStream(updatedInstance.stringifiedJSON),
-													filename: 'Smart Certificate_' + body.collectionTitle + '.json',
+													filename: 'SmartCertificate_' + body.collectionTitle.substring(0, 10) + '.json',
 													knownLength: updatedInstance.stringifiedJSON.length,
 													contentType: 'application/json'
 												};
 												loopback.Email.send({
-													from: "The Blockchain University <noreply@theblockchainu.com>",
 													to: peer.email,
-													subject: "Your certificate for " + body.collectionType + ": " + body.collectionTitle,
-													html: html_body
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+													subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
+													html: html_body,
+													attachments: [attachment]
 												}).then(function (response) {
 													console.log('email sent! - ' + JSON.stringify(response));
 												}).catch(function (err) {
