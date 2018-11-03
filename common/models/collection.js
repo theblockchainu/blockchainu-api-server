@@ -2000,15 +2000,15 @@ module.exports = function (Collection) {
         }
     );
 
-    Collection.remoteMethod(
-        'fixDatabase',
-        {
-            accepts: [
-                { arg: 'req', type: 'object', http: { source: 'req' } }
-            ],
-            returns: { arg: 'result', type: 'object', root: true },
-            http: { path: '/fixDatabase', verb: 'get' }
-        }
-    );
+    // Collection.remoteMethod(
+    //     'fixDatabase',
+    //     {
+    //         accepts: [
+    //             { arg: 'req', type: 'object', http: { source: 'req' } }
+    //         ],
+    //         returns: { arg: 'result', type: 'object', root: true },
+    //         http: { path: '/fixDatabase', verb: 'get' }
+    //     }
+    // );
 
 };
