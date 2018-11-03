@@ -305,7 +305,12 @@ module.exports = function (Assessmentresult) {
 													subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
 													html: html_body,
 													attachments: [attachment]
-												});
+												}).then(function (response) {
+													console.log('email sent! - ' + response);
+												})
+														.catch(function (err) {
+															console.log('email error! - ' + err);
+														});
 												console.log('CERTIFICATE EMAIL SENT');
 												cb(null, certificate);
 											}
@@ -408,7 +413,13 @@ module.exports = function (Assessmentresult) {
 																				subject: 'Your certificate for ' + data.collectionType + ': ' + data.collectionTitle,
 																				html: html_body,
 																				attachments: [attachment]
-																			});
+																			})
+																					.then(function (response) {
+																						console.log('email sent! - ' + response);
+																					})
+																					.catch(function (err) {
+																						console.log('email error! - ' + err);
+																					});
 																		}
 																	});
 																} else {
@@ -532,7 +543,12 @@ module.exports = function (Assessmentresult) {
 												subject: 'Your certificate for ' + collection.type + ': ' + collection.title,
 												html: html_body,
 												attachments: [attachment]
-											});
+											}).then(function (response) {
+												console.log('email sent! - ' + response);
+											})
+													.catch(function (err) {
+														console.log('email error! - ' + err);
+													});
 										}
 									});
 								} else {
