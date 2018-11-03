@@ -379,12 +379,17 @@ module.exports = function setupCron(server) {
 								collection.__get__participants({ 'relWhere': { 'calendarId': calendar.id }, 'include': 'profiles' }, function (err, participantInstances) {
 									if (!err && participantInstances.length > 0) {
 										participantInstances.forEach(participantInstance => {
+											const participantTimezone = participantInstance.profiles[0].timezone ? participantInstance.profiles[0].timezone.toUpperCase() : 'PST';
 											// Send email to student reminding of upcoming cohort
 											const message = {
 												type: collection.type,
 												title: _.upperFirst(collection.title),
-												startDate: collectionCalendarStartDate.format('DD MMM'),
-												endDate: collectionCalendarEndDate.format('DD MMM'),
+												startDate: (participantInstance.profiles[0].timezone) ?
+													collectionCalendarStartDate.tz(participantTimezone).format('DD MMM') :
+													collectionCalendarStartDate.format('DD MMM'),
+												endDate: (participantInstance.profiles[0].timezone) ?
+													collectionCalendarEndDate.tz(participantTimezone).format('DD MMM') :
+													collectionCalendarEndDate.format('DD MMM'),
 												owner: _.upperFirst(collection.owners()[0].profiles()[0].first_name) + ' ' + _.upperFirst(collection.owners()[0].profiles()[0].last_name),
 												collectionId: collection.id, calendarId: calendar.id
 											};
@@ -449,7 +454,6 @@ module.exports = function setupCron(server) {
 
 	// Runs once every 10 minutes
 	const upcomingActivityCron = new CronJob('00 */10 * * * *',
-		/*const upcomingActivityCron = new CronJob('*!/20 * * * * *',*/
 		function () {
 			console.info('\n\n***********\nRunning 10 minute cron job. Functions: \n- Check if any upcoming activities in the next hour and send reminder emails to student and teacher\n**********\n\n');
 			request
@@ -526,27 +530,31 @@ module.exports = function setupCron(server) {
 								let collectionCalendarStartDate = moment(calendar.startDate);
 								let collectionCalendarEndDate = moment(calendar.endDate);
 								let now = moment();
-								if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate, collectionCalendarEndDate)) {
+								// console.log(collection.customUrl + ' ' + collectionCalendarStartDate.toString() + ' ' + collectionCalendarEndDate.toString());
+								if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate.subtract(1, 'days'), collectionCalendarEndDate)) {
 									// This collection has a currently running calendar
 									// Check if it has any upcoming activity
 									collection.contents().forEach(content => {
 										let schedules = content.schedules();
 										let scheduleData = schedules[0];
 										if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-											let startDateTime = moment(calendar.startDate).add(scheduleData.startDay, 'days');
-											let endDateTime = moment(startDateTime).add(scheduleData.endDay, 'days');
+											let startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
+											let endDate = moment(calendar.startDate).add(scheduleData.endDay, 'days');
 											if (scheduleData.startTime && scheduleData.endTime) {
-												startDateTime.hours(scheduleData.startTime.split('T')[1].split(':')[0]);
-												startDateTime.minutes(scheduleData.startTime.split('T')[1].split(':')[1]);
-												startDateTime.seconds('00');
-												endDateTime.hours(scheduleData.endTime.split('T')[1].split(':')[0]);
-												endDateTime.minutes(scheduleData.endTime.split('T')[1].split(':')[1]);
-												endDateTime.seconds('00');
-												const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
-												startDateTime = startDateTime.tz(teacherTimezone);
-												endDateTime = endDateTime.tz(teacherTimezone);
-												/* console.log('Activity ' + content.title + ' time to start is: ' + startDate.diff(now, 'minutes') + ' minutes');*/
-												if ((content.type !== 'video') && startDateTime.diff(now, 'minutes') >= 60 && startDateTime.diff(now, 'minutes') < 70) {
+												const startTimeMoment = moment(scheduleData.startTime);
+												const endTimeMoment = moment(scheduleData.endTime);
+
+												startTimeMoment.set('date', startDate.get('date'));
+												startTimeMoment.set('month', startDate.get('month'));
+												startTimeMoment.set('year', startDate.get('year'));
+
+												endTimeMoment.set('date', endDate.get('date'));
+												endTimeMoment.set('month', endDate.get('month'));
+												endTimeMoment.set('year', endDate.get('year'));
+
+												if ((content.type !== 'video') && startTimeMoment.diff(now, 'minutes') >= 60 && startTimeMoment.diff(now, 'minutes') < 70) {
+													console.log('in it');
+													const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
 													// Upcoming activity starts in 1 hour. Send notification and email to all participants
 													collection.__get__participants({ 'relWhere': { 'calendarId': calendar.id }, 'include': 'profiles' }, function (err, participantInstances) {
 														if (!err && participantInstances.length > 0) {
@@ -567,8 +575,8 @@ module.exports = function setupCron(server) {
 															const participantCount = participantInstances.length;
 															participantInstances.forEach(participantInstance => {
 																const studentTimezone = participantInstance.profiles()[0].timezone ? participantInstance.profiles()[0].timezone.toUpperCase() : 'PST';
-																const startTime = startDateTime.tz(studentTimezone).format('h:mm a');
-																const endTime = endDateTime.tz(studentTimezone).format('h:mm a');
+																const startTime = startTimeMoment.tz(studentTimezone).format('h:mm a');
+																const endTime = endTimeMoment.tz(studentTimezone).format('h:mm a');
 																const studentName = _.upperFirst(participantInstance.profiles()[0].first_name) + ' ' + _.upperFirst(participantInstance.profiles()[0].last_name);
 																// Send email to student
 																let message = {
@@ -615,8 +623,8 @@ module.exports = function setupCron(server) {
 																	});
 															});
 															let renderer;
-															const startTime = startDateTime.tz(teacherTimezone).format('h:mm a');
-															const endTime = endDateTime.tz(teacherTimezone).format('h:mm a');
+															const startTime = startTimeMoment.tz(teacherTimezone).format('h:mm a');
+															const endTime = endTimeMoment.tz(teacherTimezone).format('h:mm a');
 															let message = {
 																startTime: startTime,
 																endTime: endTime,
