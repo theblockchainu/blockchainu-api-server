@@ -518,13 +518,14 @@ module.exports = function (Peer) {
     Peer.resetPassword = function (options, cb) {
         cb = cb || utils.createPromiseCallback();
         if (options.email && options.password && options.verificationToken) {
-            console.log('resetting password ');
+            console.log('resetting password to - ' + options.password);
             try {
                 options.password = this.hashPassword(options.password);
             } catch (err) {
+                console.log(err);
                 cb(err);
             }
-            console.log('Finding Model with email' + options.email);
+            console.log('Finding Model with email: ' + options.email);
             this.findOne({
                 where: {
                     email: options.email
@@ -540,7 +541,7 @@ module.exports = function (Peer) {
                             err.code = 'TOKEN_EXPIRED';
                             cb(err);
                         } else {
-                            console.log('Verification Successful');
+                            console.log('Verification Successful. Saving new PW hash: ' + options.password);
                             user.updateAttributes({
                                 "password": options.password,
                                 "verificationToken": '',
@@ -1748,7 +1749,7 @@ module.exports = function (Peer) {
             if (typeof plain !== 'string') {
                 return;
             }
-            if (plain.indexOf('$2a$') === 0 && plain.length === 60) {
+            if ((plain.indexOf('$2a$') === 0 || plain.indexOf('$2b$') === 0) && plain.length === 60) {
                 // The password is already hashed. It can be the case
                 // when the instance is loaded from DB
                 this.$password = plain;

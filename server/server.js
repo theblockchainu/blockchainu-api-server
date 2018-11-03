@@ -185,7 +185,11 @@ app.post('/signup', function (req, res, next) {
      * Hash the plain password
      */
     let hashPassword = function (plain) {
-        validatePassword(plain);
+        try {
+	        validatePassword(plain);
+        } catch (err) {
+            return err;
+        }
         let salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
         return bcrypt.hashSync(plain, salt);
     };
@@ -324,7 +328,8 @@ app.post('/signup', function (req, res, next) {
                 });
             }
             else {
-                console.log('Email not present in database. Creating user Now')
+                console.log('Email not present in database. Creating user Now');
+                
                 User.create(newUser, function (err, user) {
                     if (err) {
                         return res.json({
@@ -369,7 +374,7 @@ app.post('/signup', function (req, res, next) {
                                                 .catch(function (err) {
                                                     console.log('Welcome to The Blockchain University - thanks for signing up! email error! - ' + err);
                                                 });
-                                            console.log('Craeting profile ');
+                                            console.log('Creating profile ');
                                             createProfileNode(user);
                                             console.log('Creating wallet');
                                             createWallet();
@@ -432,7 +437,7 @@ app.post('/signup', function (req, res, next) {
                                                 console.log('New user signup! email error! - ' + err);
                                             });
 
-                                        // Add peer to scholarship
+                                        // Add peer to all public scholarships
 
                                         User.app.models.scholarship.find(
                                             {
@@ -480,7 +485,7 @@ app.post('/signup', function (req, res, next) {
                                                         });
                                                 }
                                             }).catch(function (err) {
-                                                console.log('Error in joining sholarship');
+                                                console.log('Error in joining scholarship');
                                                 console.log(err);
 
                                             });
