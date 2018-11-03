@@ -158,7 +158,6 @@ app.post('/signup', function (req, res, next) {
     let rememberMe = req.body.rememberMe;
     newUser.email = req.body.email.toLowerCase();
     newUser.password = req.body.password;
-    newUser.ptPassword = newUser.password;
     profileObject.first_name = req.body.first_name;
     profileObject.last_name = req.body.last_name;
     profileObject.dobMonth = req.body.dobMonth;

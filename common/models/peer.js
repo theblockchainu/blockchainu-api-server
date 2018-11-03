@@ -106,7 +106,7 @@ module.exports = function (Peer) {
             }
             else if (peer) {
 
-                peer.hasPassword(credentials.password, function (err, isMatch) {
+                peer.hasPassword(credentials.password, peer.password, function (err, isMatch) {
                     if (err) {
                         fn(defaultError);
                     }
@@ -791,6 +791,7 @@ module.exports = function (Peer) {
         }
 
     };
+    
     Peer.forgotPassword = function (req, body, cb) {
         cb = cb || utils.createPromiseCallback();
         this.findOne({ where: { email: body.email } }, function (err, user) {
@@ -1268,7 +1269,7 @@ module.exports = function (Peer) {
                 // Already has wallet. Check if it exists on blockchain.
                 cb(null, { result: 'Wallet already exists' });
             } else if (!err && peerInstance !== null && (!peerInstance.ethAddress || peerInstance.ethAddress.substring(0, 2) !== '0x')) {
-                peerInstance.hasPassword(body.password, function (err, isMatch) {
+                peerInstance.hasPassword(body.password, peerInstance.password, function (err, isMatch) {
                     if (err) {
                         cb(err);
                     } else if (isMatch) {
@@ -1585,10 +1586,10 @@ module.exports = function (Peer) {
         });
     };
 
-    Peer.prototype.hasPassword = function (plain, fn) {
+    Peer.prototype.hasPassword = function (plain, hash, fn) {
         fn = fn || utils.createPromiseCallback();
-        if (this.password && plain) {
-            bcrypt.compare(plain, this.password, function (err, isMatch) {
+        if (hash && plain) {
+            bcrypt.compare(plain, hash, function (err, isMatch) {
                 if (err) return fn(err);
                 fn(null, isMatch);
             });
