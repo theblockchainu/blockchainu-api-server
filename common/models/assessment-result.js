@@ -298,8 +298,8 @@ module.exports = function (Assessmentresult) {
 													contentType: 'application/json'
 												};
 												loopback.Email.send({
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>'
 													to: peer.email,
-													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
 													html: html_body,
 													attachments: [attachment]
