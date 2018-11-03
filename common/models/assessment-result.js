@@ -272,9 +272,6 @@ module.exports = function (Assessmentresult) {
 														'<div style="line-height: 3.2rem;">' +
 														'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
 														'</div><br/><br/>' +
-														'<div style="font-size:12px; color: #777777;">' +
-														'Also attached in this email is your certificate backup file which you should save on your local computer. The <b>Smart Certificate_***.json</b> can also be shared with future employers.' +
-														'</div>' +
 														'</div>' +
 														'</div>' +
 														'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
@@ -301,8 +298,7 @@ module.exports = function (Assessmentresult) {
 													to: peer.email,
 													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 													subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
-													html: html_body,
-													attachments: [attachment]
+													html: html_body
 												}).then(function (response) {
 													console.log('email sent! - ' + JSON.stringify(response));
 												}).catch(function (err) {
@@ -379,9 +375,6 @@ module.exports = function (Assessmentresult) {
 																					'<div style="line-height: 3.2rem;">' +
 																					'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
 																					'</div><br/><br/>' +
-																					'<div style="font-size:12px; color: #777777;">' +
-																					'Also attached in this email is your certificate backup file which you should save on your local computer. The <b>certificate.json</b> can also be shared with future employers.' +
-																					'</div>' +
 																					'</div>' +
 																					'</div>' +
 																					'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
@@ -408,8 +401,7 @@ module.exports = function (Assessmentresult) {
 																				to: peer.email,
 																				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 																				subject: 'Your certificate for ' + data.collectionType + ': ' + data.collectionTitle,
-																				html: html_body,
-																				attachments: [attachment]
+																				html: html_body
 																			}).then(function (response) {
 																				console.log('email sent! - ' + response);
 																			}).catch(function (err) {
@@ -507,9 +499,6 @@ module.exports = function (Assessmentresult) {
 													'<div style="line-height: 3.2rem;">' +
 													'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
 													'</div><br/><br/>' +
-													'<div style="font-size:12px; color: #777777;">' +
-													'Also attached in this email is your certificate backup file which you should save on your local computer. The <b>certificate.json</b> can also be shared with future employers.' +
-													'</div>' +
 													'</div>' +
 													'</div>' +
 													'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
@@ -536,8 +525,7 @@ module.exports = function (Assessmentresult) {
 												to: peer.email,
 												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 												subject: 'Your certificate for ' + collection.type + ': ' + collection.title,
-												html: html_body,
-												attachments: [attachment]
+												html: html_body
 											}).then(function (response) {
 												console.log('email sent! - ' + response);
 											}).catch(function (err) {
