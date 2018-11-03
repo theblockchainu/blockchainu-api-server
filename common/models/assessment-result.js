@@ -304,7 +304,7 @@ module.exports = function (Assessmentresult) {
 													html: html_body,
 													attachments: [attachment]
 												}).then(function (response) {
-													console.log('email sent! - ' + response);
+													console.log('email sent! - ' + JSON.stringify(response));
 												}).catch(function (err) {
 													console.log('email error! - ' + err);
 												});
