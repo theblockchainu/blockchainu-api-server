@@ -71,8 +71,8 @@ module.exports = function setupCron(server) {
 	);*/
 
 	// Setup cron to index data on ES
-	let indexingJob = new CronJob('*/20 * * * * *', function() {
-	//let indexingJob = new CronJob('00 00 * * * *', function () {
+	//let indexingJob = new CronJob('*/20 * * * * *', function() {
+	let indexingJob = new CronJob('00 00 * * * *', function () {
 
 		console.info("\n\n************\nRunning hourly cron job. Functions: \n- Index all new models to elastic search server.\n**********\n\n");
 
