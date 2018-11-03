@@ -1624,7 +1624,7 @@ module.exports = function (Peer) {
         } catch (err) {
             return err;
         }
-        let salt = bcrypt.genSaltSync(this.settings.saltWorkFactor || SALT_WORK_FACTOR);
+        let salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
         return bcrypt.hashSync(plain, salt);
     };
 
