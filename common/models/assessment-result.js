@@ -301,8 +301,7 @@ module.exports = function (Assessmentresult) {
 													from: "The Blockchain University <noreply@theblockchainu.com>",
 													to: peer.email,
 													subject: "Your certificate for " + body.collectionType + ": " + body.collectionTitle,
-													html: html_body,
-													attachments: [attachment]
+													html: html_body
 												}).then(function (response) {
 													console.log('email sent! - ' + JSON.stringify(response));
 												}).catch(function (err) {
