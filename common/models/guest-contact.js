@@ -43,7 +43,7 @@ module.exports = function (Guestcontact) {
         loopback.Email.send({
             to: 'aakash@theblockchainu.com',
             from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-            subject: 'New User Query! for' + ctx.instance.message,
+            subject: 'New User Query from ' + ctx.instance.email,
             html: html_admin_body
         })
             .then(function (response) {
