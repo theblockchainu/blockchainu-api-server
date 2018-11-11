@@ -813,7 +813,7 @@ module.exports = function setupCron(server) {
 								let trendingProgramAdded = false;
 								let upcomingProgramAdded = false;
 
-								if (collection.imageUrl && collection.imageUrl.length > 0) {
+								if (collection.imageUrls && collection.imageUrls.length > 0) {
 									collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
 								} else {
 									collection.imageUrl = 'https://theblockchainu.com/assets/images/collection-placeholder.jpg';
