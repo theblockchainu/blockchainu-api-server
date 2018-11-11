@@ -6,7 +6,7 @@ let g = require('../../node_modules/loopback/lib/globalize');
 let moment = require('moment');
 let protocolUrl = app.get('protocolUrl');
 let request = require('request');
-
+const Promise = require('bluebird');
 module.exports = function (Collection) {
 
 	Collection.validatesUniquenessOf('genericId');
@@ -38,7 +38,7 @@ module.exports = function (Collection) {
 										console.log(err1);
 									}
 								});
-							})
+							});
 						}
 						else {
 							console.log(err);
@@ -1867,78 +1867,71 @@ module.exports = function (Collection) {
 
 	Collection.fixDatabase = function (req, cb) {
 		Collection.find((err, collectionInstances) => {
-			const promiseArray = [];
-			collectionInstances.forEach(collectionInstance => {
+			Promise.each(collectionInstances, (collectionInstance) => {
 				if (!collectionInstance.customUrl || collectionInstance.customUrl === undefined) {
-					promiseArray.push(Collection.setCustomUrl(collectionInstance));
+					return Collection.setCustomUrl(collectionInstance).then(url => {
+						console.log(url);
+					});
 				} else {
-					promiseArray.push(Collection.checkSetUniqueUrl(collectionInstance));
+					return Collection.checkSetUniqueUrl(collectionInstance).then(url => {
+						console.log(url);
+					});
 				}
+			}).then(result => {
+				console.log('all promises completed');
+				cb(null, true);
+			}).catch(err => {
+				console.log(err);
+				cb(err);
 			});
-			Promise.all(promiseArray)
-				.then(res => {
-					cb(null, true);
-				}).catch(err => {
-					cb(err);
-				})
-		})
-	}
+		});
+	};
 
-	Collection.setCustomUrl = async function (collectionInstance) {
-		console.log(collectionInstance.title);
+	Collection.setCustomUrl = async (collectionInstance) => {
 		if (collectionInstance.title) {
 			const nospaceTitle = collectionInstance.title.replace(/\s+/g, ' ').trim().toLowerCase();
 			const titleUrl = nospaceTitle.replace(/ /g, '-');
 			let suffix = null;
-			let unique = false;
-			let finalUrl;
-			while (!unique) {
-				let testUrl = titleUrl;
-				if (suffix) {
-					testUrl += '-' + suffix.toString();
-				}
+			let uniqueFound = false;
+			while (!uniqueFound) {
+				const testUrl = (suffix) ? titleUrl + '-' + suffix.toString() : titleUrl;
 				const query = {
 					'where': {
 						'customUrl': testUrl
 					}
-				}
+				};
 				const data = await Collection.find(query);
-				if (data && data.length > 0) {
-					if (suffix) {
-						suffix++;
-					} else {
-						suffix = 1;
-					}
+				if (!data || data.length === 0) {
+					uniqueFound = true;
+					collectionInstance.customUrl = testUrl;
+					collectionInstance.save();
 				} else {
-					unique = true;
-					finalUrl = testUrl;
+					suffix = (suffix) ? suffix++ : 1;
 				}
 			}
-			collectionInstance.customUrl = finalUrl;
-			collectionInstance.save();
 		} else {
 			collectionInstance.customUrl = collectionInstance.id;
 			collectionInstance.save();
 		}
-		return true;
-	}
+		return collectionInstance.customUrl;
+	};
 
-	Collection.checkSetUniqueUrl = async function (collectionInstance) {
+	Collection.checkSetUniqueUrl = async (collectionInstance) => {
 		console.log('checking if unique');
 		const query = {
 			'where': {
 				'customUrl': collectionInstance.customUrl
 			}
-		}
+		};
 		const data = await Collection.find(query);
 		if (data.length === 1) {
 			console.log('unique!');
-			return true;
+			return collectionInstance.customUrl;
 		} else {
 			console.log('not unique setting now!');
-			return Collection.setCustomUrl(collectionInstance)
+			return Collection.setCustomUrl(collectionInstance);
 		}
-	}
+	};
 
 	Collection.remoteMethod(
 		'submitForReview',

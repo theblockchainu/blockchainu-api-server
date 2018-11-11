@@ -7,10 +7,13 @@
     "start": "set NODE_ENV=development&& set HTTP=true&& node server/server.js"
   },
   "dependencies": {
+    "@types/loopback": "^3.2.6",
+    "@types/node": "^10.12.3",
     "aws-sdk": "^2.279.1",
     "base64-img": "^1.0.4",
     "bcrypt": "^3.0.0",
     "bcryptjs": "latest",
+    "bluebird": "^3.5.3",
     "body-parser": "^1.17.2",
     "compression": "^1.7.0",
     "connect-ensure-login": "^0.1.1",
