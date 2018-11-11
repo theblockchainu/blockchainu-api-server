@@ -813,7 +813,11 @@ module.exports = function setupCron(server) {
 								let trendingProgramAdded = false;
 								let upcomingProgramAdded = false;
 
-								collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
+								if (collection.imageUrl && collection.imageUrl.length > 0) {
+									collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
+								} else {
+									collection.imageUrl = '/assets/images/collection-placeholder.jpg';
+								}
 
 								collection.calendars().some(calendar => {
 									const collectionCalendarEndDate = moment(calendar.endDate);
