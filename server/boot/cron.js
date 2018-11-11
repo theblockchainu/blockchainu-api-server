@@ -816,7 +816,7 @@ module.exports = function setupCron(server) {
 								if (collection.imageUrl && collection.imageUrl.length > 0) {
 									collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
 								} else {
-									collection.imageUrl = '/assets/images/collection-placeholder.jpg';
+									collection.imageUrl = 'https://theblockchainu.com/assets/images/collection-placeholder.jpg';
 								}
 
 								collection.calendars().some(calendar => {
