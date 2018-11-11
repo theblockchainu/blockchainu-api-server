@@ -40,7 +40,7 @@ module.exports = function setupCron(server) {
 			else {
 				callback(resp.items);
 			}
-		})
+		});
 	};
 
 	/*let tempJob = new CronJob('*!/20 * * * * *', function() {
@@ -823,22 +823,24 @@ module.exports = function setupCron(server) {
 									const weekAfter = moment().add(7, 'days');
 									collection.startDate = collectionCalendarStartDate.format('dddd, Do MMMM');
 									if (calendar.status !== 'complete' && collectionCalendarEndDate.isAfter(now)) {
+										if (newProgramAdded && trendingProgramAdded && upcomingProgramAdded) {
+											return true;
+										}
 										const createdAt = moment(collection.createdAt);
-
-										if (createdAt.isBetween(weekAgo, now) && !newProgramAdded) {
+										if (createdAt.isBetween(weekAgo, now) && !newProgramAdded && newPrograms.length < 3) {
 											newPrograms.push(collection);
 											newProgramAdded = true;
 										}
-										if (collectionCalendarStartDate.isBetween(now.subtract(1, 'days'), weekAfter) && !upcomingProgramAdded) {
+										if (collectionCalendarStartDate.isBetween(now.subtract(1, 'days'), weekAfter)
+											&& !upcomingProgramAdded && upcomingPrograms.length < 3) {
 											upcomingPrograms.push(collection);
 											upcomingProgramAdded = true;
 										}
-										if (!trendingProgramAdded) {
+										if (!trendingProgramAdded && trendingPrograms.length < 3) {
 											trendingPrograms.push(collection);
-
+											trendingProgramAdded = true;
 										}
 									}
-									return newProgramAdded && trendingProgramAdded && upcomingProgramAdded;
 								});
 								upcomingPrograms.sort((a, b) => {
 									if (a.views.length > b.views.length) {
@@ -858,38 +860,31 @@ module.exports = function setupCron(server) {
 										upcomingPrograms: upcomingPrograms
 									};
 									console.log(message);
-
 									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/weeklyDigest.ejs'));
 									let html_body = renderer(message);
 									console.info('fetching peers');
-
-									server.models.peer.find(function (err, peerInstances) {
-										// console.log(peerInstances);
-										peerInstances.forEach(peer => {
-											// console.info('Sending weekly digest to' + peer.email)
-											loopback.Email.send({
-												to: peer.email,
-												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-												subject: 'This Week\'s Highlights',
-												html: html_body
-											},
-												(err, mail) => {
-													console.log('email sent to' + peer.email);
-												}
-											);
-										});
-									});
-
 								} else {
 									console.log('Not enough developments to send email');
 								}
-
-
-
 							}
 						});
+						server.models.peer.find(function (err, peerInstances) {
+							// console.log(peerInstances);
+							peerInstances.forEach(peer => {
+								// console.info('Sending weekly digest to' + peer.email)
+								loopback.Email.send({
+									to: peer.email,
+									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+									subject: 'This Week\'s Highlights',
+									html: html_body
+								},
+									(err, mail) => {
+										console.log('email sent to' + peer.email);
+									}
+								);
+							});
+						});
 					}
-
 				);
 		},
 		function () {
