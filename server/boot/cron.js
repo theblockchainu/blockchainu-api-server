@@ -807,6 +807,7 @@ module.exports = function setupCron(server) {
 			server.models.collection
 				.find(query,
 					(err, collectionInstances) => {
+						let html_body;
 						collectionInstances.forEach(collection => {
 							if (collection.calendars() !== undefined) {
 								let newProgramAdded = false;
@@ -818,7 +819,7 @@ module.exports = function setupCron(server) {
 								} else {
 									collection.imageUrl = 'https://theblockchainu.com/assets/images/collection-placeholder.jpg';
 								}
-
+								collection.programLink = 'https://theblockchainu.com/' + collection.type + '/' + collection.customUrl;
 								collection.calendars().some(calendar => {
 									const collectionCalendarEndDate = moment(calendar.endDate);
 									const collectionCalendarStartDate = moment(calendar.startDate);
@@ -864,8 +865,8 @@ module.exports = function setupCron(server) {
 										upcomingPrograms: upcomingPrograms
 									};
 									console.log(message);
-									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/weeklyDigest.ejs'));
-									let html_body = renderer(message);
+									const renderer = loopback.template(path.resolve(__dirname, '../../server/views/weekly-highlight.ejs'));
+									html_body = renderer(message);
 									console.info('fetching peers');
 								} else {
 									console.log('Not enough developments to send email');
@@ -875,7 +876,7 @@ module.exports = function setupCron(server) {
 						server.models.peer.find(function (err, peerInstances) {
 							// console.log(peerInstances);
 							peerInstances.forEach(peer => {
-								// console.info('Sending weekly digest to' + peer.email)
+								console.info('Sending weekly digest to' + peer.email);
 								loopback.Email.send({
 									to: peer.email,
 									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
@@ -883,7 +884,12 @@ module.exports = function setupCron(server) {
 									html: html_body
 								},
 									(err, mail) => {
-										console.log('email sent to' + peer.email);
+										if (err) {
+											console.log(err);
+										} else {
+											console.log('email sent to' + peer.email);
+										}
+
 									}
 								);
 							});
@@ -892,7 +898,7 @@ module.exports = function setupCron(server) {
 				);
 		},
 		function () {
-
+			console.log('Cron Over');
 		},
 		true,
 		'UTC'

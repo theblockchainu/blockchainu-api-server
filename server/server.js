@@ -186,7 +186,7 @@ app.post('/signup', function (req, res, next) {
      */
     let hashPassword = function (plain) {
         try {
-	        validatePassword(plain);
+            validatePassword(plain);
         } catch (err) {
             return err;
         }
@@ -329,7 +329,7 @@ app.post('/signup', function (req, res, next) {
             }
             else {
                 console.log('Email not present in database. Creating user Now');
-                
+
                 User.create(newUser, function (err, user) {
                     if (err) {
                         return res.json({
@@ -491,7 +491,7 @@ app.post('/signup', function (req, res, next) {
                                             });
                                     }
                                 });
-                        }
+                        };
                     }
                 });
             }
