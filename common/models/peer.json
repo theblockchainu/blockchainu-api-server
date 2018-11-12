@@ -79,6 +79,9 @@
     "phone": {
       "type": "number"
     },
+    "country": {
+      "type": "string"
+    },
     "phoneVerified": {
       "type": "boolean",
       "default": false
