@@ -7,8 +7,6 @@
     "start": "set NODE_ENV=development&& set HTTP=true&& node server/server.js"
   },
   "dependencies": {
-    "@types/loopback": "^3.2.6",
-    "@types/node": "^10.12.3",
     "aws-sdk": "^2.279.1",
     "base64-img": "^1.0.4",
     "bcrypt": "^3.0.0",
@@ -80,7 +78,9 @@
   "devDependencies": {
     "eslint": "^2.13.1",
     "eslint-config-loopback": "^4.0.0",
-    "nsp": "^2.7.0"
+    "nsp": "^2.7.0",
+    "@types/loopback": "^3.2.6",
+    "@types/node": "^10.12.3"
   },
   "repository": {
     "type": "",

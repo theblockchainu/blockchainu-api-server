@@ -795,104 +795,138 @@ module.exports = function setupCron(server) {
 				'include': [
 					'views',
 					'calendars',
-					{ 'contents': 'schedules' },
+					{ 'contents': ['schedules', 'locations'] },
 					'topics',
 					{ 'comments': 'peer' },
 					'participants',
 					{ 'owners': 'profiles' }]
+				,
+				'order': 'createdAt DESC'
 			};
 			const newPrograms = [];
-			const trendingPrograms = [];
+			let trendingPrograms = [];
 			const upcomingPrograms = [];
 			server.models.collection
 				.find(query,
 					(err, collectionInstances) => {
+						let html_body;
+						const now = moment();
+						const weekAgo = moment().subtract(7, 'days');
+						const weekAfter = moment().add(7, 'days');
 						collectionInstances.forEach(collection => {
-							if (collection.calendars() !== undefined) {
-								let newProgramAdded = false;
-								let trendingProgramAdded = false;
-								let upcomingProgramAdded = false;
+							if (err) {
+								console.log(err);
+							} else {
+								if (collection.calendars() !== undefined && collection.status === 'active') {
+									let trendingProgramAdded = false;
+									let upcomingProgramAdded = false;
 
-								if (collection.imageUrls && collection.imageUrls.length > 0) {
-									collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
-								} else {
-									collection.imageUrl = 'https://theblockchainu.com/assets/images/collection-placeholder.jpg';
-								}
-
-								collection.calendars().some(calendar => {
-									const collectionCalendarEndDate = moment(calendar.endDate);
-									const collectionCalendarStartDate = moment(calendar.startDate);
-									const now = moment();
-									const weekAgo = moment().subtract(7, 'days');
-									const weekAfter = moment().add(7, 'days');
-									collection.startDate = collectionCalendarStartDate.format('dddd, Do MMMM');
-									if (calendar.status !== 'complete' && collectionCalendarEndDate.isAfter(now)) {
-										if (newProgramAdded && trendingProgramAdded && upcomingProgramAdded) {
-											return true;
-										}
-										const createdAt = moment(collection.createdAt);
-										if (createdAt.isBetween(weekAgo, now) && !newProgramAdded && newPrograms.length < 3) {
-											newPrograms.push(collection);
-											newProgramAdded = true;
-										}
-										if (collectionCalendarStartDate.isBetween(now.subtract(1, 'days'), weekAfter)
-											&& !upcomingProgramAdded && upcomingPrograms.length < 3) {
-											upcomingPrograms.push(collection);
-											upcomingProgramAdded = true;
-										}
-										if (!trendingProgramAdded && trendingPrograms.length < 3) {
-											trendingPrograms.push(collection);
-											trendingProgramAdded = true;
-										}
-									}
-								});
-								upcomingPrograms.sort((a, b) => {
-									if (a.views.length > b.views.length) {
-										return 1;
-									} else if (a.views.length < b.views.length) {
-										return -1;
+									if (collection.imageUrls && collection.imageUrls.length > 0) {
+										collection.imageUrl = 'https://theblockchainu.com:3002' + collection.imageUrls[0];
 									} else {
-										return 0;
+										collection.imageUrl = 'https://theblockchainu.com/assets/images/collection-placeholder.jpg';
 									}
-								});
+									collection.programLink = 'https://theblockchainu.com/' + collection.type + '/' + collection.customUrl;
 
-								if (newPrograms.length > 2 || trendingPrograms.length > 2 || upcomingPrograms.length > 2) {
-									// Send emails
-									let message = {
-										newPrograms: newPrograms,
-										trendingPrograms: trendingPrograms,
-										upcomingPrograms: upcomingPrograms
-									};
-									console.log(message);
-									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/weeklyDigest.ejs'));
-									let html_body = renderer(message);
-									console.info('fetching peers');
-								} else {
-									console.log('Not enough developments to send email');
+									collection.title = _.upperFirst(collection.title);
+									collection.type = _.upperFirst(collection.type);
+									collection.subCategory = _.upperFirst(collection.subCategory);
+									collection.location = '';
+									if (collection.price === 0) {
+										collection.price = 'FREE';
+										collection.currency = ' ';
+									}
+									if (collection.type === 'experience' && collection.contents) {
+										let experienceLocation = '';
+										collection.contents.forEach(content => {
+											if (content.locations && content.locations.length > 0
+												&& content.locations[0].city !== undefined
+												&& content.locations[0].city.length > 0) {
+												experienceLocation = content.locations[0].city;
+											}
+										});
+										collection.location = _.upperFirst(experienceLocation);
+									}
+									collection.calendars().some(calendar => {
+										const collectionCalendarEndDate = moment(calendar.endDate);
+										const collectionCalendarStartDate = moment(calendar.startDate);
+
+										collection.startDate = collectionCalendarStartDate.format('dddd, Do MMMM');
+
+										if (calendar.status !== 'complete' && collectionCalendarEndDate.isAfter(now.subtract(1, 'days'))) {
+											if (trendingProgramAdded && upcomingProgramAdded) {
+												return true;
+											}
+											if (collectionCalendarStartDate.isBetween(now.subtract(1, 'days'), weekAfter)
+												&& !upcomingProgramAdded && upcomingPrograms.length < 3) {
+												upcomingPrograms.push(collection);
+												upcomingProgramAdded = true;
+											}
+											if (!trendingProgramAdded) {
+												trendingPrograms.push(collection);
+												trendingProgramAdded = true;
+											}
+										}
+									});
+									const createdAt = moment(collection.createdAt);
+									if (createdAt.isBetween(weekAgo, now.add(1, 'days')) && newPrograms.length < 3) {
+										newPrograms.push(collection);
+									}
 								}
 							}
+
 						});
-						server.models.peer.find(function (err, peerInstances) {
-							// console.log(peerInstances);
-							peerInstances.forEach(peer => {
-								// console.info('Sending weekly digest to' + peer.email)
-								loopback.Email.send({
-									to: peer.email,
-									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-									subject: 'This Week\'s Highlights',
-									html: html_body
-								},
-									(err, mail) => {
-										console.log('email sent to' + peer.email);
-									}
-								);
+
+						trendingPrograms = trendingPrograms.sort((a, b) => {
+							if (a.views.length > b.views.length) {
+								return 1;
+							} else if (a.views.length < b.views.length) {
+								return -1;
+							} else {
+								return 0;
+							}
+						});
+
+						trendingPrograms = trendingPrograms.slice(0, 3);
+
+						if (newPrograms.length > 2 || trendingPrograms.length > 2 || upcomingPrograms.length > 2) {
+							// Send emails
+							let message = {
+								newPrograms: newPrograms,
+								trendingPrograms: trendingPrograms,
+								upcomingPrograms: upcomingPrograms
+							};
+							const renderer = loopback.template(path.resolve(__dirname, '../../server/views/weeklyDigest.ejs'));
+							html_body = renderer(message);
+							console.info('fetching peers');
+							server.models.peer.find(function (err, peerInstances) {
+								peerInstances.forEach(peer => {
+									console.info('Sending weekly digest to' + peer.email);
+									loopback.Email.send({
+										to: peer.email,
+										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+										subject: 'This Week\'s Highlights',
+										html: html_body
+									},
+										(err, mail) => {
+											if (err) {
+												console.log(err);
+											} else {
+												console.log('email sent to' + peer.email);
+											}
+
+										}
+									);
+								});
 							});
-						});
+						} else {
+							console.log('Not enough developments to send email');
+						}
 					}
 				);
 		},
 		function () {
-
+			console.log('Cron Over');
 		},
 		true,
 		'UTC'
