@@ -165,6 +165,12 @@ app.post('/signup', function (req, res, next) {
     profileObject.dobYear = req.body.dobYear;
     profileObject.promoOptIn = req.body.promoOptIn;
     let returnTo = req.headers.origin + '/' + req.query.returnTo;
+    console.log(req.ip);
+	const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+			req.connection.remoteAddress ||
+			req.socket.remoteAddress ||
+			req.connection.socket.remoteAddress;
+	console.log('*** remoteIp is: ' + remoteIp);
     const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
@@ -378,6 +384,9 @@ app.post('/signup', function (req, res, next) {
                                             createProfileNode(user);
                                             console.log('Creating wallet');
                                             createWallet();
+                                            if (remoteIp && remoteIp.length > 0) {
+	                                            saveUserCountry(remoteIp);
+                                            }
                                             console.log('Logging in user');
                                             loopbackLogin(user);
                                         } else {
@@ -391,6 +400,25 @@ app.post('/signup', function (req, res, next) {
                                 );
                             }
                         });
+                        
+                        let saveUserCountry = (ip) => {
+                            request.get({
+                                url: 'https://ipapi.co/' + ip + '/json',
+                                json: true
+                            }, function(err, response, data) {
+                                if (err) {
+                                    console.error(err);
+                                } else {
+                                    console.log(data);
+	                                User.dataSource.connector.execute(
+			                                "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
+			                                function (err, results) {
+				                                console.log('Saved user country code in database');
+			                                }
+	                                );
+                                }
+                            });
+                        };
 
                         let createWallet = () => {
                             // Create wallet on blockchain
