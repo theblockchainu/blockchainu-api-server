@@ -77,7 +77,7 @@ module.exports = function setupCron(server) {
 		console.info("\n\n************\nRunning hourly cron job. Functions: \n- Index all new models to elastic search server.\n**********\n\n");
 
 		// Index all peers
-		server.models.peer.find({ include: 'profiles' }, function (err, peerInstances) {
+		server.models.peer.find({ include: ['profiles', 'scholarships_joined'] }, function (err, peerInstances) {
 			makebulk(peerInstances, 'peer', 'none', function (response) {
 				//console.log("Indexing Peers: " + JSON.stringify(response));
 				if (response.length > 0) {
