@@ -1900,7 +1900,7 @@ module.exports = function (Collection) {
 			const data = await Collection.find(query);
 
 			if (!data || data.length === 0) {
-				collectionInstance.customUrl = testUrl;
+				collectionInstance.customUrl = titleUrl;
 				collectionInstance.save();
 				return collectionInstance.customUrl;
 			} else {
