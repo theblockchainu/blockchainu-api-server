@@ -12,6 +12,7 @@ let bcrypt;
 let MAX_PASSWORD_LENGTH = 72;
 let unirest = require('unirest');
 let request = require('request');
+var crypto = require('crypto');
 let https = require('https');
 let http = require('http');
 let sslConfig = require('./ssl-config');
@@ -387,6 +388,7 @@ app.post('/signup', function (req, res, next) {
                                             if (remoteIp && remoteIp.length > 0) {
 	                                            saveUserCountry(remoteIp);
                                             }
+                                            updateOnMailchimp();
                                             console.log('Logging in user');
                                             loopbackLogin(user);
                                         } else {
@@ -400,6 +402,29 @@ app.post('/signup', function (req, res, next) {
                                 );
                             }
                         });
+                        
+                        let updateOnMailchimp = () => {
+	                        let hash = crypto.createHash('md5').update(user.email.toLowerCase()).digest('hex');
+	                        request.put({
+		                        url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
+		                        body: {
+		                        	email_address: user.email,
+			                        status_if_new: 'subscribed',
+			                        ip_signup: remoteIp,
+			                        merge_fields: {
+				                        FNAME: profileObject.first_name,
+				                        LNAME: profileObject.last_name
+			                        }
+		                        },
+		                        json: true
+	                        }, function(err, response, data) {
+		                        if (err) {
+			                        console.error(err);
+		                        } else {
+		                        	console.log('*** Updated email on mailchimp');
+		                        }
+	                        }).auth('blockchainu', '8be612fef7633e059cfc22e8dff8a442-us16', true);
+                        };
                         
                         let saveUserCountry = (ip) => {
                             request.get({

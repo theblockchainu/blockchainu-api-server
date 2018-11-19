@@ -20,7 +20,7 @@ module.exports = function (Collection) {
 	Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
 		// New participant added to collection. Notify collection owner.
 		let collectionInstance = ctx.instance;
-		Collection.app.models.peer.findById(participantInstance.sourceId, { "include": "profiles" }, function (err, participantUserInstance) {
+		Collection.app.models.peer.findById(participantInstance.sourceId, { "include": ["profiles", "scholarships_joined"] }, function (err, participantUserInstance) {
 			if (err) {
 				next(err);
 			}
@@ -44,6 +44,7 @@ module.exports = function (Collection) {
 							console.log(err);
 						}
 					});
+					// Get owner instance
 					collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
 						if (err) {
 							next(err);
@@ -87,11 +88,21 @@ module.exports = function (Collection) {
 																				Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
 
 																				// Record student participation in an experience on blockchain
+																				let scholarshipId;
+																				if (ctx.req.body.scholarshipId && ctx.req.body.scholarshipId.length > 0) {
+																					scholarshipId = ctx.req.body.scholarshipId;
+																				} else {
+																					if (participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0) {
+																						scholarshipId = participantUserInstance.scholarships_joined[0].id;
+																					} else {
+																						scholarshipId = '';
+																					}
+																				}
 																				request
 																					.put({
 																						url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
 																						body: {
-																							scholarshipId: ctx.req.body.scholarshipId
+																							scholarshipId: scholarshipId
 																						},
 																						json: true
 																					}, function (err, response, data) {
