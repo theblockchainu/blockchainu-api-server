@@ -9,22 +9,26 @@ module.exports = function (Model, options) {
                 if (err) {
                     cb(err);
                 } else {
-                    var relatedModel = modelInstance[relation];
-                    var targetIds = data.targetIds;
-                    if (targetIds.constructor === Array) {
-                        targetIds.forEach(function (id) {
-                            relatedModel.add(id, function (err, instanceData) {
-                                if (err) {
-                                    console.log(err);
-                                    cb(err);
-                                } else {
-                                    //console.log(instanceData);
-                                }
-                            });
-                        }, this);
-                        cb(null, true);
+                    if (modelInstance) {
+                        var relatedModel = modelInstance[relation];
+                        var targetIds = data.targetIds;
+                        if (targetIds.constructor === Array) {
+                            targetIds.forEach(function (id) {
+                                relatedModel.add(id, function (err, instanceData) {
+                                    if (err) {
+                                        console.log(err);
+                                        cb(err);
+                                    } else {
+                                        //console.log(instanceData);
+                                    }
+                                });
+                            }, this);
+                            cb(null, true);
+                        } else {
+                            cb(err, "Please input Array targetIds:[]");
+                        }
                     } else {
-                        cb(err, "Please input Array targetIds:[]");
+                        cb(false);
                     }
                 }
             });

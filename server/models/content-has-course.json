@@ -1,12 +1,12 @@
 {
-  "name": "peer_followed_collection",
+  "name": "content_has_course",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
+    "sourceModel": "content",
     "targetModel": "collection"
   },
   "properties": {
@@ -23,9 +23,9 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "content": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "content",
       "foreignKey": "sourceId"
     },
     "collection": {

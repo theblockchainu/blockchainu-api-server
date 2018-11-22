@@ -346,6 +346,13 @@
       "foreignKey": "targetId",
       "through": "peer_followed_collection",
       "keyThrough": "sourceId"
+    },
+    "learningPathContents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "targetId",
+      "through": "content_has_course",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

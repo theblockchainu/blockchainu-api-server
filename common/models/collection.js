@@ -1900,31 +1900,41 @@ module.exports = function (Collection) {
 
 	Collection.setCustomUrl = async (collectionInstance) => {
 		if (collectionInstance.title) {
+			console.log('setting custom url');
 			const nospaceTitle = collectionInstance.title.replace(/\s+/g, ' ').trim().toLowerCase();
 			const titleUrl = nospaceTitle.replace(/ /g, '-');
-			let suffix = null;
-			let uniqueFound = false;
-			while (!uniqueFound) {
-				const testUrl = (suffix) ? titleUrl + '-' + suffix.toString() : titleUrl;
-				const query = {
-					'where': {
-						'customUrl': testUrl
+			const query = {
+				'where': {
+					'customUrl': titleUrl
+				}
+			};
+			const data = await Collection.find(query);
+
+			if (!data || data.length === 0) {
+				collectionInstance.customUrl = titleUrl;
+				collectionInstance.save();
+				return collectionInstance.customUrl;
+			} else {
+				for (let i = 0; i < 100; i++) {
+					const testUrl = titleUrl + '-' + i.toString();
+					const query = {
+						'where': {
+							'customUrl': testUrl
+						}
+					};
+					const data = await Collection.find(query);
+					if (!data || data.length === 0) {
+						collectionInstance.customUrl = testUrl;
+						collectionInstance.save();
+						return collectionInstance.customUrl;
 					}
-				};
-				const data = await Collection.find(query);
-				if (!data || data.length === 0) {
-					uniqueFound = true;
-					collectionInstance.customUrl = testUrl;
-					collectionInstance.save();
-				} else {
-					suffix = (suffix) ? suffix++ : 1;
 				}
 			}
 		} else {
 			collectionInstance.customUrl = collectionInstance.id;
 			collectionInstance.save();
+			return collectionInstance.customUrl;
 		}
-		return collectionInstance.customUrl;
 	};
 
 	Collection.checkSetUniqueUrl = async (collectionInstance) => {
