@@ -880,5 +880,9 @@
   "peer_followed_collection": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_course": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }
