@@ -1,0 +1,46 @@
+{
+  "name": "content_answer",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "mixins": {
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {}
+  },
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "answer": {
+      "type": "string"
+    },
+    "isEvaluated": {
+      "type": "boolean"
+    },
+    "marks": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "sourceId",
+      "through": "content_answer_has_answerer",
+      "keyThrough": "targetId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "content_question",
+      "foreignKey": "targetId",
+      "through": "content_question__has_answer",
+      "keyThrough": "sourceId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
