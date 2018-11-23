@@ -467,7 +467,7 @@ module.exports = function (Collection) {
 				//let ownerEmail = collectionInstance.toJSON().owners[0].email;
 				collectionInstance.status = 'submitted';
 				collectionInstance.isApproved = false;
-				Collection.setCustomUrl(collectionInstance)
+				Collection.checkSetUniqueUrl(collectionInstance)
 					.then(res => {
 						console.log('collectionInstance updated');
 					}).catch(err => {
@@ -928,6 +928,9 @@ module.exports = function (Collection) {
 					next();
 				}
 			});
+		}
+		else if (collectionInstance.type === 'learning-path') {
+			next();
 		}
 		else {
 			// User is trying to update a non draft collection
