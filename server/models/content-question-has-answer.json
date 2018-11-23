@@ -1,13 +1,13 @@
 {
-  "name": "reward_has_participant",
+  "name": "content_question__has_answer",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "reward",
-    "targetModel": "peer"
+    "sourceModel": "content_question",
+    "targetModel": "content_answer"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "reward": {
+    "content_question": {
       "type": "belongsTo",
-      "model": "reward",
+      "model": "content_question",
       "foreignKey": "sourceId"
     },
-    "peer": {
+    "content_answer": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "content_answer",
       "foreignKey": "targetId"
     }
   },

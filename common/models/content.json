@@ -186,6 +186,13 @@
       "foreignKey": "sourceId",
       "through": "content_has_token_payment",
       "keyThrough": "targetId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "content_question",
+      "foreignKey": "sourceId",
+      "through": "content_has_question",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

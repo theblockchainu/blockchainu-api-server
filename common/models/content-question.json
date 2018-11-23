@@ -1,11 +1,13 @@
 {
-  "name": "reward",
+  "name": "content_question",
   "base": "PersistedModel",
   "idInjection": true,
-  "options": {
-    "validateUpsert": true
-  },
   "mixins": {
+    "AddPeerRelation": {
+      "relationName": [
+        "answers"
+      ]
+    },
     "TimeStamp": {
       "createdAt": "createdAt",
       "updatedAt": "updatedAt",
@@ -13,37 +15,38 @@
     },
     "GlobalUtils": {}
   },
+  "options": {
+    "validateUpsert": true
+  },
   "properties": {
-    "position": {
-      "type": "number"
-    },
-    "value": {
-      "type": "number"
-    },
-    "title": {
+    "question_text": {
       "type": "string"
     },
-    "currency": {
+    "marks": {
+      "type": "number"
+    },
+    "word_limit": {
+      "type": "number"
+    },
+    "options": {
+      "type": [
+        "string"
+      ]
+    },
+    "type": {
       "type": "string"
     },
-    "url": {
+    "correct_answer": {
       "type": "string"
     }
   },
   "validations": [],
   "relations": {
-    "collections": {
+    "answers": {
       "type": "hasMany",
-      "model": "collection",
-      "foreignKey": "targetId",
-      "through": "collection_has_reward",
-      "keyThrough": "sourceId"
-    },
-    "winners": {
-      "type": "hasMany",
-      "model": "peer",
+      "model": "content_answer",
       "foreignKey": "sourceId",
-      "through": "reward_has_participant",
+      "through": "content_question__has_answer",
       "keyThrough": "targetId"
     }
   },

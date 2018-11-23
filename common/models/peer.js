@@ -443,7 +443,7 @@ module.exports = function (Peer) {
         let client = new twilio(twilioSid, twilioToken);
 
         let message = "Verify your mobile number with The Blockchain University using code: " + phoneToken;
-
+        console.log(message);
         client.messages.create({
             body: message,
             to: formattedPhone,  // Text this number

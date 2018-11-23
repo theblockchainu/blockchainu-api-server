@@ -458,6 +458,13 @@
       "foreignKey": "targetId",
       "through": "reward_has_participant",
       "keyThrough": "sourceId"
+    },
+    "content_answers": {
+      "type": "hasMany",
+      "model": "content_answer",
+      "foreignKey": "targetId",
+      "through": "content_answer_has_answerer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],
