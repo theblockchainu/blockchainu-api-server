@@ -1897,6 +1897,22 @@ module.exports = function (Collection) {
 			});
 		});
 	};
+	
+	Collection.checkParticipantOnBlockchain = function (id, fk, req, cb) {
+		// Get from blockchain
+		request
+				.get({
+					url: protocolUrl + 'collections/' + id + '/peers' + fk,
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(err);
+					} else {
+						console.log('Got participant details for this collection: ' + data);
+						cb(null, JSON.parse(data));
+					}
+				});
+	};
 
 	Collection.setCustomUrl = async (collectionInstance) => {
 		if (collectionInstance.title) {
@@ -2036,5 +2052,17 @@ module.exports = function (Collection) {
 			returns: { arg: 'result', type: 'object', root: true },
 			http: { path: '/fixDatabase', verb: 'get' }
 		});
+	
+	Collection.remoteMethod(
+			'checkParticipantOnBlockchain',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'fk', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peer/:fk/ether', verb: 'get' }
+			});
 
 };
