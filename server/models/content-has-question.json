@@ -1,13 +1,13 @@
 {
-  "name": "peer_followed_collection",
+  "name": "content_has_question",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "peer",
-    "targetModel": "collection"
+    "sourceModel": "content",
+    "targetModel": "content_question"
   },
   "properties": {
     "id": {
@@ -23,14 +23,14 @@
   },
   "validations": [],
   "relations": {
-    "peer": {
+    "content": {
       "type": "belongsTo",
-      "model": "peer",
+      "model": "content",
       "foreignKey": "sourceId"
     },
-    "collection": {
+    "content_question": {
       "type": "belongsTo",
-      "model": "collection",
+      "model": "content_question",
       "foreignKey": "targetId"
     }
   },

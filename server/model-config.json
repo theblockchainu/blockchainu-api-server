@@ -880,5 +880,29 @@
   "peer_followed_collection": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "content_has_course": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_question": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "content_answer": {
+    "dataSource": "neo4j",
+    "public": true
+  },
+  "content_has_question": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_question__has_answer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_answer_has_answerer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

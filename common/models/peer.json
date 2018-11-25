@@ -468,6 +468,13 @@
       "foreignKey": "sourceId",
       "through": "peer_followed_collection",
       "keyThrough": "targetId"
+    },
+    "content_answers": {
+      "type": "hasMany",
+      "model": "content_answer",
+      "foreignKey": "targetId",
+      "through": "content_answer_has_answerer",
+      "keyThrough": "sourceId"
     }
   },
   "acls": [],

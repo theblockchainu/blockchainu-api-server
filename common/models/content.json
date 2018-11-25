@@ -92,6 +92,9 @@
     "sessionIsRejected": {
       "type": "boolean",
       "default": false
+    },
+    "contentIndex": {
+      "type": "number"
     }
   },
   "validations": [],
@@ -186,6 +189,19 @@
       "foreignKey": "sourceId",
       "through": "content_has_token_payment",
       "keyThrough": "targetId"
+    },
+    "courses": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "content_has_course",
+      "keyThrough": "targetId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "content_question",
+      "foreignKey": "sourceId",
+      "through": "content_has_question"
     }
   },
   "acls": [],
