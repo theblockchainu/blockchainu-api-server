@@ -95,6 +95,9 @@
     },
     "contentIndex": {
       "type": "number"
+    },
+    "paymentBatch": {
+      "type": "string"
     }
   },
   "validations": [],

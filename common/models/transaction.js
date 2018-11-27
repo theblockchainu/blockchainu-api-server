@@ -558,7 +558,11 @@ module.exports = function (Transaction) {
                         } else {
                             if (responseData.order_status === 'Success') {
                                 // txn success
-                                res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+                                if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
+                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transferInstance.id);
+                                } else {
+                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+                                }
                             } else {
                                 res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
                             }
