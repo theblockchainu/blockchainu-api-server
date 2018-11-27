@@ -467,16 +467,18 @@ module.exports = function (Collection) {
 				//let ownerEmail = collectionInstance.toJSON().owners[0].email;
 				collectionInstance.status = 'submitted';
 				collectionInstance.isApproved = false;
-				Collection.checkSetUniqueUrl(collectionInstance)
-					.then(res => {
-						console.log('collectionInstance updated');
-					}).catch(err => {
-						console.log(err);
-						err = new Error(g.f('Error updating collection.'));
-						err.statusCode = 400;
-						err.code = 'DB_ERROR';
-						cb(err);
-					});
+				if (collectionInstance.type !== 'session') {
+					Collection.checkSetUniqueUrl(collectionInstance)
+						.then(res => {
+							console.log('collectionInstance updated');
+						}).catch(err => {
+							console.log(err);
+							err = new Error(g.f('Error updating collection.'));
+							err.statusCode = 400;
+							err.code = 'DB_ERROR';
+							cb(err);
+						});
+				}
 
 				let message = '', subject = '';
 				message = { type: collectionInstance.type };
