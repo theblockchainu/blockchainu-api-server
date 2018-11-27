@@ -166,7 +166,11 @@ app.post('/signup', function (req, res, next) {
     profileObject.dobYear = req.body.dobYear;
     profileObject.promoOptIn = req.body.promoOptIn;
     let returnTo = req.headers.origin + '/' + req.query.returnTo;
-    console.log(req.ip);
+    console.log(req.headers['x-client-ip']);
+	console.log(req.headers['x-real-ip']);
+	console.log(req.connection);
+	console.log(req.socket);
+	console.log(req.info);
 	const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
 			req.connection.remoteAddress ||
 			req.socket.remoteAddress ||
