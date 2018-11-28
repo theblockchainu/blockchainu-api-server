@@ -449,7 +449,52 @@ module.exports = function setupCron(server) {
 		'UTC'
 	);
 
+	// delete slots booked in last 10 mins but payment not yet done
+	const upcomingActivityCron = new CronJob('00 */10 * * * *', function () {
+		// const upcomingActivityCron = new CronJob('* * * * * *', function () {
+		const now = moment();
+		const query = {
+			where: {
+				type: 'session'
+			},
+			include: [
+				{
+					'contents': [
+						'availabilities',
+						{ 'peers': 'profiles' },
+						'packages',
+						'payments'
+					]
+				}
+			]
+		};
+		server.models.collection.find(query).then((results) => {
+			const promisesArray = [];
+			results.forEach(collection => {
+				const collectionJSON = collection.toJSON();
+				collectionJSON.contents.forEach(content => {
+					if (!content.payments || content.payments.length < 1) {
+						const timeDifference = now.diff(moment(content.createdAt), 'minute') > 10;
+						if (timeDifference) {
+							promisesArray.push(
+								server.models.content.destroyById(content.id)
+							);
+						}
+					}
+				});
+			});
+			return Promise.all(promisesArray);
+		}).then(res => {
+			console.log(res.length + 'deleted');
+		}).catch(err => {
+			console.log(err);
+		});
+	}, function () {
+		console.log('Unpaid Sessions Cleaned');
 
+	}, true,
+		'UTC'
+	);
 
 
 	// Runs once every 10 minutes

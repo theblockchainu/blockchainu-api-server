@@ -69,7 +69,7 @@ module.exports = function (Transaction) {
         ).catch(function (err) {
             console.log(err);
             cb(err);
-        })
+        });
     };
 
     /**
@@ -132,7 +132,7 @@ module.exports = function (Transaction) {
         stripe.customers.createSource(customer, requestData,
             function (err, card) {
                 if (err) {
-                    cb(err)
+                    cb(err);
                 } else {
                     cb(null, card);
                 }
@@ -492,63 +492,63 @@ module.exports = function (Transaction) {
             cb(err);
         }
     };
-	
+
 	/**
 	 * Get encrypted data to be sent to CC Avenue in iFrame request
 	 */
-	Transaction.ccavenueEncryptData = function (req, data, cb) {
-		
-		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
-		//if user is logged in
-		if (loggedinPeer) {
-			
-			const temp = [];
-			for (let p in data) {
-				if (data.hasOwnProperty(p)) {
-					temp.push(encodeURIComponent(p) + '=' + encodeURIComponent(data[p]));
-				}
-			}
-			const dataqs = temp.join('&');
-			
-			let m = crypto.createHash('md5');
-			m.update(workingKey);
-			const key = m.digest();
-			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
-			let cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
-			console.log(dataqs);
-			let encoded = cipher.update(dataqs, 'utf8', 'hex');
-			encoded += cipher.final('hex');
-			
-			const iframeSrc = '<iframe  width="100%" height="600px" scrolling="No" frameborder="0" #paymentFrame id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encoded + '&access_code=' + accessCode + '"></iframe>';
-			cb(null, iframeSrc);
-			
-		} else {
-			var err = new Error('Invalid access');
-			err.code = 'INVALID_ACCESS';
-			cb(err);
-		}
-	};
-	
+    Transaction.ccavenueEncryptData = function (req, data, cb) {
+
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+        //if user is logged in
+        if (loggedinPeer) {
+
+            const temp = [];
+            for (let p in data) {
+                if (data.hasOwnProperty(p)) {
+                    temp.push(encodeURIComponent(p) + '=' + encodeURIComponent(data[p]));
+                }
+            }
+            const dataqs = temp.join('&');
+
+            let m = crypto.createHash('md5');
+            m.update(workingKey);
+            const key = m.digest();
+            const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
+            let cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+            console.log(dataqs);
+            let encoded = cipher.update(dataqs, 'utf8', 'hex');
+            encoded += cipher.final('hex');
+
+            const iframeSrc = '<iframe  width="100%" height="600px" scrolling="No" frameborder="0" #paymentFrame id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encoded + '&access_code=' + accessCode + '"></iframe>';
+            cb(null, iframeSrc);
+
+        } else {
+            var err = new Error('Invalid access');
+            err.code = 'INVALID_ACCESS';
+            cb(err);
+        }
+    };
+
 	/**
 	 * Get encrypted data to be sent to CC Avenue in iFrame request
 	 */
-	Transaction.ccavenueResponse = function (req, res, data, cb) {
-		
-		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
-		
-		//if user is logged in
-		if (loggedinPeer) {
-		 
-			let m = crypto.createHash('md5');
-			m.update(workingKey);
-			const key = m.digest();
-			const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
-			let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-			let decoded = decipher.update(data.encResp,'hex','utf8');
-			decoded += decipher.final('utf8');
-			const responseData = qs.parse(decoded);
-			console.log(responseData);
-				
+    Transaction.ccavenueResponse = function (req, res, data, cb) {
+
+        var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+
+        //if user is logged in
+        if (loggedinPeer) {
+
+            let m = crypto.createHash('md5');
+            m.update(workingKey);
+            const key = m.digest();
+            const iv = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f';
+            let decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+            let decoded = decipher.update(data.encResp, 'hex', 'utf8');
+            decoded += decipher.final('utf8');
+            const responseData = qs.parse(decoded);
+            console.log(responseData);
+
             Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
                 if (!err && peerInstance !== null) {
                     peerInstance.transactions.create(responseData, function (err, transferInstance) {
@@ -558,22 +558,26 @@ module.exports = function (Transaction) {
                         } else {
                             if (responseData.order_status === 'Success') {
                                 // txn success
-	                            res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+                                if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
+                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transferInstance.id);
+                                } else {
+                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+                                }
                             } else {
-	                            res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
+                                res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
                             }
                         }
                     });
                 }
                 else {
-	                res.redirect(clientUrl + '/paymentError');
+                    res.redirect(clientUrl + '/paymentError');
                 }
             });
-			
-		} else {
-			res.redirect(clientUrl + '/paymentError');
+
+        } else {
+            res.redirect(clientUrl + '/paymentError');
         }
-	};
+    };
 
     // Customer Remote methods
     Transaction.remoteMethod('getCustomer', {
@@ -722,29 +726,29 @@ module.exports = function (Transaction) {
         returns: { arg: 'contentObject', type: 'object', root: true },
         http: { verb: 'post', path: '/transfer-fund' }
     });
-	
-	// CC Avenue Encrypt Data - Remote methods
-	Transaction.remoteMethod('ccavenueEncryptData', {
-		description: 'Get CC Avenue Encrypted Request',
-		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
-			{
-				arg: 'data', type: 'object', http: { source: 'body' },
-				description: "data should match as mentioned by ccavenue api", required: true
-			}],
-		returns: { arg: 'contentObject', type: 'object', root: true },
-		http: { verb: 'post', path: '/ccavenueencryptdata' }
-	});
-	
-	// CC Avenue Decrypt Data - Remote methods
-	Transaction.remoteMethod('ccavenueResponse', {
-		description: 'Get CC Avenue Decrypted Data',
-		accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
-			{ arg: 'res', type: 'object', http: { source: 'res' } },
-			{
-				arg: 'data', type: 'object', http: { source: 'body' },
-				description: "encrypted string from cc avenue", required: true
-			}],
-		http: { verb: 'post', path: '/ccavenueResponse' }
-	});
-	
+
+    // CC Avenue Encrypt Data - Remote methods
+    Transaction.remoteMethod('ccavenueEncryptData', {
+        description: 'Get CC Avenue Encrypted Request',
+        accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+        {
+            arg: 'data', type: 'object', http: { source: 'body' },
+            description: "data should match as mentioned by ccavenue api", required: true
+        }],
+        returns: { arg: 'contentObject', type: 'object', root: true },
+        http: { verb: 'post', path: '/ccavenueencryptdata' }
+    });
+
+    // CC Avenue Decrypt Data - Remote methods
+    Transaction.remoteMethod('ccavenueResponse', {
+        description: 'Get CC Avenue Decrypted Data',
+        accepts: [{ arg: 'req', type: 'object', http: { source: 'req' } },
+        { arg: 'res', type: 'object', http: { source: 'res' } },
+        {
+            arg: 'data', type: 'object', http: { source: 'body' },
+            description: "encrypted string from cc avenue", required: true
+        }],
+        http: { verb: 'post', path: '/ccavenueResponse' }
+    });
+
 };
