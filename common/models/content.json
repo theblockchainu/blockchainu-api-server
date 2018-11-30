@@ -106,7 +106,10 @@
     "isTimeBound": {
       "type": "boolean",
       "default": false
-    }
+    },
+	  "paymentBatch": {
+		  "type": "string"
+	  }
   },
   "validations": [],
   "relations": {
