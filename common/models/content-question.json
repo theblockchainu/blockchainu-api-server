@@ -2,6 +2,9 @@
   "name": "content_question",
   "base": "PersistedModel",
   "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
   "mixins": {
     "AddPeerRelation": {
       "relationName": [
@@ -14,9 +17,6 @@
       "required": false
     },
     "GlobalUtils": {}
-  },
-  "options": {
-    "validateUpsert": true
   },
   "properties": {
     "question_text": {
@@ -37,16 +37,27 @@
       "type": "string"
     },
     "correct_answer": {
-      "type": "string"
+      "type": "number"
+    },
+    "isRequired": {
+      "type": "boolean",
+      "default": true
     }
   },
   "validations": [],
   "relations": {
+    "contents": {
+      "type": "hasMany",
+      "model": "content",
+      "foreignKey": "targetId",
+      "through": "content_has_question",
+      "keyThrough": "sourceId"
+    },
     "answers": {
       "type": "hasMany",
       "model": "content_answer",
       "foreignKey": "sourceId",
-      "through": "content_question__has_answer",
+      "through": "content_question_has_answer",
       "keyThrough": "targetId"
     }
   },

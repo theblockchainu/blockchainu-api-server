@@ -482,13 +482,16 @@ module.exports = function (Collection) {
 				message = { type: collectionInstance.type };
 				switch (collectionInstance.type) {
 					case 'class':
-						subject = 'Class submitted for review';
+						subject = 'Online Course submitted for review';
 						break;
 					case 'experience':
-						subject = 'Experience submitted for review';
+						subject = 'In-person workshop submitted for review';
+						break;
+					case 'guide':
+						subject = 'Learning Guide submitted for review';
 						break;
 					case 'session':
-						subject = 'Account submitted for peer session review';
+						subject = 'Account submitted for mentor session review';
 						break;
 					default:
 						subject = 'Collection submitted for review';
@@ -577,20 +580,20 @@ module.exports = function (Collection) {
 						message = { type: collectionInstance.type };
 						switch (collectionInstance.type) {
 							case 'class':
-								subject = 'Class Approved';
-								title = 'Class Approved!';
+								subject = 'Online course approved';
+								title = 'Online course approved!';
 								description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
 								break;
 							case 'experience':
-								subject = 'Experience Approved';
-								title = 'Experience Approved!';
+								subject = 'In-person workshop approved';
+								title = 'In-person workshop approved!';
 								description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
 								break;
 							case 'session':
-								subject = 'Account Approved for Peer Sessions';
-								title = 'Account Approved for Peer Sessions!';
+								subject = 'Account Approved for Mentor Sessions';
+								title = 'Account Approved for Mentor Sessions!';
 								description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
 								break;
@@ -798,21 +801,21 @@ module.exports = function (Collection) {
 						message = { type: collectionInstance.type };
 						switch (collectionInstance.type) {
 							case 'class':
-								subject = 'Class Rejected';
-								title = 'Class Rejected!';
+								subject = 'Online course rejected';
+								title = 'Online course rejected!';
 								description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
 								break;
 							case 'experience':
-								subject = 'Experience Rejected';
-								title = 'Experience Rejected!';
+								subject = 'In-person workshop rejected';
+								title = 'In-person workshop rejected!';
 								description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
 								break;
 							case 'session':
-								subject = 'Account Rejected for Peer Sessions';
-								title = 'Account Rejected for Peer Sessions!';
-								description = "Your account has been rejected for peer sessions. Edit your details and submit again.";
+								subject = 'Account Rejected for Mentor Sessions';
+								title = 'Account Rejected for Mentor Sessions!';
+								description = "Your account has been rejected for mentor sessions. Edit your details and submit again.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "15"];
 								break;
 							default:
@@ -890,7 +893,9 @@ module.exports = function (Collection) {
 
 	Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
 		let collectionInstance = ctx.instance;
-		if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
+		if (collectionInstance.type === 'learning-path') {
+			next();
+		} else if (collectionInstance.status === 'draft' || collectionInstance.status === "" || collectionInstance.status === "submitted") {
 			next();
 		}
 		else if (ctx.args.data.status === 'complete') {
@@ -928,11 +933,7 @@ module.exports = function (Collection) {
 					next();
 				}
 			});
-		}
-		else if (collectionInstance.type === 'learning-path') {
-			next();
-		}
-		else {
+		} else {
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			if (collectionInstance.status === 'active') {
@@ -1291,7 +1292,7 @@ module.exports = function (Collection) {
 	});
 
 	Collection.beforeRemote('prototype.__create__contents', function (ctx, newInstance, next) {
-		console.log('***** ADDING NEW CONTENT TO ACTIVE COLLECTION');
+		console.log('***** ADDING NEW CONTENT TO COLLECTION');
 		let collectionInstance = ctx.instance;
 		if (collectionInstance.status === 'draft' || collectionInstance.status === '' || collectionInstance.status === 'submitted') {
 			next();
@@ -1958,17 +1959,22 @@ module.exports = function (Collection) {
 
 	Collection.checkSetUniqueUrl = async (collectionInstance) => {
 		console.log('checking if unique');
-		const query = {
-			'where': {
-				'customUrl': collectionInstance.customUrl
+		if (collectionInstance.customUrl && collectionInstance.customUrl.length > 0) {
+			const query = {
+				'where': {
+					'customUrl': collectionInstance.customUrl
+				}
+			};
+			const data = await Collection.find(query);
+			if (data && data.length === 1 && data[0].id === collectionInstance.id) {
+				console.log('not unique');
+				collectionInstance.save();
+				return collectionInstance.customUrl;
+			} else {
+				console.log('unique. Saving it now!');
+				return Collection.setCustomUrl(collectionInstance);
 			}
-		};
-		const data = await Collection.find(query);
-		if (data.length === 1) {
-			console.log('unique!');
-			return collectionInstance.customUrl;
 		} else {
-			console.log('not unique setting now!');
 			return Collection.setCustomUrl(collectionInstance);
 		}
 	};

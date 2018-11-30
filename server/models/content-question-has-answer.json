@@ -1,5 +1,5 @@
 {
-  "name": "content_question__has_answer",
+  "name": "content_question_has_answer",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {

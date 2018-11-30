@@ -37,7 +37,7 @@
       "type": "hasMany",
       "model": "content_question",
       "foreignKey": "targetId",
-      "through": "content_question__has_answer",
+      "through": "content_question_has_answer",
       "keyThrough": "sourceId"
     }
   },

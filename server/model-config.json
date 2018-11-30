@@ -897,11 +897,15 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "content_question__has_answer": {
+  "content_question_has_answer": {
     "dataSource": "neo4j-cypher",
     "public": false
   },
   "content_answer_has_answerer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "content_has_answer": {
     "dataSource": "neo4j-cypher",
     "public": false
   }

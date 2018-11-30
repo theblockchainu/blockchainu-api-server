@@ -40,6 +40,10 @@
         {
           "model": "availability",
           "hasManyRelation": "availabilities"
+        },
+        {
+          "model": "content_question",
+          "hasManyRelation": "questions"
         }
       ]
     }
@@ -95,6 +99,13 @@
     },
     "contentIndex": {
       "type": "number"
+    },
+    "successMessage": {
+      "type": "string"
+    },
+    "isTimeBound": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],
@@ -201,7 +212,8 @@
       "type": "hasMany",
       "model": "content_question",
       "foreignKey": "sourceId",
-      "through": "content_has_question"
+      "through": "content_has_question",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],

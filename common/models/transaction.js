@@ -405,7 +405,7 @@ module.exports = function (Transaction) {
                                                     var notifData = {
                                                         type: "action",
                                                         title: "Session Confirmed!",
-                                                        description: "Your peer session with %username% on %sessionDate% for %sessionHours% is now confirmed. We have received payment.",
+                                                        description: "Your mentor session with %username% on %sessionDate% for %sessionHours% is now confirmed. We have received payment.",
                                                         actionUrl: ["console", "teaching", "sessions"]
                                                     };
                                                     Notification.createNotification(content.toJSON().collections[0].owners[0].id, peerInstance.id, notifData, 'content', content.id, function (err, notificationInstance) {
