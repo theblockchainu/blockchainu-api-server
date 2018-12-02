@@ -1782,104 +1782,21 @@ module.exports = function (Collection) {
 
 	Collection.fetchTrending = function (req, cb) {
 		const queryObj = req.query;
-		const today = moment();
-		const searchQuery = JSON.parse(queryObj['filter']);
-		searchQuery['order'] = 'createdAt DESC';
-		searchQuery['include'] = searchQuery['include'].concat([
-			'calendars',
-			'views',
-			{ 'contents': ['schedules', 'locations'] },
-			{ 'owners': ['reviewsAboutYou'] }
-		]);
-		Collection.find(searchQuery, (err, allCollectionInstances) => {
+		const type = queryObj['type'];
+		const query = {
+			fields: {}
+		};
+		if (type) {
+			console.log('trending' + type + ' requested');
+			query.fields[type + 'Array'] = true;
+		}
+		Collection.app.models.trending_cache.find(query, (err, cacheInstances) => {
 			if (err) {
 				cb(err);
 			} else {
-				let resultArray = [];
-				let collectionInstances = [];
-				allCollectionInstances.forEach(collectionInstance => {
-					const collection = collectionInstance.toJSON();
-					if (collection.status === 'active') {
-						let hasActiveCalendar = false;
-						if (collection.type === 'experience' && collection.contents) {
-							let experienceLocation = 'Unknown location';
-							let lat = 37.5293864;
-							let lng = -122.008471;
-							collection.contents.forEach(content => {
-								if (content.locations && content.locations.length > 0
-									&& content.locations[0].city !== undefined
-									&& content.locations[0].city.length > 0
-									&& content.locations[0].map_lat !== undefined
-									&& content.locations[0].map_lat.length > 0) {
-									experienceLocation = content.locations[0].city;
-									lat = parseFloat(content.locations[0].map_lat);
-									lng = parseFloat(content.locations[0].map_lng);
-								}
-							});
-							collection.location = experienceLocation;
-							collection.lat = lat;
-							collection.lng = lng;
-						}
-						if (collection.calendars) {
-							collection.calendars.some(calendar => {
-								if (moment(calendar.endDate).diff(today, 'days') >= -1) {
-									hasActiveCalendar = true;
-									return;
-								}
-							});
-						}
-						if (collection.owners && collection.owners.length > 0 && collection.owners[0].reviewsAboutYou) {
-							collection.rating = this.calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
-							collection.ratingCount = this.calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
-						}
-						if (hasActiveCalendar || collection.type === 'guide') {
-							console.log('collection.rating ' + collection.rating);
-							console.log('collection.ratingCount ' + collection.ratingCount);
-							collectionInstances.push(collection);
-						}
-					}
-				});
-
-				const latestCollections = [];
-
-				for (let i = 0; i < collectionInstances.length && latestCollections.length < 2; i++) {
-					latestCollections.push(collectionInstances[i]);
-				}
-				const popularCollections = [];
-				collectionInstances = collectionInstances.slice(2);
-				collectionInstances.sort((a, b) => {
-					if (a.views.length > b.views.length) {
-						return -1;
-					} else if (a.views.length < b.views.length) {
-						return 1;
-					} else {
-						return 0;
-					}
-				});
-				for (let i = 0; i < collectionInstances.length && popularCollections.length < 3; i++) {
-					popularCollections.push(collectionInstances[i]);
-				}
-				resultArray = popularCollections.concat(latestCollections);
-				cb(null, resultArray);
+				cb(null, cacheInstances[0][type + 'Array']);
 			}
 		});
-
-	};
-
-	Collection.calculateCollectionRating = function (collectionId, reviewArray) {
-		let reviewScore = 0;
-		for (const reviewObject of reviewArray) {
-			if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewScore += reviewObject.score; }
-		}
-		return (reviewScore / (reviewArray.length * 5)) * 5;
-	};
-
-	Collection.calculateCollectionRatingCount = function (collectionId, reviewArray) {
-		let reviewCount = 0;
-		for (const reviewObject of reviewArray) {
-			if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewCount++; }
-		}
-		return reviewCount;
 	};
 
 	Collection.fixDatabase = function (req, cb) {
@@ -1903,21 +1820,21 @@ module.exports = function (Collection) {
 			});
 		});
 	};
-	
+
 	Collection.checkParticipantOnBlockchain = function (id, fk, req, cb) {
 		// Get from blockchain
 		request
-				.get({
-					url: protocolUrl + 'collections/' + id + '/peers' + fk,
-				}, function (err, response, data) {
-					if (err) {
-						console.error(err);
-						cb(err);
-					} else {
-						console.log('Got participant details for this collection: ' + data);
-						cb(null, JSON.parse(data));
-					}
-				});
+			.get({
+				url: protocolUrl + 'collections/' + id + '/peers' + fk,
+			}, function (err, response, data) {
+				if (err) {
+					console.error(err);
+					cb(err);
+				} else {
+					console.log('Got participant details for this collection: ' + data);
+					cb(null, JSON.parse(data));
+				}
+			});
 	};
 
 	Collection.setCustomUrl = async (collectionInstance) => {
@@ -2073,17 +1990,17 @@ module.exports = function (Collection) {
 			returns: { arg: 'result', type: 'object', root: true },
 			http: { path: '/fixDatabase', verb: 'get' }
 		});
-	
+
 	Collection.remoteMethod(
-			'checkParticipantOnBlockchain',
-			{
-				accepts: [
-					{ arg: 'id', type: 'string', required: true },
-					{ arg: 'fk', type: 'string', required: true },
-					{ arg: 'req', type: 'object', http: { source: 'req' } }
-				],
-				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/:id/peer/:fk/ether', verb: 'get' }
-			});
+		'checkParticipantOnBlockchain',
+		{
+			accepts: [
+				{ arg: 'id', type: 'string', required: true },
+				{ arg: 'fk', type: 'string', required: true },
+				{ arg: 'req', type: 'object', http: { source: 'req' } }
+			],
+			returns: { arg: 'result', type: 'object', root: true },
+			http: { path: '/:id/peer/:fk/ether', verb: 'get' }
+		});
 
 };
