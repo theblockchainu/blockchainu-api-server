@@ -13,6 +13,7 @@ var imageRequest = require('request').defaults({ encoding: null });
 let host = app.get('host');
 let port = app.get('port');
 let restApiRoot = app.get('restApiRoot');
+const Promise = require('bluebird');
 
 module.exports = function setupCron(server) {
 
@@ -446,6 +447,159 @@ module.exports = function setupCron(server) {
 
 		},
 		true,
+		'UTC'
+	);
+
+	const calculateCollectionRating = function (collectionId, reviewArray) {
+		let reviewScore = 0;
+		for (const reviewObject of reviewArray) {
+			if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewScore += reviewObject.score; }
+		}
+		return (reviewScore / (reviewArray.length * 5)) * 5;
+	};
+
+	const calculateCollectionRatingCount = function (collectionId, reviewArray) {
+		let reviewCount = 0;
+		for (const reviewObject of reviewArray) {
+			if (reviewObject.collectionId !== undefined && reviewObject.collectionId === collectionId) { reviewCount++; }
+		}
+		return reviewCount;
+	};
+
+
+	const saveCollectionCache = (type) => {
+		const today = moment();
+		const query = {
+			'include': [
+				'calendars',
+				'views',
+				{ 'owners': ['reviewsAboutYou', 'profiles'] },
+				'participants',
+				{ 'bookmarks': 'peer' },
+				{
+					'contents':
+						['schedules', 'locations']
+				},
+				'rewards',
+				'topics'
+			],
+			'order': 'createdAt DESC',
+			'where': {
+				'type': type
+			}
+		};
+		let resultArray = [];
+		return server.models.collection.find(query)
+			.then((allCollectionInstances) => {
+				let collectionInstances = [];
+				allCollectionInstances.forEach(collectionInstance => {
+					const collection = collectionInstance.toJSON();
+					if (collection.status === 'active') {
+						let hasActiveCalendar = false;
+						if (collection.type === 'experience' && collection.contents) {
+							let experienceLocation = 'Unknown location';
+							let lat = 37.5293864;
+							let lng = -122.008471;
+							collection.contents.forEach(content => {
+								if (content.locations && content.locations.length > 0
+									&& content.locations[0].city !== undefined
+									&& content.locations[0].city.length > 0
+									&& content.locations[0].map_lat !== undefined
+									&& content.locations[0].map_lat.length > 0) {
+									experienceLocation = content.locations[0].city;
+									lat = parseFloat(content.locations[0].map_lat);
+									lng = parseFloat(content.locations[0].map_lng);
+								}
+							});
+							collection.location = experienceLocation;
+							collection.lat = lat;
+							collection.lng = lng;
+						}
+						if (collection.calendars) {
+							collection.calendars.some(calendar => {
+								if (moment(calendar.endDate).diff(today, 'days') >= -1) {
+									hasActiveCalendar = true;
+									return;
+								}
+							});
+						}
+						if (collection.owners && collection.owners.length > 0 && collection.owners[0].reviewsAboutYou) {
+							collection.rating = calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
+							collection.ratingCount = calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
+						}
+						if (hasActiveCalendar || collection.type === 'guide') {
+							collectionInstances.push(collection);
+						}
+					}
+				});
+
+				const latestCollections = [];
+
+				for (let i = 0; i < collectionInstances.length && latestCollections.length < 2; i++) {
+					latestCollections.push(JSON.stringify(collectionInstances[i]));
+				}
+				const popularCollections = [];
+				collectionInstances = collectionInstances.slice(2);
+				collectionInstances.sort((a, b) => {
+					if (a.views.length > b.views.length) {
+						return -1;
+					} else if (a.views.length < b.views.length) {
+						return 1;
+					} else {
+						return 0;
+					}
+				});
+				for (let i = 0; i < collectionInstances.length && popularCollections.length < 3; i++) {
+					popularCollections.push(JSON.stringify(collectionInstances[i]));
+				}
+				resultArray = popularCollections.concat(latestCollections);
+				return server.models.trending_cache.find();
+			})
+			.then((cacheInstance) => {
+				if (cacheInstance && cacheInstance.length > 0) {
+					return Promise.resolve(cacheInstance[0]);
+				} else {
+					return server.models.trending_cache.create();
+				}
+			})
+			.then((cacheInstance) => {
+				switch (type) {
+					case 'class':
+						cacheInstance.classArray = resultArray;
+						break;
+					case 'guide':
+						cacheInstance.guideArray = resultArray;
+						break;
+					case 'experience':
+						cacheInstance.experienceArray = resultArray;
+						break;
+					case 'bounty':
+						cacheInstance.bountyArray = resultArray;
+						break;
+					default:
+						break;
+				}
+				return cacheInstance.save();
+			});
+	};
+
+	const trendingCollectionCron = new CronJob('00 00 * * * *', function (params) {
+		const collectionTypes = ['guide', 'experience', 'class', 'bounty'];
+		//set trending collections for 24 hours
+
+		Promise.each(collectionTypes, (type) => {
+			return saveCollectionCache(type).then(val => {
+				console.log(type + 'saved');
+			});
+		}).then(res => {
+			console.log('trending saved');
+		}).catch(err => {
+			console.log('Error in saving trending collections');
+			console.log(err);
+		});
+	}, function () {
+		console.log('Cron over');
+	}, true,
 		'UTC'
 	);
 

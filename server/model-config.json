@@ -904,5 +904,9 @@
   "content_answer_has_answerer": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "trending_cache": {
+    "dataSource": "neo4j",
+    "public": true
   }
 }
