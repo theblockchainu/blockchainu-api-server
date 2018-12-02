@@ -904,7 +904,7 @@ module.exports = function setupCron(server) {
 	// 									// check if it starts in the next 10 minutes??
 	// 									//console.log('Comparing session time: ' + startDateTime.format() + ' with current time: ' + now.format());
 	// 									if (startDateTime.diff(now, 'minutes') >= 0 && startDateTime.diff(now, 'minutes') < 10) {
-	// 										// Upcoming peer session starts in 10 minutes. Send notification and email to student and teacher
+	// 										// Upcoming mentor session starts in 10 minutes. Send notification and email to student and teacher
 	// 										//console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);
 	// 										// Send email to student
 	// 										const teacherImage = collection.owners()[0].profiles()[0].picture_url ? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
@@ -935,7 +935,7 @@ module.exports = function setupCron(server) {
 	// 										loopback.Email.send({
 	// 											to: sessionParticipants[0].email,
 	// 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 											subject: 'Upcoming peer session with ' + collection.owners()[0].profiles()[0].first_name,
+	// 											subject: 'Upcoming mentor session with ' + collection.owners()[0].profiles()[0].first_name,
 	// 											html: html_body
 	// 										})
 	// 											.then(function (response) {
@@ -950,7 +950,7 @@ module.exports = function setupCron(server) {
 	// 										loopback.Email.send({
 	// 											to: collection.owners()[0].email,
 	// 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 											subject: 'Upcoming peer session with ' + sessionParticipants[0].profiles()[0].first_name,
+	// 											subject: 'Upcoming mentor session with ' + sessionParticipants[0].profiles()[0].first_name,
 	// 											html: html_body
 	// 										})
 	// 											.then(function (response) {

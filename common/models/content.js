@@ -30,7 +30,7 @@ module.exports = function (Content) {
 									loopback.Email.send({
 										to: incomingCollectionInstance.toJSON().owners[0].email,
 										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-										subject: 'New Session Request',
+										subject: 'New Mentor Session Request',
 										html: html_body
 									})
 											.then(function (response) {
@@ -44,8 +44,8 @@ module.exports = function (Content) {
 									var Notification = app.models.notification;
 									var notifData = {
 										type: "action",
-										title: "New session request!",
-										description: "%username% has requested to join a peer session on %sessionDate% for %sessionHours%. Click to approve / reject.",
+										title: "New mentor session request!",
+										description: "%username% has requested to join a mentor session on %sessionDate% for %sessionHours%. Click to approve / reject.",
 										actionUrl: ["console","teaching","sessions"]
 									};
 									Notification.createNotification(incomingCollectionInstance.toJSON().owners[0].id, studentInstances[0].toJSON().id, notifData, 'content', contentInstance.id, function (err, notificationInstance) {
@@ -161,7 +161,7 @@ module.exports = function (Content) {
 										loopback.Email.send({
 											to: studentInstances[0].toJSON().email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'Peer session request approved!',
+											subject: 'Mentor session request approved!',
 											html: html_body
 										})
 												.then(function (response) {
@@ -175,8 +175,8 @@ module.exports = function (Content) {
 										var Notification = app.models.notification;
 										var notifData = {
 											type: "action",
-											title: "Session request approved!",
-											description: "%username% has approved your request to start a peer session on %sessionDate% for %sessionHours%.",
+											title: "Mentor session request has been accepted",
+											description: "%username% has accepted your request to start a mentor session on %sessionDate% for %sessionHours%.",
 											actionUrl: ["console","learning","sessions"]
 										};
 										Notification.createNotification(studentInstances[0].toJSON().id, incomingCollectionInstance.toJSON().owners[0].id, notifData, 'content', contentInstance.id, function (err, notificationInstance) {
@@ -196,7 +196,7 @@ module.exports = function (Content) {
 										loopback.Email.send({
 											to: studentInstances[0].toJSON().email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'Peer session request rejected!',
+											subject: 'Mentor session request was declined.',
 											html: html_body
 										})
 												.then(function (response) {
@@ -210,8 +210,8 @@ module.exports = function (Content) {
 										var Notification = app.models.notification;
 										var notifData = {
 											type: "action",
-											title: "Session request rejected!",
-											description: "%username% has rejected your request to start a peer session on %sessionDate% for %sessionHours%.",
+											title: "Mentor Session request declined!",
+											description: "%username% has rejected your request to start a mentor session on %sessionDate% for %sessionHours%.",
 											actionUrl: ["console","learning","sessions"]
 										};
 										Notification.createNotification(studentInstances[0].toJSON().id, incomingCollectionInstance.toJSON().owners[0].id, notifData, 'content', contentInstance.id, function (err, notificationInstance) {

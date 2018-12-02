@@ -897,7 +897,7 @@
     "dataSource": "neo4j-cypher",
     "public": false
   },
-  "content_question__has_answer": {
+  "content_question_has_answer": {
     "dataSource": "neo4j-cypher",
     "public": false
   },
@@ -908,5 +908,9 @@
   "trending_cache": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "content_has_answer": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

@@ -1,12 +1,12 @@
 {
-  "name": "content_question_has_answer",
+  "name": "content_has_answer",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "neo4j": {
-    "sourceModel": "content_question",
+    "sourceModel": "content",
     "targetModel": "content_answer"
   },
   "properties": {
@@ -23,12 +23,12 @@
   },
   "validations": [],
   "relations": {
-    "content_question": {
+    "content": {
       "type": "belongsTo",
-      "model": "content_question",
+      "model": "content",
       "foreignKey": "sourceId"
     },
-    "content_answer": {
+    "answer": {
       "type": "belongsTo",
       "model": "content_answer",
       "foreignKey": "targetId"
