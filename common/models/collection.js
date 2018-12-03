@@ -480,6 +480,8 @@ module.exports = function (Collection) {
 							err.code = 'DB_ERROR';
 							cb(err);
 						});
+				} else {
+					collectionInstance.save();
 				}
 
 				let message = '', subject = '';
