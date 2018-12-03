@@ -7,6 +7,8 @@ let moment = require('moment');
 let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 const Promise = require('bluebird');
+let _ = require('lodash');
+
 module.exports = function (Collection) {
 
 	Collection.validatesUniquenessOf('genericId');
@@ -1731,6 +1733,54 @@ module.exports = function (Collection) {
 			}
 		});
 	};
+	
+	
+	/**
+	 * Add participant to Ethereum
+	 * @param id
+	 * @param participantId
+	 * @param req
+	 * @param cb
+	 */
+	Collection.addParticipantToEthereum = function(id, participantId, req, cb) {
+		
+		Collection.app.models.peer.findById(participantId, { "include": ["profiles", "scholarships_joined"] }, function (err, participantUserInstance) {
+			if (err) {
+				cb(err);
+			}
+			else {
+				if (participantUserInstance) {
+					// Record student participation in an experience on blockchain
+					let scholarshipId;
+					if (req.body.scholarshipId && req.body.scholarshipId.length > 0) {
+						scholarshipId = req.body.scholarshipId;
+					} else {
+						if (participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0) {
+							scholarshipId = participantUserInstance.scholarships_joined[0].id;
+						} else {
+							scholarshipId = '';
+						}
+					}
+					request
+							.put({
+								url: Collection.app.get('protocolUrl') + 'collections/' + id + '/peers/rel/' + participantUserInstance.ethAddress,
+								body: {
+									scholarshipId: scholarshipId
+								},
+								json: true
+							}, function (err, response, data) {
+								if (err) {
+									console.error(err);
+								} else {
+									console.log('Recorded student participation on blockchain ' + data);
+								}
+							});
+				} else {
+					cb(new Error('Could not find participant with this ID.'));
+				}
+			}
+		});
+	};
 
 	Collection.announceResult = function (id, req, cb) {
 		const options = {
@@ -1827,14 +1877,19 @@ module.exports = function (Collection) {
 		// Get from blockchain
 		request
 			.get({
-				url: protocolUrl + 'collections/' + id + '/peers' + fk,
+				url: protocolUrl + 'collections/' + id + '/peers',
 			}, function (err, response, data) {
 				if (err) {
 					console.error(err);
 					cb(err);
 				} else {
-					console.log('Got participant details for this collection: ' + data);
-					cb(null, JSON.parse(data));
+					console.log('Got list of participants for this collection: ' + data);
+					const peers = JSON.parse(data);
+					if (_.find(peers, (peer) => peer === fk.toLowerCase())) {
+						cb(null, {result: true})
+					} else {
+						cb(null, {result: false});
+					}
 				}
 			});
 	};
@@ -1992,17 +2047,29 @@ module.exports = function (Collection) {
 			returns: { arg: 'result', type: 'object', root: true },
 			http: { path: '/fixDatabase', verb: 'get' }
 		});
-
+	
 	Collection.remoteMethod(
-		'checkParticipantOnBlockchain',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'fk', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/peer/:fk/ether', verb: 'get' }
-		});
+			'checkParticipantOnBlockchain',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'fk', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/:fk/ether', verb: 'get' }
+			});
+	
+	Collection.remoteMethod(
+			'addParticipantToEthereum',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'participantId', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/:fk/ether', verb: 'post' }
+			});
 
 };
