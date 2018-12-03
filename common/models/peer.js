@@ -1393,7 +1393,8 @@ module.exports = function (Peer) {
 			'e7c3eb57-1180-4876-9758-7431746641fc', // sahil
 			'3332fe86-0ba8-4418-81b7-3e20989b389f', // akash
 			'd60de369-8962-466a-8f2b-dbad1a77b383', // lawrence
-			'cd253120-c073-4e41-af42-2e1b74b1a431'  // gnana
+			'cd253120-c073-4e41-af42-2e1b74b1a431',  // gnana
+			'9ddcbba0-40ab-45f7-a02c-03c8c38e69c0' // Shiv Gupta
 		];
 
 		const queryObj = req.query;
