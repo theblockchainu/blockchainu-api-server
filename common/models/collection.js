@@ -1825,7 +1825,7 @@ module.exports = function (Collection) {
 		// Get from blockchain
 		request
 			.get({
-				url: protocolUrl + 'collections/' + id + '/peers' + fk,
+				url: protocolUrl + 'collections/' + id + '/peers/' + fk,
 			}, function (err, response, data) {
 				if (err) {
 					console.error(err);
