@@ -2083,7 +2083,7 @@ module.exports = function (Collection) {
 					{ arg: 'req', type: 'object', http: { source: 'req' } }
 				],
 				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/:id/peer/:fk/ether', verb: 'get' }
+				http: { path: '/:id/peers/:fk/ether', verb: 'get' }
 			});
 
 };
