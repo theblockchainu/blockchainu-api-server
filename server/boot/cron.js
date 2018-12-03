@@ -603,382 +603,391 @@ module.exports = function setupCron(server) {
 		'UTC'
 	);
 
-	// delete slots booked in last 10 mins but payment not yet done
-	const upcomingActivityCron = new CronJob('00 */10 * * * *', function () {
-		// const upcomingActivityCron = new CronJob('* * * * * *', function () {
-		const now = moment();
-		const query = {
-			where: {
-				type: 'session'
-			},
-			include: [
-				{
-					'contents': [
-						'availabilities',
-						{ 'peers': 'profiles' },
-						'packages',
-						'payments'
-					]
-				}
-			]
-		};
-		server.models.collection.find(query).then((results) => {
-			const promisesArray = [];
-			results.forEach(collection => {
-				const collectionJSON = collection.toJSON();
-				collectionJSON.contents.forEach(content => {
-					if (!content.payments || content.payments.length < 1) {
-						const timeDifference = now.diff(moment(content.createdAt), 'minute') > 10;
-						if (timeDifference) {
-							promisesArray.push(
-								server.models.content.destroyById(content.id)
-							);
+
+	// Runs once every 10 minutes
+	const upcomingActivityCron = new CronJob('00 */10 * * * *',
+		// const upcomingActivityCron = new CronJob('*/5 * * * * *',
+
+		function () {
+
+			// delete slots booked in last 10 mins but payment not yet done
+
+			const now = moment();
+			const query = {
+				where: {
+					type: 'session'
+				},
+				include: [
+					{
+						'contents': [
+							'availabilities',
+							{ 'peers': 'profiles' },
+							'packages',
+							'payments'
+						]
+					}
+				]
+			};
+			server.models.collection.find(query).then((results) => {
+				const promisesArray = [];
+				results.forEach(collection => {
+					const collectionJSON = collection.toJSON();
+					collectionJSON.contents.forEach(content => {
+						if (!content.payments || content.payments.length < 1) {
+							const timeDifference = now.diff(moment(content.createdAt), 'minute') > 10;
+							if (timeDifference) {
+								promisesArray.push(
+									server.models.content.destroyById(content.id)
+								);
+							}
+						}
+					});
+				});
+				return Promise.all(promisesArray);
+			}).then(res => {
+				console.log(res.length + 'deleted');
+			}).catch(err => {
+				console.log(err);
+			});
+
+			console.info('\n\n***********\nRunning 10 minute cron job. Functions: \n- Check if any upcoming activities in the next hour and send reminder emails to student and teacher\n**********\n\n');
+
+			request
+				.get({
+					url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
+					json: true
+				}, function (err, response, data1) {
+					if (err) {
+						console.error(err);
+					} else {
+						console.log('Got eth rate: ' + data1.USD);
+						const cacheData = {
+							id: '1',
+							ethRate: data1.USD
+						};
+						server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+							if (err) {
+								console.log(err);
+							} else {
+								console.log('Updated cache with ethRate - ' + JSON.stringify(cacheInstance));
+							}
+						});
+					}
+				});
+
+			request
+				.get({
+					url: protocolUrl + 'karma/mintRate',
+					json: true
+				}, function (err, response, data1) {
+					if (err) {
+						console.error(err);
+					} else {
+						console.log('Got karma mint rate: ' + data1);
+						const cacheData = {
+							id: '1',
+							karmaMintRate: data1
+						};
+						server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+							if (err) {
+								console.log(err);
+							} else {
+								console.log('Updated cache with karma mint rate - ' + JSON.stringify(cacheInstance));
+							}
+						});
+					}
+				});
+
+			request
+				.get({
+					url: protocolUrl + 'gyan/earnRate',
+					json: true
+				}, function (err, response, data1) {
+					if (err) {
+						console.error(err);
+					} else {
+						console.log('Got gyan earn rate: ' + data1);
+						const cacheData = {
+							id: '1',
+							gyanEarnRate: data1
+						};
+						server.models.cache.upsert(cacheData, function (err, cacheInstance) {
+							if (err) {
+								console.log(err);
+							} else {
+								console.log('Updated cache with gyan mint rate - ' + JSON.stringify(cacheInstance));
+							}
+						});
+					}
+				});
+
+			// server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': { 'neq': 'session' } }] }, 'include': [{ 'contents': ['schedules', 'locations', 'submissions'] }, 'calendars', { 'owners': ['profiles', 'topicsTeaching', 'wallet', 'topicsTeaching'] }] }, function (err, collectionInstances) {
+			// 	collectionInstances.forEach(collection => {
+			// 		try {
+			// 			if (collection.calendars() !== undefined) {
+			// 				collection.calendars().forEach(calendar => {
+			// 					let collectionCalendarStartDate = moment(calendar.startDate);
+			// 					let collectionCalendarEndDate = moment(calendar.endDate);
+			// 					let now = moment();
+			// 					// console.log(collection.customUrl + ' ' + collectionCalendarStartDate.toString() + ' ' + collectionCalendarEndDate.toString());
+			// 					if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate.subtract(1, 'days'), collectionCalendarEndDate)) {
+			// 						// This collection has a currently running calendar
+			// 						// Check if it has any upcoming activity
+			// 						collection.contents().forEach(content => {
+			// 							let schedules = content.schedules();
+			// 							let scheduleData = schedules[0];
+			// 							if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
+			// 								let startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
+			// 								let endDate = moment(calendar.startDate).add(scheduleData.endDay, 'days');
+			// 								if (scheduleData.startTime && scheduleData.endTime) {
+			// 									const startTimeMoment = moment(scheduleData.startTime);
+			// 									const endTimeMoment = moment(scheduleData.endTime);
+
+			// 									startTimeMoment.set('date', startDate.get('date'));
+			// 									startTimeMoment.set('month', startDate.get('month'));
+			// 									startTimeMoment.set('year', startDate.get('year'));
+
+			// 									endTimeMoment.set('date', endDate.get('date'));
+			// 									endTimeMoment.set('month', endDate.get('month'));
+			// 									endTimeMoment.set('year', endDate.get('year'));
+
+			// 									if ((content.type !== 'video') && startTimeMoment.diff(now, 'minutes') >= 60 && startTimeMoment.diff(now, 'minutes') < 70) {
+			// 										console.log('in it');
+			// 										const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
+			// 										// Upcoming activity starts in 1 hour. Send notification and email to all participants
+			// 										collection.__get__participants({ 'relWhere': { 'calendarId': calendar.id }, 'include': 'profiles' }, function (err, participantInstances) {
+			// 											if (!err && participantInstances.length > 0) {
+			// 												const activityTitle = _.upperFirst(content.title);
+			// 												const collectionTitle = _.upperFirst(collection.title);
+			// 												const collectionId = collection.id;
+			// 												const collectionCalendarId = calendar.id;
+			// 												const calendarId = calendar.id;
+			// 												const activityId = content.id;
+			// 												const collectionType = _.upperFirst(collection.type);
+			// 												const activityImage = content.imageUrl ? content.imageUrl : '/assets/images/no-image.jpg';
+			// 												const activityAddress = content.locations() && content.locations().length > 0 ? '#' + content.locations()[0].apt_suite + ', ' + content.locations()[0].street_address + ', ' + content.locations()[0].city + ', ' + content.locations()[0].state + ', ' + content.locations()[0].country + ' ' + content.locations()[0].zip : '';
+			// 												const teacherImage = collection.owners()[0].profiles()[0].picture_url ? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
+			// 												const teacherName = _.upperFirst(collection.owners()[0].profiles()[0].first_name) + ' ' + _.upperFirst(collection.owners()[0].profiles()[0].last_name);
+			// 												const teacherHeadline = _.upperFirst(collection.owners()[0].profiles()[0].headline);
+			// 												const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topic => topic.name)).toString();
+			// 												const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
+			// 												const participantCount = participantInstances.length;
+			// 												participantInstances.forEach(participantInstance => {
+			// 													const studentTimezone = participantInstance.profiles()[0].timezone ? participantInstance.profiles()[0].timezone.toUpperCase() : 'PST';
+			// 													const startTime = startTimeMoment.tz(studentTimezone).format('h:mm a');
+			// 													const endTime = endTimeMoment.tz(studentTimezone).format('h:mm a');
+			// 													const studentName = _.upperFirst(participantInstance.profiles()[0].first_name) + ' ' + _.upperFirst(participantInstance.profiles()[0].last_name);
+			// 													// Send email to student
+			// 													let message = {
+			// 														startTime: startTime,
+			// 														endTime: endTime,
+			// 														activityTitle: activityTitle,
+			// 														collectionTitle: collectionTitle,
+			// 														collectionId: collectionId,
+			// 														calendarId: calendarId,
+			// 														collectionCalendarId: collectionCalendarId,
+			// 														activityId: activityId,
+			// 														collectionType: collectionType,
+			// 														activityImage: activityImage,
+			// 														activityAddress: activityAddress,
+			// 														teacherImage: teacherImage,
+			// 														teacherName: teacherName,
+			// 														teacherHeadline: teacherHeadline,
+			// 														teacherTopics: teacherTopics,
+			// 														teacherGyan: teacherGyan,
+			// 														studentName: studentName
+			// 													};
+			// 													let renderer;
+			// 													if (content.type === 'online') {
+			// 														renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));
+			// 													}
+			// 													else if (content.type === 'project') {
+			// 														renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderStudent.ejs'));
+			// 													}
+			// 													else {
+			// 														renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderStudent.ejs'));
+			// 													}
+			// 													let html_body = renderer(message);
+			// 													loopback.Email.send({
+			// 														to: participantInstance.email,
+			// 														from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+			// 														subject: 'Upcoming ' + content.type + ' activity',
+			// 														html: html_body
+			// 													})
+			// 														.then(function (response) {
+			// 															console.log('email sent! - ');
+			// 														})
+			// 														.catch(function (err) {
+			// 															console.log('email error! - ' + err);
+			// 														});
+			// 												});
+			// 												let renderer;
+			// 												const startTime = startTimeMoment.tz(teacherTimezone).format('h:mm a');
+			// 												const endTime = endTimeMoment.tz(teacherTimezone).format('h:mm a');
+			// 												let message = {
+			// 													startTime: startTime,
+			// 													endTime: endTime,
+			// 													activityTitle: activityTitle,
+			// 													collectionTitle: collectionTitle,
+			// 													collectionId: collectionId,
+			// 													calendarId: calendarId,
+			// 													collectionCalendarId: collectionCalendarId,
+			// 													activityId: activityId,
+			// 													collectionType: collectionType,
+			// 													activityImage: activityImage,
+			// 													activityAddress: activityAddress,
+			// 													teacherImage: teacherImage,
+			// 													teacherName: teacherName,
+			// 													teacherHeadline: teacherHeadline,
+			// 													teacherTopics: teacherTopics,
+			// 													teacherGyan: teacherGyan,
+			// 													participantCount: participantCount
+			// 												};
+			// 												// send email to teacher
+			// 												if (content.type === 'online') {
+			// 													renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
+			// 												}
+			// 												else if (content.type === 'project') {
+			// 													renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
+			// 												}
+			// 												else {
+			// 													renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
+			// 												}
+			// 												let html_body = renderer(message);
+			// 												loopback.Email.send({
+			// 													to: collection.owners()[0].email,
+			// 													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+			// 													subject: 'Upcoming ' + content.type + ' activity',
+			// 													html: html_body
+			// 												})
+			// 													.then(function (response) {
+			// 														console.log('email sent! - ');
+			// 													})
+			// 													.catch(function (err) {
+			// 														console.log('email error! - ' + err);
+			// 													});
+			// 											}
+			// 										});
+			// 									}
+			// 								} else {
+			// 									console.log("Time Unavailable !");
+			// 								}
+			// 							} else {
+			// 								console.log("Schedule Days Unavailable");
+			// 							}
+			// 						});
+			// 					}
+			// 				});
+			// 			}
+			// 		} catch (err) {
+			// 			console.log(err);
+			// 		}
+			// 	});
+			// });
+
+			server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': 'session' }] }, 'include': [{ 'contents': [{ 'peers': ['profiles', 'topicsLearning', 'wallet'] }, 'availabilities', 'packages'] }, { 'owners': ['profiles', 'topicsTeaching', 'wallet'] }] }, function (err, collectionInstances) {
+				collectionInstances.forEach(collection => {
+					if (collection !== undefined && typeof collection === 'object') {
+						// For every session instance
+						try {
+							collection.contents().forEach(sessionInstance => {
+								let availabilities = sessionInstance.availabilities();
+								let packages = sessionInstance.packages();
+								let sessionParticipants = sessionInstance.peers();
+								if (sessionInstance.sessionIsApproved && availabilities !== undefined && availabilities.length > 0 && packages !== undefined && packages.length > 0 && sessionParticipants !== undefined && sessionParticipants.length > 0) {
+									availabilities = availabilities.sort((calEventa, calEventb) => (moment(calEventa.startDateTime).isAfter(moment(calEventb.startDateTime)) ? 1 : -1));
+									const studentTimezone = sessionParticipants[0].profiles()[0].timezone ? sessionParticipants[0].profiles()[0].timezone.toUpperCase() : 'PST';
+									const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
+									const startDateTime = moment.utc(availabilities[0].startDateTime).tz(teacherTimezone);
+									const endDateTime = moment.utc(availabilities[availabilities.length - 1].startDateTime).tz(teacherTimezone).add(30, 'minutes');
+									let now = moment.tz(teacherTimezone);
+									console.log(teacherTimezone);
+
+									if (startDateTime && endDateTime) {
+										// check if it starts in the next 10 minutes??
+										//console.log('Comparing session time: ' + startDateTime.format() + ' with current time: ' + now.format());
+										console.log('startDateTime.diff ' + startDateTime.diff(now, 'minutes'));
+										if (startDateTime.diff(now, 'minutes') >= 0 && startDateTime.diff(now, 'minutes') < 11) {
+											// Upcoming mentor session starts in 10 minutes. Send notification and email to student and teacher
+											//console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);
+											// Send email to student
+											const teacherImage = collection.owners()[0].profiles()[0].picture_url ? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
+											const teacherHeadline = collection.owners()[0].profiles()[0].headline;
+											const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topics => topics.name)).toString();
+											const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
+											const studentImage = sessionParticipants[0].profiles()[0].picture_url ? sessionParticipants[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
+											const studentHeadline = sessionParticipants[0].profiles()[0].headline;
+											const studentTopics = sessionParticipants[0].topicsTeaching() ? _.uniq(sessionParticipants[0].topicsTeaching().map(topics => topics.name)).toString() : [];
+											const studentGyan = sessionParticipants[0].wallet() ? sessionParticipants[0].wallet()[0].gyan_balance : '0';
+											console.log(startDateTime.toDate());
+											console.log(availabilities[0].startDateTime);
+											console.log(now.toDate());
+
+											let message = {
+												date: startDateTime.tz(studentTimezone).format('Do MMM, YYYY'),
+												// startTime: startDateTime.format('h:mm a'),
+												// endTime: endDateTime.format('h:mm a'),
+												startingIn: startDateTime.diff(now, 'minutes'),
+												teacherName: collection.owners()[0].profiles()[0].first_name + ' ' + collection.owners()[0].profiles()[0].last_name,
+												studentName: sessionParticipants[0].profiles()[0].first_name + ' ' + sessionParticipants[0].profiles()[0].last_name,
+												teacherImage: teacherImage,
+												teacherHeadline: teacherHeadline,
+												teacherTopics: teacherTopics,
+												teacherGyan: teacherGyan,
+												studentImage: studentImage,
+												studentHeadline: studentHeadline,
+												studentTopics: studentTopics,
+												studentGyan: studentGyan
+											};
+											let renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderStudent.ejs'));
+											let html_body = renderer(message);
+											loopback.Email.send({
+												to: sessionParticipants[0].email,
+												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+												subject: 'Upcoming mentor session with ' + collection.owners()[0].profiles()[0].first_name,
+												html: html_body
+											})
+												.then(function (response) {
+													console.log('email sent! - ');
+												})
+												.catch(function (err) {
+													console.log('email error! - ' + err);
+												});
+
+											renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderTeacher.ejs'));
+											html_body = renderer(message);
+											loopback.Email.send({
+												to: collection.owners()[0].email,
+												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+												subject: 'Upcoming mentor session with ' + sessionParticipants[0].profiles()[0].first_name,
+												html: html_body
+											})
+												.then(function (response) {
+													console.log('email sent! - ');
+												})
+												.catch(function (err) {
+													console.log('email error! - ' + err);
+												});
+										}
+									} else {
+										console.log("Time Unavailable !");
+									}
+								} else {
+								}
+							});
+						} catch (err) {
+							console.log(err);
 						}
 					}
 				});
 			});
-			return Promise.all(promisesArray);
-		}).then(res => {
-			console.log(res.length + 'deleted');
-		}).catch(err => {
-			console.log(err);
-		});
-	}, function () {
-		console.log('Unpaid Sessions Cleaned');
+		},
+		function () {
 
-	}, true,
+		},
+		true,
 		'UTC'
 	);
-
-
-	// Runs once every 10 minutes
-	// const upcomingActivityCron = new CronJob('00 */10 * * * *',
-	// 	function () {
-	// 		console.info('\n\n***********\nRunning 10 minute cron job. Functions: \n- Check if any upcoming activities in the next hour and send reminder emails to student and teacher\n**********\n\n');
-	// 		request
-	// 			.get({
-	// 				url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD',
-	// 				json: true
-	// 			}, function (err, response, data1) {
-	// 				if (err) {
-	// 					console.error(err);
-	// 				} else {
-	// 					console.log('Got eth rate: ' + data1.USD);
-	// 					const cacheData = {
-	// 						id: '1',
-	// 						ethRate: data1.USD
-	// 					};
-	// 					server.models.cache.upsert(cacheData, function (err, cacheInstance) {
-	// 						if (err) {
-	// 							console.log(err);
-	// 						} else {
-	// 							console.log('Updated cache with ethRate - ' + JSON.stringify(cacheInstance));
-	// 						}
-	// 					});
-	// 				}
-	// 			});
-	// 		request
-	// 			.get({
-	// 				url: protocolUrl + 'karma/mintRate',
-	// 				json: true
-	// 			}, function (err, response, data1) {
-	// 				if (err) {
-	// 					console.error(err);
-	// 				} else {
-	// 					console.log('Got karma mint rate: ' + data1);
-	// 					const cacheData = {
-	// 						id: '1',
-	// 						karmaMintRate: data1
-	// 					};
-	// 					server.models.cache.upsert(cacheData, function (err, cacheInstance) {
-	// 						if (err) {
-	// 							console.log(err);
-	// 						} else {
-	// 							console.log('Updated cache with karma mint rate - ' + JSON.stringify(cacheInstance));
-	// 						}
-	// 					});
-	// 				}
-	// 			});
-	// 		request
-	// 			.get({
-	// 				url: protocolUrl + 'gyan/earnRate',
-	// 				json: true
-	// 			}, function (err, response, data1) {
-	// 				if (err) {
-	// 					console.error(err);
-	// 				} else {
-	// 					console.log('Got gyan earn rate: ' + data1);
-	// 					const cacheData = {
-	// 						id: '1',
-	// 						gyanEarnRate: data1
-	// 					};
-	// 					server.models.cache.upsert(cacheData, function (err, cacheInstance) {
-	// 						if (err) {
-	// 							console.log(err);
-	// 						} else {
-	// 							console.log('Updated cache with gyan mint rate - ' + JSON.stringify(cacheInstance));
-	// 						}
-	// 					});
-	// 				}
-	// 			});
-	// 		server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': { 'neq': 'session' } }] }, 'include': [{ 'contents': ['schedules', 'locations', 'submissions'] }, 'calendars', { 'owners': ['profiles', 'topicsTeaching', 'wallet', 'topicsTeaching'] }] }, function (err, collectionInstances) {
-	// 			collectionInstances.forEach(collection => {
-	// 				try {
-	// 					if (collection.calendars() !== undefined) {
-	// 						collection.calendars().forEach(calendar => {
-	// 							let collectionCalendarStartDate = moment(calendar.startDate);
-	// 							let collectionCalendarEndDate = moment(calendar.endDate);
-	// 							let now = moment();
-	// 							// console.log(collection.customUrl + ' ' + collectionCalendarStartDate.toString() + ' ' + collectionCalendarEndDate.toString());
-	// 							if (calendar.status !== 'complete' && now.isBetween(collectionCalendarStartDate.subtract(1, 'days'), collectionCalendarEndDate)) {
-	// 								// This collection has a currently running calendar
-	// 								// Check if it has any upcoming activity
-	// 								collection.contents().forEach(content => {
-	// 									let schedules = content.schedules();
-	// 									let scheduleData = schedules[0];
-	// 									if (scheduleData.startDay !== null && scheduleData.endDay !== null) {
-	// 										let startDate = moment(calendar.startDate).add(scheduleData.startDay, 'days');
-	// 										let endDate = moment(calendar.startDate).add(scheduleData.endDay, 'days');
-	// 										if (scheduleData.startTime && scheduleData.endTime) {
-	// 											const startTimeMoment = moment(scheduleData.startTime);
-	// 											const endTimeMoment = moment(scheduleData.endTime);
-
-	// 											startTimeMoment.set('date', startDate.get('date'));
-	// 											startTimeMoment.set('month', startDate.get('month'));
-	// 											startTimeMoment.set('year', startDate.get('year'));
-
-	// 											endTimeMoment.set('date', endDate.get('date'));
-	// 											endTimeMoment.set('month', endDate.get('month'));
-	// 											endTimeMoment.set('year', endDate.get('year'));
-
-	// 											if ((content.type !== 'video') && startTimeMoment.diff(now, 'minutes') >= 60 && startTimeMoment.diff(now, 'minutes') < 70) {
-	// 												console.log('in it');
-	// 												const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
-	// 												// Upcoming activity starts in 1 hour. Send notification and email to all participants
-	// 												collection.__get__participants({ 'relWhere': { 'calendarId': calendar.id }, 'include': 'profiles' }, function (err, participantInstances) {
-	// 													if (!err && participantInstances.length > 0) {
-	// 														const activityTitle = _.upperFirst(content.title);
-	// 														const collectionTitle = _.upperFirst(collection.title);
-	// 														const collectionId = collection.id;
-	// 														const collectionCalendarId = calendar.id;
-	// 														const calendarId = calendar.id;
-	// 														const activityId = content.id;
-	// 														const collectionType = _.upperFirst(collection.type);
-	// 														const activityImage = content.imageUrl ? content.imageUrl : '/assets/images/no-image.jpg';
-	// 														const activityAddress = content.locations() && content.locations().length > 0 ? '#' + content.locations()[0].apt_suite + ', ' + content.locations()[0].street_address + ', ' + content.locations()[0].city + ', ' + content.locations()[0].state + ', ' + content.locations()[0].country + ' ' + content.locations()[0].zip : '';
-	// 														const teacherImage = collection.owners()[0].profiles()[0].picture_url ? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
-	// 														const teacherName = _.upperFirst(collection.owners()[0].profiles()[0].first_name) + ' ' + _.upperFirst(collection.owners()[0].profiles()[0].last_name);
-	// 														const teacherHeadline = _.upperFirst(collection.owners()[0].profiles()[0].headline);
-	// 														const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topic => topic.name)).toString();
-	// 														const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
-	// 														const participantCount = participantInstances.length;
-	// 														participantInstances.forEach(participantInstance => {
-	// 															const studentTimezone = participantInstance.profiles()[0].timezone ? participantInstance.profiles()[0].timezone.toUpperCase() : 'PST';
-	// 															const startTime = startTimeMoment.tz(studentTimezone).format('h:mm a');
-	// 															const endTime = endTimeMoment.tz(studentTimezone).format('h:mm a');
-	// 															const studentName = _.upperFirst(participantInstance.profiles()[0].first_name) + ' ' + _.upperFirst(participantInstance.profiles()[0].last_name);
-	// 															// Send email to student
-	// 															let message = {
-	// 																startTime: startTime,
-	// 																endTime: endTime,
-	// 																activityTitle: activityTitle,
-	// 																collectionTitle: collectionTitle,
-	// 																collectionId: collectionId,
-	// 																calendarId: calendarId,
-	// 																collectionCalendarId: collectionCalendarId,
-	// 																activityId: activityId,
-	// 																collectionType: collectionType,
-	// 																activityImage: activityImage,
-	// 																activityAddress: activityAddress,
-	// 																teacherImage: teacherImage,
-	// 																teacherName: teacherName,
-	// 																teacherHeadline: teacherHeadline,
-	// 																teacherTopics: teacherTopics,
-	// 																teacherGyan: teacherGyan,
-	// 																studentName: studentName
-	// 															};
-	// 															let renderer;
-	// 															if (content.type === 'online') {
-	// 																renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderStudent.ejs'));
-	// 															}
-	// 															else if (content.type === 'project') {
-	// 																renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderStudent.ejs'));
-	// 															}
-	// 															else {
-	// 																renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderStudent.ejs'));
-	// 															}
-	// 															let html_body = renderer(message);
-	// 															loopback.Email.send({
-	// 																to: participantInstance.email,
-	// 																from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 																subject: 'Upcoming ' + content.type + ' activity',
-	// 																html: html_body
-	// 															})
-	// 																.then(function (response) {
-	// 																	console.log('email sent! - ');
-	// 																})
-	// 																.catch(function (err) {
-	// 																	console.log('email error! - ' + err);
-	// 																});
-	// 														});
-	// 														let renderer;
-	// 														const startTime = startTimeMoment.tz(teacherTimezone).format('h:mm a');
-	// 														const endTime = endTimeMoment.tz(teacherTimezone).format('h:mm a');
-	// 														let message = {
-	// 															startTime: startTime,
-	// 															endTime: endTime,
-	// 															activityTitle: activityTitle,
-	// 															collectionTitle: collectionTitle,
-	// 															collectionId: collectionId,
-	// 															calendarId: calendarId,
-	// 															collectionCalendarId: collectionCalendarId,
-	// 															activityId: activityId,
-	// 															collectionType: collectionType,
-	// 															activityImage: activityImage,
-	// 															activityAddress: activityAddress,
-	// 															teacherImage: teacherImage,
-	// 															teacherName: teacherName,
-	// 															teacherHeadline: teacherHeadline,
-	// 															teacherTopics: teacherTopics,
-	// 															teacherGyan: teacherGyan,
-	// 															participantCount: participantCount
-	// 														};
-	// 														// send email to teacher
-	// 														if (content.type === 'online') {
-	// 															renderer = loopback.template(path.resolve(__dirname, '../../server/views/liveSessionReminderTeacher.ejs'));
-	// 														}
-	// 														else if (content.type === 'project') {
-	// 															renderer = loopback.template(path.resolve(__dirname, '../../server/views/projectSubmissionReminderTeacher.ejs'));
-	// 														}
-	// 														else {
-	// 															renderer = loopback.template(path.resolve(__dirname, '../../server/views/inpersonSessionReminderTeacher.ejs'));
-	// 														}
-	// 														let html_body = renderer(message);
-	// 														loopback.Email.send({
-	// 															to: collection.owners()[0].email,
-	// 															from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 															subject: 'Upcoming ' + content.type + ' activity',
-	// 															html: html_body
-	// 														})
-	// 															.then(function (response) {
-	// 																console.log('email sent! - ');
-	// 															})
-	// 															.catch(function (err) {
-	// 																console.log('email error! - ' + err);
-	// 															});
-	// 													}
-	// 												});
-	// 											}
-	// 										} else {
-	// 											console.log("Time Unavailable !");
-	// 										}
-	// 									} else {
-	// 										console.log("Schedule Days Unavailable");
-	// 									}
-	// 								});
-	// 							}
-	// 						});
-	// 					}
-	// 				} catch (err) {
-	// 					console.log(err);
-	// 				}
-	// 			});
-	// 		});
-	// 		server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': 'session' }] }, 'include': [{ 'contents': [{ 'peers': ['profiles', 'topicsLearning', 'wallet'] }, 'availabilities', 'packages'] }, { 'owners': ['profiles', 'topicsTeaching', 'wallet'] }] }, function (err, collectionInstances) {
-	// 			collectionInstances.forEach(collection => {
-	// 				if (collection !== undefined && typeof collection === 'object') {
-	// 					// For every session instance
-	// 					try {
-	// 						collection.contents().forEach(sessionInstance => {
-	// 							let availabilities = sessionInstance.availabilities();
-	// 							let packages = sessionInstance.packages();
-	// 							let sessionParticipants = sessionInstance.peers();
-	// 							if (sessionInstance.sessionIsApproved && availabilities !== undefined && availabilities.length > 0 && packages !== undefined && packages.length > 0 && sessionParticipants !== undefined && sessionParticipants.length > 0) {
-	// 								availabilities = availabilities.sort((calEventa, calEventb) => (moment(calEventa.startDateTime).isAfter(moment(calEventb.startDateTime)) ? 1 : -1));
-	// 								const studentTimezone = sessionParticipants[0].profiles()[0].timezone ? sessionParticipants[0].profiles()[0].timezone.toUpperCase() : 'PST';
-	// 								const teacherTimezone = collection.owners()[0].profiles()[0].timezone ? collection.owners()[0].profiles()[0].timezone.toUpperCase() : 'PST';
-	// 								let startDateTime = moment(availabilities[0].startDateTime).tz(teacherTimezone);
-	// 								let endDateTime = moment(availabilities[availabilities.length - 1].startDateTime).tz(teacherTimezone).add(60, 'minutes');
-	// 								let now = moment.tz(teacherTimezone);
-	// 								if (startDateTime && endDateTime) {
-	// 									// check if it starts in the next 10 minutes??
-	// 									//console.log('Comparing session time: ' + startDateTime.format() + ' with current time: ' + now.format());
-	// 									if (startDateTime.diff(now, 'minutes') >= 0 && startDateTime.diff(now, 'minutes') < 10) {
-	// 										// Upcoming mentor session starts in 10 minutes. Send notification and email to student and teacher
-	// 										//console.log('Sending notification to participant ' + sessionParticipants[0].profiles[0].first_name + ' ' + sessionParticipants[0].profiles[0].last_name + ' of session : ' + startDateTime.format('Do MMM h:mm a') + ' to ' + endDateTime.format('h:mm a') + ' with ' + collection.toJSON().owners[0].profiles[0].first_name);
-	// 										// Send email to student
-	// 										const teacherImage = collection.owners()[0].profiles()[0].picture_url ? collection.owners()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
-	// 										const teacherHeadline = collection.owners()[0].profiles()[0].headline;
-	// 										const teacherTopics = _.uniq(collection.owners()[0].topicsTeaching().map(topics => topics.name)).toString();
-	// 										const teacherGyan = collection.owners()[0].wallet() ? collection.owners()[0].wallet()[0].gyan_balance : '0';
-	// 										const studentImage = sessionParticipants[0].profiles()[0].picture_url ? sessionParticipants[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg';
-	// 										const studentHeadline = sessionParticipants[0].profiles()[0].headline;
-	// 										const studentTopics = _.uniq(sessionParticipants[0].topicsTeaching().map(topics => topics.name)).toString();
-	// 										const studentGyan = sessionParticipants[0].wallet() ? sessionParticipants[0].wallet()[0].gyan_balance : '0';
-	// 										let message = {
-	// 											date: startDateTime.tz(studentTimezone).format('Do MMM, YYYY'),
-	// 											startTime: startDateTime.tz(studentTimezone).format('h:mm a'),
-	// 											endTime: endDateTime.format('h:mm a'),
-	// 											teacherName: collection.owners()[0].profiles()[0].first_name + ' ' + collection.owners()[0].profiles()[0].last_name,
-	// 											studentName: sessionParticipants[0].profiles()[0].first_name + ' ' + sessionParticipants[0].profiles()[0].last_name,
-	// 											teacherImage: teacherImage,
-	// 											teacherHeadline: teacherHeadline,
-	// 											teacherTopics: teacherTopics,
-	// 											teacherGyan: teacherGyan,
-	// 											studentImage: studentImage,
-	// 											studentHeadline: studentHeadline,
-	// 											studentTopics: studentTopics,
-	// 											studentGyan: studentGyan
-	// 										};
-	// 										let renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderStudent.ejs'));
-	// 										let html_body = renderer(message);
-	// 										loopback.Email.send({
-	// 											to: sessionParticipants[0].email,
-	// 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 											subject: 'Upcoming mentor session with ' + collection.owners()[0].profiles()[0].first_name,
-	// 											html: html_body
-	// 										})
-	// 											.then(function (response) {
-	// 												console.log('email sent! - ');
-	// 											})
-	// 											.catch(function (err) {
-	// 												console.log('email error! - ' + err);
-	// 											});
-
-	// 										renderer = loopback.template(path.resolve(__dirname, '../../server/views/peerSessionReminderTeacher.ejs'));
-	// 										html_body = renderer(message);
-	// 										loopback.Email.send({
-	// 											to: collection.owners()[0].email,
-	// 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-	// 											subject: 'Upcoming mentor session with ' + sessionParticipants[0].profiles()[0].first_name,
-	// 											html: html_body
-	// 										})
-	// 											.then(function (response) {
-	// 												console.log('email sent! - ');
-	// 											})
-	// 											.catch(function (err) {
-	// 												console.log('email error! - ' + err);
-	// 											});
-	// 									}
-	// 								} else {
-	// 									console.log("Time Unavailable !");
-	// 								}
-	// 							} else {
-	// 							}
-	// 						});
-	// 					} catch (err) {
-	// 						console.log(err);
-	// 					}
-	// 				}
-	// 			});
-	// 		});
-	// 	},
-	// 	function () {
-
-	// 	},
-	// 	true,
-	// 	'UTC'
-	// );
 
 
 
