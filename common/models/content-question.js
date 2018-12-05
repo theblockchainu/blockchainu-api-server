@@ -27,7 +27,7 @@ module.exports = function(Contentquestion) {
 							if (questionInstance.answers()) {
 								questionInstance.answers().forEach(answer => {
 									console.log(answer);
-									if (answer.peer && answer.peer.length > 0 && answer.peer[0].id === loggedinPeer) {
+									if (answer.peer && answer.peer.length > 0 && answer.peer()[0].id === loggedinPeer) {
 										receivedAnswers++;
 									}
 								});
