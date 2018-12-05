@@ -1,0 +1,47 @@
+<html>
+
+<head>
+    <title>The Blockchain University</title>
+</head>
+
+<body>
+<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+    <!-- Header -->
+    <div style="vertical-align: middle; ">
+        <img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>
+    </div>
+    <!-- Title -->
+    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+        You have a new submission for your quiz - <%= quizTitle%>!
+    </div>
+    <!-- Body -->
+    <div>
+        <div style="font-size: 17px; margin-top: 25px;">
+            Hey <%= ownerName %>,
+            <br/><br/>
+            Course participant <%= participantName %> has submitted their answers for your Quiz titled <b>'<%= quizTitle%>'</b> as part of the <%= collectionType %> <b>'<%= collectionTitle%>'</b>.
+            <br/><br/>
+            You can view their submission, scores and make your evaluation at any time.
+            <br/><br/>
+        </div>
+        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= collectionType %>/<%= collectionId %>/<%= quizId %>">View Submission</a>
+        </div>
+    </div>
+    <!-- Signature -->
+    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
+        Cheers,
+        <br>
+        The Blockchain U Team
+    </div>
+    <!-- Footer -->
+    <hr style="margin-top: 40px; background-color: #dbdbdb;">
+    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+        Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U
+        <br><br>
+        Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+    </div>
+</div>
+</body>
+
+</html>

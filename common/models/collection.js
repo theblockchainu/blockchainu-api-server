@@ -583,7 +583,8 @@ module.exports = function (Collection) {
 					else {
 						let message = '', subject = '';
 						let title = '', description = '', actionUrl = [];
-						message = { type: collectionInstance.type };
+						let customUrl = collectionInstance.customUrl !== undefined && collectionInstance.customUrl.length > 0 ? collectionInstance.customUrl: collectionInstance.id;
+						message = { type: collectionInstance.type, customUrl: customUrl };
 						switch (collectionInstance.type) {
 							case 'class':
 								subject = 'Online course approved';
