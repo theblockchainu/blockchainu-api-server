@@ -8,8 +8,8 @@ let moment = require('moment');
 const qrcode = require('yaqrcode');
 var sha256 = require('js-sha256');
 var intoStream = require('into-stream');
-var Puppeteer = require('puppeteer');
 module.exports = function (Assessmentresult) {
+
 	Assessmentresult.observe('after save', function (ctx, next) {
 		var assessment = ctx.instance;
 		assessment.calendars
@@ -593,14 +593,14 @@ module.exports = function (Assessmentresult) {
 
 	Assessmentresult.generatePdf = function (html) {
 		let page;
-		return Puppeteer.launch().then(browser => {
-			return browser.newPage();
-		}).then(newpage => {
-			page = newpage;
-			return page.setContent(html);
-		}).then(() => {
-			return page.pdf();
-		});
+		return app.getBrowser().newPage()
+			.then(newpage => {
+				page = newpage;
+				return page.setContent(html);
+			}).then(() => {
+				const pageBuffer = page.pdf();
+				return Promise.resolve(pageBuffer);
+			});
 	};
 
 	Assessmentresult.remoteMethod(
