@@ -16,6 +16,7 @@ var crypto = require('crypto');
 let https = require('https');
 let http = require('http');
 let sslConfig = require('./ssl-config');
+var Puppeteer = require('puppeteer');
 
 try {
     // Try the native module first
@@ -167,15 +168,15 @@ app.post('/signup', function (req, res, next) {
     profileObject.promoOptIn = req.body.promoOptIn;
     let returnTo = req.headers.origin + '/' + req.query.returnTo;
     console.log(req.headers['x-client-ip']);
-	console.log(req.headers['x-real-ip']);
-	console.log(req.connection);
-	console.log(req.socket);
-	console.log(req.info);
-	const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-			req.connection.remoteAddress ||
-			req.socket.remoteAddress ||
-			req.connection.socket.remoteAddress;
-	console.log('*** remoteIp is: ' + remoteIp);
+    console.log(req.headers['x-real-ip']);
+    console.log(req.connection);
+    console.log(req.socket);
+    console.log(req.info);
+    const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+    console.log('*** remoteIp is: ' + remoteIp);
     const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
@@ -390,7 +391,7 @@ app.post('/signup', function (req, res, next) {
                                             console.log('Creating wallet');
                                             createWallet();
                                             if (remoteIp && remoteIp.length > 0) {
-	                                            saveUserCountry(remoteIp);
+                                                saveUserCountry(remoteIp);
                                             }
                                             updateOnMailchimp();
                                             console.log('Logging in user');
@@ -406,45 +407,45 @@ app.post('/signup', function (req, res, next) {
                                 );
                             }
                         });
-                        
+
                         let updateOnMailchimp = () => {
-	                        let hash = crypto.createHash('md5').update(user.email.toLowerCase()).digest('hex');
-	                        request.put({
-		                        url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
-		                        body: {
-		                        	email_address: user.email,
-			                        status_if_new: 'subscribed',
-			                        ip_signup: remoteIp,
-			                        merge_fields: {
-				                        FNAME: profileObject.first_name,
-				                        LNAME: profileObject.last_name
-			                        }
-		                        },
-		                        json: true
-	                        }, function(err, response, data) {
-		                        if (err) {
-			                        console.error(err);
-		                        } else {
-		                        	console.log('*** Updated email on mailchimp');
-		                        }
-	                        }).auth('blockchainu', '8be612fef7633e059cfc22e8dff8a442-us16', true);
+                            let hash = crypto.createHash('md5').update(user.email.toLowerCase()).digest('hex');
+                            request.put({
+                                url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
+                                body: {
+                                    email_address: user.email,
+                                    status_if_new: 'subscribed',
+                                    ip_signup: remoteIp,
+                                    merge_fields: {
+                                        FNAME: profileObject.first_name,
+                                        LNAME: profileObject.last_name
+                                    }
+                                },
+                                json: true
+                            }, function (err, response, data) {
+                                if (err) {
+                                    console.error(err);
+                                } else {
+                                    console.log('*** Updated email on mailchimp');
+                                }
+                            }).auth('blockchainu', '8be612fef7633e059cfc22e8dff8a442-us16', true);
                         };
-                        
+
                         let saveUserCountry = (ip) => {
                             request.get({
                                 url: 'https://ipapi.co/' + ip + '/json',
                                 json: true
-                            }, function(err, response, data) {
+                            }, function (err, response, data) {
                                 if (err) {
                                     console.error(err);
                                 } else {
                                     console.log(data);
-	                                User.dataSource.connector.execute(
-			                                "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
-			                                function (err, results) {
-				                                console.log('Saved user country code in database');
-			                                }
-	                                );
+                                    User.dataSource.connector.execute(
+                                        "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
+                                        function (err, results) {
+                                            console.log('Saved user country code in database');
+                                        }
+                                    );
                                 }
                             });
                         };
@@ -647,7 +648,18 @@ passportConfigurator.setupModels({
     userCredentialModel: app.models.userCredential,
 });
 
+let browser;
+
+app.getBrowser = function () {
+    return browser;
+};
+
 app.start = function (httpOnly) {
+    Puppeteer.launch().then(browserInstance => {
+        browser = browserInstance;
+        console.log('browser instance created using pupeteer');
+    });
+
     if (httpOnly === undefined) {
         httpOnly = process.env.HTTP;
     }
