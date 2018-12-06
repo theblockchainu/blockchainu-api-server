@@ -15,37 +15,37 @@ exports = module.exports = function (io) {
             try {
                 console.log("\n\n\n\n\n//**** Connecting user id:" + user.id + " to socket " + socket.id + "****//");
                 socket.userId = user.id;
-                app.models.peer.findById(user.id, function(err, peerInstance) {
-                   if (err) {
-                       console.log("add user err ::" + err);
-                   }
-                   else {
-                       var socketValue = {
-                           socketId: socket.id
-                       };
-                       peerInstance.socketconnections.create(socketValue, function (err, socketInstance) {
-                          if (err) {
-                              console.log("add socket to db err ::" + err);
-                          }
-                          else {
-                              var connUser = findById(users, user.id);
-                              if (connUser !== undefined) {                  //user is already connected from some location
-                                  if (findById(connUser.socketConns, socket.id) === undefined) {
-                                      connUser.socketConns.push(socket.id);       // Store this socket reference as well for this user
-                                  }
-                              } else {
+                app.models.peer.findById(user.id, function (err, peerInstance) {
+                    if (err) {
+                        console.log("add user err ::" + err);
+                    }
+                    else {
+                        var socketValue = {
+                            socketId: socket.id
+                        };
+                        peerInstance.socketconnections.create(socketValue, function (err, socketInstance) {
+                            if (err) {
+                                console.log("add socket to db err ::" + err);
+                            }
+                            else {
+                                var connUser = findById(users, user.id);
+                                if (connUser !== undefined) {                  //user is already connected from some location
+                                    if (findById(connUser.socketConns, socket.id) === undefined) {
+                                        connUser.socketConns.push(socket.id);       // Store this socket reference as well for this user
+                                    }
+                                } else {
 
-                                  var userSockets = [];
-                                  userSockets.push(socket.id);    // Store a reference to your socket as there could be multiple socket for same user.
-                                  user.socketConns = userSockets;
-                                  users.push(user);         // Store this newly connected user in global users connection list
-                              }
+                                    var userSockets = [];
+                                    userSockets.push(socket.id);    // Store a reference to your socket as there could be multiple socket for same user.
+                                    user.socketConns = userSockets;
+                                    users.push(user);         // Store this newly connected user in global users connection list
+                                }
 
-                              //currently connected user
-                              printConnectedUsers();
-                          }
-                       });
-                   }
+                                //currently connected user
+                                printConnectedUsers();
+                            }
+                        });
+                    }
                 });
             } catch (err) {
                 console.log("add user err ::" + err);
@@ -56,9 +56,9 @@ exports = module.exports = function (io) {
 
             try {
 
-                app.models.socket_connection.find({'where': {'socketId': socket.id}}, function(err, socketInstance) {
+                app.models.socket_connection.find({ 'where': { 'socketId': socket.id } }, function (err, socketInstance) {
                     if (!err && socketInstance.length > 0) {
-                        socketInstance[0].destroy(function(err, deleteInstance){
+                        socketInstance[0].destroy(function (err, deleteInstance) {
                             if (!err) {
                                 var disconnectingUser = null;
 
@@ -166,16 +166,55 @@ exports = module.exports = function (io) {
 
         function startView(view, connUser) {
             if (view.viewedModelName === 'content') {
-                app.models.content.findById(view.content.id, function(err, contentInstance) {
+                app.models.content.findById(view.content.id, function (err, contentInstance) {
                     var viewer = view.viewer;
                     delete view.content;
                     delete view.viewer;
                     if (err) {
-                       console.log(err);
+                        console.log(err);
                     }
                     else {
                         // create a view node
-                        contentInstance.views.create(view, function (err, newViewInstance) {
+                        if (contentInstance) {
+                            contentInstance.views.create(view, function (err, newViewInstance) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                                else {
+                                    // add a peer relation to the new view node
+                                    app.models.peer.findById(viewer.id, function (err, peerInstance) {
+                                        if (err || !peerInstance) {
+                                            console.log("User for this view Not Found");
+                                            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                        } else {
+                                            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
+                                                if (err) {
+                                                    console.log(err);
+                                                } else {
+                                                    //console.log(addedPeerInstance);
+                                                    io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+
+                    }
+                });
+            }
+            else if (view.viewedModelName === 'collection') {
+                app.models.collection.findById(view.collection.id, function (err, collectionInstance) {
+                    var viewer = view.viewer;
+                    delete view.collection;
+                    delete view.viewer;
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        // create a view node
+                        collectionInstance.views.create(view, function (err, newViewInstance) {
                             if (err) {
                                 console.log(err);
                             }
@@ -184,7 +223,7 @@ exports = module.exports = function (io) {
                                 app.models.peer.findById(viewer.id, function (err, peerInstance) {
                                     if (err || !peerInstance) {
                                         console.log("User for this view Not Found");
-	                                    io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                        io.sendEmitToUser(connUser, 'startedView', newViewInstance);
                                     } else {
                                         newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
                                             if (err) {
@@ -201,77 +240,41 @@ exports = module.exports = function (io) {
                     }
                 });
             }
-            else if (view.viewedModelName === 'collection') {
-	            app.models.collection.findById(view.collection.id, function(err, collectionInstance) {
-		            var viewer = view.viewer;
-		            delete view.collection;
-		            delete view.viewer;
-		            if (err) {
-			            console.log(err);
-		            }
-		            else {
-			            // create a view node
-			            collectionInstance.views.create(view, function (err, newViewInstance) {
-				            if (err) {
-					            console.log(err);
-				            }
-				            else {
-					            // add a peer relation to the new view node
-					            app.models.peer.findById(viewer.id, function (err, peerInstance) {
-						            if (err || !peerInstance) {
-							            console.log("User for this view Not Found");
-							            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
-						            } else {
-							            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
-								            if (err) {
-									            console.log(err);
-								            } else {
-									            //console.log(addedPeerInstance);
-									            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
-								            }
-							            });
-						            }
-					            });
-				            }
-			            });
-		            }
-	            });
-            }
             else if (view.viewedModelName === 'community') {
-	            app.models.community.findById(view.community.id, function(err, communityInstance) {
-		            var viewer = view.viewer;
-		            delete view.community;
-		            delete view.viewer;
-		            if (err) {
-			            console.log(err);
-		            }
-		            else {
-			            // create a view node
-			            communityInstance.views.create(view, function (err, newViewInstance) {
-				            if (err) {
-					            console.log(err);
-				            }
-				            else {
-					            // add a peer relation to the new view node
-					            app.models.peer.findById(viewer.id, function (err, peerInstance) {
-						            if (err || !peerInstance) {
-							            console.log("User for this view Not Found");
-							            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
-						            } else {
-							            newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
-								            if (err) {
-									            console.log(err);
-								            } else {
-									            //console.log(addedPeerInstance);
-									            io.sendEmitToUser(connUser, 'startedView', newViewInstance);
-								            }
-							            });
-						            }
-					            });
-				            }
-			            });
-		            }
-	            });
+                app.models.community.findById(view.community.id, function (err, communityInstance) {
+                    var viewer = view.viewer;
+                    delete view.community;
+                    delete view.viewer;
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        // create a view node
+                        communityInstance.views.create(view, function (err, newViewInstance) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                // add a peer relation to the new view node
+                                app.models.peer.findById(viewer.id, function (err, peerInstance) {
+                                    if (err || !peerInstance) {
+                                        console.log("User for this view Not Found");
+                                        io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                    } else {
+                                        newViewInstance.peer.add(peerInstance.id, function (err, addedPeerInstance) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                //console.log(addedPeerInstance);
+                                                io.sendEmitToUser(connUser, 'startedView', newViewInstance);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             }
             else {
                 console.log('no function to handle view for this model');
@@ -281,7 +284,7 @@ exports = module.exports = function (io) {
         function endView(view, connUser) {
             if (view.viewedModelName === 'content') {
                 delete view.viewer;
-                app.models.view.upsertWithWhere({"id": view.id}, view, function (err, newViewInstance) {
+                app.models.view.upsertWithWhere({ "id": view.id }, view, function (err, newViewInstance) {
                     if (err) {
                         console.log(err);
                     }
@@ -290,17 +293,17 @@ exports = module.exports = function (io) {
                     }
                 });
             }
-	        else if (view.viewedModelName === 'collection') {
-		        delete view.viewer;
-		        app.models.view.upsertWithWhere({"id": view.id}, view, function (err, newViewInstance) {
-			        if (err) {
-				        console.log(err);
-			        }
-			        else {
-				        io.sendEmitToUser(connUser, 'endedView', newViewInstance);
-			        }
-		        });
-	        }
+            else if (view.viewedModelName === 'collection') {
+                delete view.viewer;
+                app.models.view.upsertWithWhere({ "id": view.id }, view, function (err, newViewInstance) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        io.sendEmitToUser(connUser, 'endedView', newViewInstance);
+                    }
+                });
+            }
             else {
                 console.log('no function to handle view for this model');
             }
