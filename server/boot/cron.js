@@ -633,7 +633,7 @@ module.exports = function setupCron(server) {
 				results.forEach(collection => {
 					const collectionJSON = collection.toJSON();
 					collectionJSON.contents.forEach(content => {
-						if (!content.payments || content.payments.length < 1) {
+						if (content.packages[0].price !== 0 && (!content.payments || content.payments.length < 1)) {
 							const timeDifference = now.diff(moment(content.createdAt), 'minute') > 10;
 							if (timeDifference) {
 								promisesArray.push(
