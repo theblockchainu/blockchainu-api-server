@@ -958,7 +958,7 @@ module.exports = function (Collection) {
 							newCollection[updatedContentKey] = ctx.args.data[updatedContentKey];
 						});
 
-						newCollection.title = 'Cloned: ' + newCollection.title;
+						//newCollection.title = '[COPY] ' + newCollection.title;
 						newCollection.disableHasOneCreate = true;
 
 						delete newCollection.id;
@@ -1112,7 +1112,7 @@ module.exports = function (Collection) {
 						delete newCollection.updatedAt;
 						delete newCollection.isApproved;
 						delete newCollection.isNewInstance;
-						newCollection.title = 'Cloned: ' + newCollection.title;
+						//newCollection.title = '[COPY] ' + newCollection.title;
 						newCollection.disableHasOneCreate = true;
 
 						Collection.create(newCollection, function (err, newCollectionInstance) {
@@ -1180,7 +1180,8 @@ module.exports = function (Collection) {
 													if (!err && newCreatedContentInstance !== null) {
 														console.log('Cloned content for collection');
 														let oldContentInstance = oldContentInstances[m].__data;
-
+														
+														delete newCreatedContentInstance.isNewInstance;
 														// Add content to array to pass in result
 														resultContents.push(newCreatedContentInstance);
 
@@ -1281,6 +1282,58 @@ module.exports = function (Collection) {
 										});
 									}
 								});
+								
+								// Copy certificate templates
+								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+									if (!err && oldCertificateTemplates !== null) {
+										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+												// Do nothing here.
+												console.log('Copied certificate template for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy promo codes
+								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+									if (!err && oldPromoCodes !== null) {
+										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+												// Do nothing here.
+												console.log('Copied promo codes for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy rewards
+								collectionInstance.__get__rewards(function (err, oldRewards) {
+									if (!err && oldRewards !== null) {
+										oldRewards.forEach(function (oldRewardInstance) {
+											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+												// Do nothing here.
+												console.log('Copied rewards for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy Assessment models
+								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+									if (!err && oldAssessmentModels !== null) {
+										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+												// Do nothing here.
+												console.log('Copied assessment model for new collection');
+											});
+											
+										});
+									}
+								});
 							}
 						});
 					}
@@ -1327,7 +1380,6 @@ module.exports = function (Collection) {
 						delete newCollection.updatedAt;
 						delete newCollection.isApproved;
 						delete newCollection.isNewInstance;
-						newCollection.title = 'Cloned: ' + newCollection.title;
 						newCollection.disableHasOneCreate = true;
 
 						Collection.create(newCollection, function (err, newCollectionInstance) {
@@ -1380,6 +1432,8 @@ module.exports = function (Collection) {
 												newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
 													if (!err && newCreatedContentInstance !== null) {
 														console.log('Created content for collection');
+														
+														delete newCreatedContentInstance.isNewInstance;
 														// Add content to array to pass as result
 														resultContents.push(newCreatedContentInstance.toJSON());
 														// Sent result response
@@ -1459,6 +1513,59 @@ module.exports = function (Collection) {
 										});
 									}
 								});
+								
+								// Copy certificate templates
+								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+									if (!err && oldCertificateTemplates !== null) {
+										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+												// Do nothing here.
+												console.log('Copied certificate template for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy promo codes
+								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+									if (!err && oldPromoCodes !== null) {
+										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+												// Do nothing here.
+												console.log('Copied promo codes for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy rewards
+								collectionInstance.__get__rewards(function (err, oldRewards) {
+									if (!err && oldRewards !== null) {
+										oldRewards.forEach(function (oldRewardInstance) {
+											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+												// Do nothing here.
+												console.log('Copied rewards for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy Assessment models
+								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+									if (!err && oldAssessmentModels !== null) {
+										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+												// Do nothing here.
+												console.log('Copied assessment model for new collection');
+											});
+											
+										});
+									}
+								});
+								
 							}
 						});
 					}
@@ -1505,7 +1612,6 @@ module.exports = function (Collection) {
 						delete newCollection.updatedAt;
 						delete newCollection.isApproved;
 						delete newCollection.isNewInstance;
-						newCollection.title = 'Cloned: ' + newCollection.title;
 						newCollection.disableHasOneCreate = true;
 
 						Collection.create(newCollection, function (err, newCollectionInstance) {
@@ -1615,6 +1721,58 @@ module.exports = function (Collection) {
 												console.log('Copied payoutrules for new collection');
 											});
 
+										});
+									}
+								});
+								
+								// Copy certificate templates
+								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+									if (!err && oldCertificateTemplates !== null) {
+										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+												// Do nothing here.
+												console.log('Copied certificate template for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy promo codes
+								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+									if (!err && oldPromoCodes !== null) {
+										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+												// Do nothing here.
+												console.log('Copied promo codes for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy rewards
+								collectionInstance.__get__rewards(function (err, oldRewards) {
+									if (!err && oldRewards !== null) {
+										oldRewards.forEach(function (oldRewardInstance) {
+											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+												// Do nothing here.
+												console.log('Copied rewards for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy Assessment models
+								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+									if (!err && oldAssessmentModels !== null) {
+										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+												// Do nothing here.
+												console.log('Copied assessment model for new collection');
+											});
+											
 										});
 									}
 								});
