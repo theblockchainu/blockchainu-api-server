@@ -5,59 +5,63 @@
 </head>
 
 <body>
-<div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
-    <!-- Header -->
-    <div style="vertical-align: middle; ">
-        <img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>
-    </div>
-    <!-- Title -->
-    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-        Get ready for your mentor session
-    </div>
-    <!-- Body -->
-    <div>
-        <div style="font-size: 17px; margin-top: 25px;">
-            Hey there,
+    <div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+        <!-- Header -->
+        <div style="vertical-align: middle; ">
+            <img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px"> <span style="position: relative; top: -14px; color: #33bd9e"></span>
         </div>
-        <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
-            You have an upcoming mentor session with <%= teacherName %>, starting in from <%= startingIn%> mins</b>.
-            <br><br>
-            Make sure you join on time so you make most use of your scheduled time.
-            <br><br>
-            <div style="display: inline-block; width: 30%;">
-                <img src="https://theblockchainu.com:3002<%= teacherImage %>" alt="Cover Image" style="width: 100%;">
+        <!-- Title -->
+        <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+            Get ready for your mentor session
+        </div>
+        <!-- Body -->
+        <div>
+            <div style="font-size: 17px; margin-top: 25px;">
+                Hey there,
             </div>
-            <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: top;">
-                <b><%= teacherName %></b>
-                <br>
-                <%= teacherHeadline %>
-                <br>
-                <br>
-                <%= teacherTopics %>
+            <div style="font-size: 17px; margin-top: 10px; line-height: 24px">
+                You have an upcoming mentor session with
+                <%= teacherName %>, starting in
+                <%= startingIn%> mins</b>.
                 <br><br>
-                <b><%= teacherGyan %> Gyan</b>
-                <br>
+                Make sure you join on time so you make most use of your scheduled time.
+                <br><br>
+                <div style="display: inline-block; width: 30%;">
+                    <img src="https://theblockchainu.com:3002<%= teacherImage %>" alt="Cover Image" style="width: 100%;">
+                </div>
+                <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: top;">
+                    <b>
+                        <%= teacherName %></b>
+                    <br>
+                    <%= teacherHeadline %>
+                    <br>
+                    <br>
+                    <%= teacherTopics %>
+                    <br><br>
+                    <b>
+                        <%= teacherGyan %> Gyan</b>
+                    <br>
+                </div>
+                <br><br>
             </div>
+            <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+                <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/console/learning/sessions">JOIN</a>
+            </div>
+        </div>
+        <!-- Signature -->
+        <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
+            Cheers,
+            <br>
+            The Blockchain U Team
+        </div>
+        <!-- Footer -->
+        <hr style="margin-top: 40px; background-color: #dbdbdb;">
+        <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+            Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U
             <br><br>
-        </div>
-        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/console/learning/sessions">JOIN</a>
+            Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
         </div>
     </div>
-    <!-- Signature -->
-    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
-        Cheers,
-        <br>
-        The Blockchain U Team
-    </div>
-    <!-- Footer -->
-    <hr style="margin-top: 40px; background-color: #dbdbdb;">
-    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
-        Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U
-        <br><br>
-        Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538
-    </div>
-</div>
 </body>
 
 </html>
