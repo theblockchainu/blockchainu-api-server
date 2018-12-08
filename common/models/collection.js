@@ -110,7 +110,10 @@ module.exports = function (Collection) {
 																					}, function (err, response, data) {
 																						if (err) {
 																							console.error(err);
-																						} else {
+																						} else if (data && data.error) {
+																							console.error(data.error);
+																						}
+																						else {
 																							console.log('Recorded student participation on blockchain ' + data);
 																						}
 																					});
@@ -374,6 +377,8 @@ module.exports = function (Collection) {
 														if (err) {
 															console.error(err);
 															next(err);
+														} else if (data && data.error) {
+															next(data.error);
 														} else {
 															console.log('Recorded student participation on blockchain ' + data);
 														}
@@ -724,6 +729,8 @@ module.exports = function (Collection) {
 																						}, function (err, response, data) {
 																							if (err) {
 																								console.error(err);
+																							} else if (data && data.error) {
+																								console.error(data.error);
 																							} else {
 																								console.log('Add collection to blockchain: ');
 																								console.log(data);
@@ -1056,6 +1063,71 @@ module.exports = function (Collection) {
 												console.log('Copied topic for new collection');
 											});
 
+										});
+									}
+								});
+								
+								// Copy payoutrules from old collection to new collection
+								collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
+									if (!err && oldPayoutInstances !== null) {
+										oldPayoutInstances.forEach(function (oldPayoutInstance) {
+											newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
+												// Do nothing here.
+												console.log('Copied payoutrules for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy certificate templates
+								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+									if (!err && oldCertificateTemplates !== null) {
+										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+												// Do nothing here.
+												console.log('Copied certificate template for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy promo codes
+								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+									if (!err && oldPromoCodes !== null) {
+										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+												// Do nothing here.
+												console.log('Copied promo codes for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy rewards
+								collectionInstance.__get__rewards(function (err, oldRewards) {
+									if (!err && oldRewards !== null) {
+										oldRewards.forEach(function (oldRewardInstance) {
+											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+												// Do nothing here.
+												console.log('Copied rewards for new collection');
+											});
+											
+										});
+									}
+								});
+								
+								// Copy Assessment models
+								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+									if (!err && oldAssessmentModels !== null) {
+										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+												// Do nothing here.
+												console.log('Copied assessment model for new collection');
+											});
+											
 										});
 									}
 								});
@@ -1801,6 +1873,8 @@ module.exports = function (Collection) {
 				if (err) {
 					console.error(err);
 					cb(err);
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got details of collection: ' + data);
 					cb(null, JSON.parse(data));
@@ -1875,6 +1949,8 @@ module.exports = function (Collection) {
 									cb(err);
 								} else if (response.body.error) {
 									cb(response.body.error);
+								} else if (data && data.error) {
+									cb(data.error);
 								} else {
 									console.log('Add collection to blockchain: ');
 									console.log(response);
@@ -1913,7 +1989,7 @@ module.exports = function (Collection) {
 					if (req.body.scholarshipId && req.body.scholarshipId.length > 0) {
 						scholarshipId = req.body.scholarshipId;
 					} else {
-						if (participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0) {
+						if (participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0 && participantUserInstance.scholarships_joined[0]) {
 							scholarshipId = participantUserInstance.scholarships_joined[0].id;
 						} else {
 							scholarshipId = '';
@@ -1929,8 +2005,13 @@ module.exports = function (Collection) {
 						}, function (err, response, data) {
 							if (err) {
 								console.error(err);
-							} else {
-								console.log('Recorded student participation on blockchain ' + data);
+							} else if (data && data.error) {
+								cb(data.error);
+							}
+							else {
+								console.log('Recorded student participation on blockchain ');
+								console.log(data);
+								cb(null, data);
 							}
 						});
 				} else {
@@ -2039,14 +2120,16 @@ module.exports = function (Collection) {
 			}, function (err, response, data) {
 				if (err) {
 					console.error(err);
-					cb(err);
+					cb(null, {result: false, participantId: fk.toLowerCase()});
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got list of participants for this collection: ' + data);
 					const peers = JSON.parse(data);
 					if (_.find(peers, (peer) => peer === fk.toLowerCase())) {
-						cb(null, { result: true });
+						cb(null, { result: true, participantId: fk.toLowerCase() });
 					} else {
-						cb(null, { result: false });
+						cb(null, { result: false, participantId: fk.toLowerCase() });
 					}
 				}
 			});
@@ -2227,7 +2310,7 @@ module.exports = function (Collection) {
 				{ arg: 'req', type: 'object', http: { source: 'req' } }
 			],
 			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/peers/:fk/ether', verb: 'post' }
+			http: { path: '/:id/peers/:participantId/ether', verb: 'post' }
 		});
 
 };

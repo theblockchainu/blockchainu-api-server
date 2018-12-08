@@ -723,6 +723,8 @@ module.exports = function (Peer) {
 					}, (err, response, data) => {
 						if (err) {
 							console.error(err);
+						} else if (data && data.error) {
+							console.error(data.error);
 						} else {
 							Peer.dataSource.connector.execute(
 								"MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
@@ -774,6 +776,8 @@ module.exports = function (Peer) {
 												}, function (err, response, result) {
 													if (err) {
 														console.error(err);
+													} else if (result && result.error) {
+														console.error(result.error);
 													} else {
 														console.log('Added participant to scholarship on blockchain: ');
 														console.log(result);
@@ -1146,6 +1150,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got floating gyan balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1188,6 +1194,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got fixed gyan balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1230,6 +1238,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got potential karma rewards of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1271,6 +1281,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got karma balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1323,6 +1335,8 @@ module.exports = function (Peer) {
 								if (err) {
 									console.error(err);
 									cb(err);
+								} else if (data && data.error) {
+									cb(data.error);
 								} else {
 									console.log('Created new wallet address for user: ' + data);
 									peerInstance.updateAttributes({
@@ -1360,6 +1374,8 @@ module.exports = function (Peer) {
 				if (err) {
 					console.error(err);
 					cb(err);
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got karma supply: ' + data);
 					cb(null, data);
@@ -1378,6 +1394,8 @@ module.exports = function (Peer) {
 				if (err) {
 					console.error(err);
 					cb(err);
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got transactions of this peer: ' + data);
 					cb(null, data);

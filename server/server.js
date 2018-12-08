@@ -462,6 +462,8 @@ app.post('/signup', function (req, res, next) {
                                 }, function (err, response, data) {
                                     if (err) {
                                         console.error(err);
+                                    } else if (data && data.error) {
+	                                    console.error(data.error);
                                     } else {
                                         console.log(data);
                                         User.dataSource.connector.execute(
@@ -514,6 +516,8 @@ app.post('/signup', function (req, res, next) {
                                                             }, function (err, response, result) {
                                                                 if (err) {
                                                                     console.error(err);
+                                                                } else if (result && result.error) {
+	                                                                console.error(result.error);
                                                                 } else {
                                                                     console.log('Added participant to scholarship on blockchain: ' + result);
                                                                 }
@@ -545,7 +549,6 @@ app.post('/signup', function (req, res, next) {
                                             }).catch(function (err) {
                                                 console.log('Error in joining scholarship');
                                                 console.log(err);
-
                                             });
                                     }
                                 });
@@ -579,6 +582,8 @@ app.post('/getKarmaToBurn', function (req, res, next) {
             if (err) {
                 console.error(err);
                 next(err);
+            } else if (data && data.error) {
+	            next(data.error);
             } else {
                 console.log('Got karma to burn: ' + data);
                 res.json({ karma: data });

@@ -18,6 +18,8 @@ module.exports = function (Scholarship) {
 							if (err) {
 								console.error(err);
 								cb(err);
+							} else if (data && data.error) {
+								cb(data.error);
 							} else {
 								console.log('Got karma balance of scholarship: ' + data);
 								if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -68,6 +70,8 @@ module.exports = function (Scholarship) {
 				}, function(err, response, data) {
 					if (err) {
 						console.error(err);
+					} else if (data && data.error) {
+						console.error(data.error);
 					} else {
 						console.log('Created new scholarship on blockchain: ' + data);
 					}
@@ -118,6 +122,8 @@ module.exports = function (Scholarship) {
 						}, function(err, response, data) {
 							if (err) {
 								console.error(err);
+							} else if (data && data.error) {
+								console.error(data.error);
 							} else {
 								console.log('Added participant to scholarship on blockchain: ' + data);
 							}
@@ -139,6 +145,8 @@ module.exports = function (Scholarship) {
 						}, function(err, response, data) {
 							if (err) {
 								console.error(err);
+							} else if (data && data.error) {
+								console.error(data.error);
 							} else {
 								console.log('Removed participant from scholarship on blockchain: ' + data);
 							}
