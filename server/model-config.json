@@ -920,5 +920,13 @@
   "corestack_student": {
     "dataSource": "neo4j",
     "public": true
+  },
+  "peer_has_corestackStudent": {
+    "dataSource": "neo4j-cypher",
+    "public": false
+  },
+  "corestackStudent_has_collection": {
+    "dataSource": "neo4j-cypher",
+    "public": false
   }
 }

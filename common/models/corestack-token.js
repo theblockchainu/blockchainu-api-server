@@ -1,9 +1,10 @@
 'use strict';
 let request = require('request-promise-native');
+let moment = require('moment');
 
 module.exports = function (Corestacktoken) {
 
-    Corestackstudent.getTokenObject = function () {
+    Corestacktoken.getTokenObject = function () {
         const now = moment();
         console.log('Finding Token');
         return Corestacktoken
@@ -11,14 +12,14 @@ module.exports = function (Corestacktoken) {
             .then(tokenInstances => {
                 if (tokenInstances.length > 0) {
                     const tokenObject = JSON.parse(tokenInstances[0].stringifiedObject);
-                    if (tokenObject.status === 'success' && tokenObject.data.token !== null && moment(tokenObject.data.expires_at).isAfter(now)) {
+                    if (tokenObject.status === 'success' && tokenObject.data.token !== null && moment(tokenObject.data.token.expires_at).isAfter(now.add(10, 'minutes'))) {
                         console.log('Token Found in DB');
                         return Promise.resolve(tokenObject);
                     } else {
-                        return generateToken();
+                        return this.generateToken();
                     }
                 } else {
-                    return generateToken();
+                    return this.generateToken();
                 }
             })
             .catch(err => {
@@ -51,6 +52,8 @@ module.exports = function (Corestacktoken) {
                 }
             })
             .then(tokenInstance => {
+                console.log('tokenSavedtoDB');
+                console.log(tokenInstance);
                 const tokenObject = JSON.parse(tokenInstance.stringifiedObject);
                 return Promise.resolve(tokenObject);
             });

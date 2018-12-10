@@ -38,7 +38,22 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "peer": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_corestackStudent",
+      "keyThrough": "sourceId"
+    },
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "corestackStudent_has_collection",
+      "keyThrough": "targetId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

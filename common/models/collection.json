@@ -168,6 +168,9 @@
     },
     "customUrl": {
       "type": "string"
+    },
+    "githubUrl": {
+      "type": "string"
     }
   },
   "validations": [],
@@ -352,6 +355,13 @@
       "model": "content",
       "foreignKey": "targetId",
       "through": "content_has_course",
+      "keyThrough": "sourceId"
+    },
+    "corestacStudents": {
+      "type": "hasMany",
+      "model": "corestack_student",
+      "foreignKey": "targetId",
+      "through": "corestackStudent_has_collection",
       "keyThrough": "sourceId"
     }
   },
