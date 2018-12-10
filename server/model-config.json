@@ -912,5 +912,13 @@
   "content_has_answer": {
     "dataSource": "neo4j-cypher",
     "public": false
+  },
+  "corestack_token": {
+    "dataSource": "neo4j",
+    "public": false
+  },
+  "corestack_student": {
+    "dataSource": "neo4j",
+    "public": true
   }
 }

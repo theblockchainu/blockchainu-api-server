@@ -1,0 +1,44 @@
+{
+  "name": "corestack_student",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "student_id": {
+      "type": "string"
+    },
+    "student_name": {
+      "type": "string"
+    },
+    "student_email": {
+      "type": "string"
+    },
+    "course_id": {
+      "type": "string"
+    },
+    "course_name": {
+      "type": "string"
+    },
+    "course_start_date": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "course_end_date": {
+      "type": "string"
+    },
+    "course_code": {
+      "type": "string"
+    },
+    "student_course_status": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
