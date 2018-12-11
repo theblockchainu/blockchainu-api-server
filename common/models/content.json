@@ -1,224 +1,224 @@
 {
-	"name": "content",
-	"plural": "contents",
-	"base": "PersistedModel",
-	"idInjection": true,
-	"options": {
-		"validateUpsert": true
-	},
-	"mixins": {
-		"HasOne": {
-			"relations": [
-				{
-					"model": "schedule",
-					"hasManyRelation": "schedules",
-					"autoCreate": true
-				},
-				{
-					"model": "location",
-					"hasManyRelation": "locations",
-					"autoCreate": true
-				}
-			]
-		},
-		"AddPeerRelation": {
-			"relationName": [
-				"comments",
-				"submissions",
-				"views",
-				"rsvps"
-			]
-		},
-		"TimeStamp": {
-			"createdAt": "createdAt",
-			"updatedAt": "updatedAt",
-			"required": false
-		},
-		"GlobalUtils": {},
-		"PatchMany": {
-			"relations": [
-				{
-					"model": "availability",
-					"hasManyRelation": "availabilities"
-				},
-				{
-					"model": "content_question",
-					"hasManyRelation": "questions"
-				}
-			]
-		}
-	},
-	"properties": {
-		"id": {
-			"type": "string",
-			"id": true
-		},
-		"title": {
-			"type": "string",
-			"required": true
-		},
-		"type": {
-			"type": "string"
-		},
-		"description": {
-			"type": "string"
-		},
-		"supplementUrls": {
-			"type": [
-				"string"
-			]
-		},
-		"requireRSVP": {
-			"type": "boolean"
-		},
-		"itemsProvided": {
-			"type": [
-				"string"
-			]
-		},
-		"notes": {
-			"type": "string"
-		},
-		"imageUrl": {
-			"type": "string"
-		},
-		"videoLength": {
-			"type": "number",
-			"default": 0
-		},
-		"prerequisites": {
-			"type": "string"
-		},
-		"sessionIsApproved": {
-			"type": "boolean",
-			"default": false
-		},
-		"sessionIsRejected": {
-			"type": "boolean",
-			"default": false
-		},
-		"contentIndex": {
-			"type": "number"
-		},
-		"successMessage": {
-			"type": "string"
-		},
-		"isTimeBound": {
-			"type": "boolean",
-			"default": false
-		},
-		"paymentBatch": {
-			"type": "string"
-		}
-	},
-	"validations": [],
-	"relations": {
-		"collections": {
-			"type": "hasMany",
-			"model": "collection",
-			"foreignKey": "targetId",
-			"through": "collection_has_content",
-			"keyThrough": "sourceId"
-		},
-		"schedules": {
-			"type": "hasMany",
-			"model": "schedule",
-			"foreignKey": "sourceId",
-			"through": "content_has_schedule",
-			"keyThrough": "targetId"
-		},
-		"comments": {
-			"type": "hasMany",
-			"model": "comment",
-			"foreignKey": "sourceId",
-			"through": "content_has_comment",
-			"keyThrough": "targetId"
-		},
-		"locations": {
-			"type": "hasMany",
-			"model": "location",
-			"foreignKey": "sourceId",
-			"through": "content_has_location",
-			"keyThrough": "targetId"
-		},
-		"submissions": {
-			"type": "hasMany",
-			"model": "submission",
-			"foreignKey": "sourceId",
-			"through": "content_has_submission",
-			"keyThrough": "targetId"
-		},
-		"views": {
-			"type": "hasMany",
-			"model": "view",
-			"foreignKey": "sourceId",
-			"through": "content_has_view",
-			"keyThrough": "targetId"
-		},
-		"rsvps": {
-			"type": "hasMany",
-			"model": "rsvp",
-			"foreignKey": "sourceId",
-			"through": "content_has_rsvp",
-			"keyThrough": "targetId"
-		},
-		"availabilities": {
-			"type": "hasMany",
-			"model": "availability",
-			"foreignKey": "sourceId",
-			"through": "content_has_availability",
-			"keyThrough": "targetId"
-		},
-		"packages": {
-			"type": "hasMany",
-			"model": "package",
-			"foreignKey": "sourceId",
-			"through": "content_has_package",
-			"keyThrough": "targetId"
-		},
-		"payments": {
-			"type": "hasMany",
-			"model": "transaction",
-			"foreignKey": "sourceId",
-			"through": "content_has_payment",
-			"keyThrough": "targetId"
-		},
-		"peers": {
-			"type": "hasMany",
-			"model": "peer",
-			"foreignKey": "targetId",
-			"through": "peer_has_content",
-			"keyThrough": "sourceId"
-		},
-		"notifications": {
-			"type": "hasMany",
-			"model": "notification",
-			"foreignKey": "targetId",
-			"through": "notification_has_content",
-			"keyThrough": "sourceId"
-		},
-		"token_payments": {
-			"type": "hasMany",
-			"model": "token_transaction",
-			"foreignKey": "sourceId",
-			"through": "content_has_token_payment",
-			"keyThrough": "targetId"
-		},
-		"courses": {
-			"type": "hasMany",
-			"model": "collection",
-			"foreignKey": "sourceId",
-			"through": "content_has_course",
-			"keyThrough": "targetId"
-		},
-		"questions": {
-			"type": "hasMany",
-			"model": "content_question",
-			"foreignKey": "sourceId",
-			"through": "content_has_question",
-			"keyThrough": "targetId"
-		}
-	},
-	"acls": [],
-	"methods": {}
+  "name": "content",
+  "plural": "contents",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "HasOne": {
+      "relations": [
+        {
+          "model": "schedule",
+          "hasManyRelation": "schedules",
+          "autoCreate": true
+        },
+        {
+          "model": "location",
+          "hasManyRelation": "locations",
+          "autoCreate": true
+        }
+      ]
+    },
+    "AddPeerRelation": {
+      "relationName": [
+        "comments",
+        "submissions",
+        "views",
+        "rsvps"
+      ]
+    },
+    "TimeStamp": {
+      "createdAt": "createdAt",
+      "updatedAt": "updatedAt",
+      "required": false
+    },
+    "GlobalUtils": {},
+    "PatchMany": {
+      "relations": [
+        {
+          "model": "availability",
+          "hasManyRelation": "availabilities"
+        },
+        {
+          "model": "content_question",
+          "hasManyRelation": "questions"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "supplementUrls": {
+      "type": [
+        "string"
+      ]
+    },
+    "requireRSVP": {
+      "type": "boolean"
+    },
+    "itemsProvided": {
+      "type": [
+        "string"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "imageUrl": {
+      "type": "string"
+    },
+    "videoLength": {
+      "type": "number",
+      "default": 0
+    },
+    "prerequisites": {
+      "type": "string"
+    },
+    "sessionIsApproved": {
+      "type": "boolean",
+      "default": false
+    },
+    "sessionIsRejected": {
+      "type": "boolean",
+      "default": false
+    },
+    "contentIndex": {
+      "type": "number"
+    },
+    "successMessage": {
+      "type": "string"
+    },
+    "isTimeBound": {
+      "type": "boolean",
+      "default": false
+    },
+    "paymentBatch": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "collections": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "targetId",
+      "through": "collection_has_content",
+      "keyThrough": "sourceId"
+    },
+    "schedules": {
+      "type": "hasMany",
+      "model": "schedule",
+      "foreignKey": "sourceId",
+      "through": "content_has_schedule",
+      "keyThrough": "targetId"
+    },
+    "comments": {
+      "type": "hasMany",
+      "model": "comment",
+      "foreignKey": "sourceId",
+      "through": "content_has_comment",
+      "keyThrough": "targetId"
+    },
+    "locations": {
+      "type": "hasMany",
+      "model": "location",
+      "foreignKey": "sourceId",
+      "through": "content_has_location",
+      "keyThrough": "targetId"
+    },
+    "submissions": {
+      "type": "hasMany",
+      "model": "submission",
+      "foreignKey": "sourceId",
+      "through": "content_has_submission",
+      "keyThrough": "targetId"
+    },
+    "views": {
+      "type": "hasMany",
+      "model": "view",
+      "foreignKey": "sourceId",
+      "through": "content_has_view",
+      "keyThrough": "targetId"
+    },
+    "rsvps": {
+      "type": "hasMany",
+      "model": "rsvp",
+      "foreignKey": "sourceId",
+      "through": "content_has_rsvp",
+      "keyThrough": "targetId"
+    },
+    "availabilities": {
+      "type": "hasMany",
+      "model": "availability",
+      "foreignKey": "sourceId",
+      "through": "content_has_availability",
+      "keyThrough": "targetId"
+    },
+    "packages": {
+      "type": "hasMany",
+      "model": "package",
+      "foreignKey": "sourceId",
+      "through": "content_has_package",
+      "keyThrough": "targetId"
+    },
+    "payments": {
+      "type": "hasMany",
+      "model": "transaction",
+      "foreignKey": "sourceId",
+      "through": "content_has_payment",
+      "keyThrough": "targetId"
+    },
+    "peers": {
+      "type": "hasMany",
+      "model": "peer",
+      "foreignKey": "targetId",
+      "through": "peer_has_content",
+      "keyThrough": "sourceId"
+    },
+    "notifications": {
+      "type": "hasMany",
+      "model": "notification",
+      "foreignKey": "targetId",
+      "through": "notification_has_content",
+      "keyThrough": "sourceId"
+    },
+    "token_payments": {
+      "type": "hasMany",
+      "model": "token_transaction",
+      "foreignKey": "sourceId",
+      "through": "content_has_token_payment",
+      "keyThrough": "targetId"
+    },
+    "courses": {
+      "type": "hasMany",
+      "model": "collection",
+      "foreignKey": "sourceId",
+      "through": "content_has_course",
+      "keyThrough": "targetId"
+    },
+    "questions": {
+      "type": "hasMany",
+      "model": "content_question",
+      "foreignKey": "sourceId",
+      "through": "content_has_question",
+      "keyThrough": "targetId"
+    }
+  },
+  "acls": [],
+  "methods": {}
 }

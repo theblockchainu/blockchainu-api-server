@@ -475,6 +475,13 @@
       "foreignKey": "targetId",
       "through": "content_answer_has_answerer",
       "keyThrough": "sourceId"
+    },
+    "corestackStudent": {
+      "type": "hasMany",
+      "model": "corestack_student",
+      "foreignKey": "sourceId",
+      "through": "peer_has_corestackStudent",
+      "keyThrough": "targetId"
     }
   },
   "acls": [],
