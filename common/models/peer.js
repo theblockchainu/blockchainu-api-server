@@ -723,16 +723,19 @@ module.exports = function (Peer) {
 					}, (err, response, data) => {
 						if (err) {
 							console.error(err);
+						} else if (response.body && response.body.error) {
+							console.error(response.body.error);
 						} else if (data && data.error) {
 							console.error(data.error);
-						} else {
+						}
+						else {
 							Peer.dataSource.connector.execute(
 								"MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
 								(err, results) => {
 									console.log('Created ethereum wallet and saved address in DB');
 								}
 							);
-							// Send welcome email to user
+							// Send notification email to admin
 							let message = {
 								userName: profileObject.first_name + ' ' + profileObject.last_name,
 								userEmail: user.email,
@@ -797,7 +800,7 @@ module.exports = function (Peer) {
 										loopback.Email.send({
 											to: user.email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'The Blockchain University Global Scholarship',
+											subject: 'Your KARMA wallet is now ready!',
 											html: html_body
 										})
 											.then(function (response) {
@@ -808,7 +811,7 @@ module.exports = function (Peer) {
 											});
 									}
 								}).catch(function (err) {
-									console.log('Error in joining sholarship');
+									console.log('Error in joining scholarship');
 									console.log(err);
 
 								});

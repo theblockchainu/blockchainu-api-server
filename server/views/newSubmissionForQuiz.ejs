@@ -19,13 +19,27 @@
         <div style="font-size: 17px; margin-top: 25px;">
             Hey <%= ownerName %>,
             <br/><br/>
+            <a href="https://theblockchainu.com/profile/<%= participantId %>" style="text-decoration: none; color: #333;">
+                <div style="vertical-align: middle; margin-bottom: 30px;">
+                    <div style="display: inline-block; width: 15%; vertical-align: middle;">
+                        <img src="https://theblockchainu.com:3002<%= participantImage %>" alt="Profile photo" style="width: 100%; border-radius: 200px;">
+                    </div>
+                    <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
+                        <b>
+                            <%= participantName %>
+                        </b>
+                        <br>
+                        <%= participantHeadline %>
+                    </div>
+                </div>
+            </a>
             Course participant <%= participantName %> has submitted their answers for your quiz titled <b>'<%= quizTitle%>'</b> as part of the <%= collectionType %> <b>'<%= collectionTitle%>'</b>.
             <br/><br/>
             You can view their submission, scores and make your evaluation at any time.
             <br/><br/>
         </div>
         <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= collectionType %>/<%= collectionId %>/<%= quizId %>">View Submission</a>
+            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= collectionType %>/<%= collectionId %>/calendar/<%= calendarId %>/<%= quizId %>">View Submission</a>
         </div>
     </div>
     <!-- Signature -->
