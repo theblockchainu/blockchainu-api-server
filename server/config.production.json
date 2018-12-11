@@ -39,5 +39,8 @@
   "karmaRate": 400000,
   "ccavenueWorkingKey": "FC6F1EE8D88C71848598431291678EF4",
   "ccavenueAccessCode": "AVVD79FH99BY37DVYB",
-  "ccavenueMerchantId": "188304"
+  "ccavenueMerchantId": "188304",
+  "corestackUrl": "http://claas-v2.corestack.io:18080",
+  "corestackUserName": "blockchain_poc@corestack.io",
+  "corestackPassword": "Bl0ck@123"
 }

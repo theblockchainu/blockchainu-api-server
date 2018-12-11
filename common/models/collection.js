@@ -179,6 +179,33 @@ module.exports = function (Collection) {
 							});
 						}
 					});
+
+					// if collection is a guide join participant to corestack
+					if (collectionInstance.type === 'guide') {
+						collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+							const participantJSON = participantUserInstance.toJSON();
+							const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides							
+							const student_id = participantJSON.id;
+							const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+							const student_email = participantJSON.email;
+							const course_id = collectionInstance.id;
+							const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
+							const username = participantJSON.email;
+							const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');;
+							const githubUrl = collectionInstance.githubUrl;
+							Collection.app.models.corestack_student.registerStudent(
+								student_id,
+								student_name, student_email, course_id, course_start_date, username,
+								course_end_date, githubUrl
+							).then(data => {
+								console.log('Corestack ');
+								console.log(data);
+							}).catch(err => {
+								console.log(err);
+							});
+						});
+
+					}
 				} else {
 					next(err);
 				}
