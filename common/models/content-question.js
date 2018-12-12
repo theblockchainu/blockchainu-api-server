@@ -1,6 +1,7 @@
 'use strict';
 var loopback = require('loopback');
 var path = require('path');
+var app = require('../../server/server');
 
 module.exports = function(Contentquestion) {
 	
@@ -13,6 +14,33 @@ module.exports = function(Contentquestion) {
 					Contentquestion.app.models.peer.findById(loggedinPeer, { include: 'profiles' }, function (err, loggedinPeerInstance) {
 						if (!err) {
 							loggedinPeerInstance = loggedinPeerInstance.toJSON();
+							
+							var actionUrl = [];
+							var notificationConnectedNode, notificationConnectedNodeId;
+							if (questionInstance.contents()[0].collections() && questionInstance.contents()[0].collections().length > 0) {
+								actionUrl = [questionInstance.contents()[0].collections()[0].type, questionInstance.contents()[0].collections()[0].id, questionInstance.contents()[0].collections()[0].calendars()[0].id, questionInstance.contents()[0].id];
+								notificationConnectedNode = 'collection';
+								notificationConnectedNodeId = questionInstance.contents()[0].collections()[0].id;
+								
+								// Create notification
+								var Notification = app.models.notification;
+								var notifData = {
+									type: "action",
+									title: "New submission on your quiz",
+									description: "%username% has submitted their answers to your quiz.",
+									actionUrl: actionUrl
+								};
+								Notification.createNotification(questionInstance.contents()[0].collections()[0].owners()[0].id, loggedinPeerInstance.id, notifData, notificationConnectedNode, notificationConnectedNodeId, function (err, notificationInstance) {
+									if (!err) {
+										console.log(notificationInstance);
+									}
+									else {
+										console.log(err);
+									}
+								});
+							}
+							
+							
 							// Send email to owner when all required questions have been answered
 							// Send email to owner
 							var message = {
