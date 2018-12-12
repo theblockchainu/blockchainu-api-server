@@ -22,194 +22,242 @@ module.exports = function (Collection) {
 	Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
 		// New participant added to collection. Notify collection owner.
 		let collectionInstance = ctx.instance;
-		Collection.app.models.peer.findById(participantInstance.sourceId, { "include": ["profiles", "scholarships_joined"] }, function (err, participantUserInstance) {
-			if (err) {
-				next(err);
-			}
-			else {
-				if (participantUserInstance) {
-					// Link all topics of this collection to the participant as topics learning
-					collectionInstance.__get__topics({}, function (err, topicInstances) {
-						if (!err) {
-							topicInstances.forEach(topicInstance => {
-								participantUserInstance.__link__topicsLearning(topicInstance.id, function (err1, linkedTopicInstance) {
-									if (!err1) {
-										//console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
-									}
-									else {
-										console.log(err1);
-									}
-								});
-							});
-						}
-						else {
-							console.log(err);
-						}
-					});
-					// Get owner instance
-					collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
-						if (err) {
-							next(err);
-						}
-						else {
-							let ownerInstance = ownerInstances[0];
-							ownerInstance.__create__notifications({
-								type: "action",
-								title: "New Participant!",
-								description: "%username% joined %collectionTitle%",
-								actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", participantInstance.calendarId]
-							}, function (err, notificationInstance) {
-								if (err) {
-									next(err);
-								}
-								else {
-									notificationInstance.actor.add(participantInstance.sourceId, function (err, actorInstance) {
-										if (err) {
-											next(err);
+		Collection.app.models.peer.findById(participantInstance.sourceId, { "include": ["profiles", "scholarships_joined"] },
+			function (err, participantUserInstance) {
+				if (err) {
+					next(err);
+				}
+				else {
+					if (participantUserInstance) {
+						// Link all topics of this collection to the participant as topics learning
+						collectionInstance.__get__topics({}, function (err, topicInstances) {
+							if (!err) {
+								topicInstances.forEach(topicInstance => {
+									participantUserInstance.__link__topicsLearning(topicInstance.id, function (err1, linkedTopicInstance) {
+										if (!err1) {
+											//console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
 										}
 										else {
-											notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
-												if (err) {
-													next(err);
-												}
-												else {
-													// Add this participant to the collection's chat room
-													collectionInstance.__get__rooms({}, function (err, roomInstances) {
-														if (!err) {
-															if (roomInstances.length > 0) {
-																roomInstances[0].__link__participants(participantUserInstance.id, function (err, linkedParticipantInstance) {
-																	if (!err) {
-																		console.log('Added participant to chat room');
-																		// Add a new system message about new participant
-																		let messageObject = {
-																			text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
-																			type: 'system'
-																		};
-																		roomInstances[0].__create__messages(messageObject, function (err, newMessageInstance) {
-																			if (!err) {
-																				Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+											console.log(err1);
+										}
+									});
+								});
+							}
+							else {
+								console.log(err);
+							}
+						});
+						// Get owner instance
+						collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
+							if (err) {
+								next(err);
+							}
+							else {
+								let ownerInstance = ownerInstances[0];
+								ownerInstance.__create__notifications({
+									type: "action",
+									title: "New Participant!",
+									description: "%username% joined %collectionTitle%",
+									actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", participantInstance.calendarId]
+								}, function (err, notificationInstance) {
+									if (err) {
+										next(err);
+									}
+									else {
+										notificationInstance.actor.add(participantInstance.sourceId, function (err, actorInstance) {
+											if (err) {
+												next(err);
+											}
+											else {
+												notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
+													if (err) {
+														next(err);
+													}
+													else {
+														// Add this participant to the collection's chat room
+														collectionInstance.__get__rooms({}, function (err, roomInstances) {
+															if (!err) {
+																if (roomInstances.length > 0) {
+																	roomInstances[0].__link__participants(participantUserInstance.id, function (err, linkedParticipantInstance) {
+																		if (!err) {
+																			console.log('Added participant to chat room');
+																			// Add a new system message about new participant
+																			let messageObject = {
+																				text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
+																				type: 'system'
+																			};
+																			roomInstances[0].__create__messages(messageObject, function (err, newMessageInstance) {
+																				if (!err) {
+																					Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
 
-																				// Record student participation in an experience on blockchain
-																				let scholarshipId;
-																				if (ctx.req.body.scholarshipId && ctx.req.body.scholarshipId.length > 0) {
-																					scholarshipId = ctx.req.body.scholarshipId;
-																				} else {
-																					if (participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0) {
-																						scholarshipId = participantUserInstance.scholarships_joined[0].id;
+																					// Record student participation in an experience on blockchain
+																					let scholarshipId;
+																					if (ctx.req.body.scholarshipId && ctx.req.body.scholarshipId.length > 0) {
+																						scholarshipId = ctx.req.body.scholarshipId;
 																					} else {
 																						scholarshipId = '';
 																					}
+																					request
+																						.put({
+																							url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+																							body: {
+																								scholarshipId: scholarshipId
+																							},
+																							json: true
+																						}, function (err, response, data) {
+																							if (err) {
+																								console.error(err);
+																							} else if (data && data.error) {
+																								console.error(data.error);
+																							} else {
+																								console.log('Recorded student participation on blockchain ' + data);
+																							}
+																						});
+
+																					// Send email to the student welcoming him to course
+																					let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
+																					let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
+																					let html_body = renderer(message);
+																					loopback.Email.send({
+																						to: participantUserInstance.email,
+																						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+																						subject: '[Welcome] ' + collectionInstance.title,
+																						html: html_body
+																					})
+																						.then(function (response) {
+																							console.log('email sent! - ');
+																						})
+																						.catch(function (err) {
+																							console.log('email error! - ' + err);
+																						});
+
+																					// Send email to the teacher informing about new student
+																					message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
+																					renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
+																					html_body = renderer(message);
+																					loopback.Email.send({
+																						to: ownerInstance.email,
+																						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+																						subject: 'New Participant for ' + collectionInstance.title,
+																						html: html_body
+																					})
+																						.then(function (response) {
+																							console.log('email sent! - ');
+																						})
+																						.catch(function (err) {
+																							console.log('email error! - ' + err);
+																						});
+																					next();
 																				}
-																				request
-																					.put({
-																						url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
-																						body: {
-																							scholarshipId: scholarshipId
-																						},
-																						json: true
-																					}, function (err, response, data) {
-																						if (err) {
-																							console.error(err);
-																						} else if (data && data.error) {
-																							console.error(data.error);
-																						}
-																						else {
-																							console.log('Recorded student participation on blockchain ' + data);
-																						}
-																					});
-
-																				// Send email to the student welcoming him to course
-																				let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
-																				let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
-																				let html_body = renderer(message);
-																				loopback.Email.send({
-																					to: participantUserInstance.email,
-																					from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-																					subject: '[Welcome] ' + collectionInstance.title,
-																					html: html_body
-																				})
-																					.then(function (response) {
-																						console.log('email sent! - ');
-																					})
-																					.catch(function (err) {
-																						console.log('email error! - ' + err);
-																					});
-
-																				// Send email to the teacher informing about new student
-																				message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
-																				renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
-																				html_body = renderer(message);
-																				loopback.Email.send({
-																					to: ownerInstance.email,
-																					from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-																					subject: 'New Participant for ' + collectionInstance.title,
-																					html: html_body
-																				})
-																					.then(function (response) {
-																						console.log('email sent! - ');
-																					})
-																					.catch(function (err) {
-																						console.log('email error! - ' + err);
-																					});
-																				next();
-																			}
-																			else {
-																				next(new Error('Could not create system message'));
-																			}
-																		});
-																	}
-																	else {
-																		next(err);
-																	}
-																});
+																				else {
+																					next(new Error('Could not create system message'));
+																				}
+																			});
+																		}
+																		else {
+																			next(err);
+																		}
+																	});
+																}
+																else {
+																	next();
+																}
 															}
 															else {
-																next();
+																next(err);
 															}
-														}
-														else {
-															next(err);
-														}
-													});
+														});
+													}
+												});
+											}
+										});
+									}
+								});
+							}
+						});
+
+						// if collection is a guide join participant to corestack
+						if (collectionInstance.type === 'guide') {
+
+							const addToCoreStack = function () {
+								collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+									const participantJSON = participantUserInstance.toJSON();
+									let username;
+									if (participantJSON.username) {
+										username = participantJSON.username;
+									} else {
+										username = participantJSON.email.replace(/\W/g, '');
+										if (username.length > 10) {
+											username = username.slice(0, 9);
+										}
+										console.log(username);
+									}
+									const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides							
+									const student_id = participantJSON.id;
+									const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+									const student_email = participantJSON.email;
+									const course_id = 'ETHEREUM';
+									const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
+									const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');;
+									const githubUrl = collectionInstance.githubUrl;
+									Collection.app.models.corestack_student.registerStudent(
+										student_id,
+										student_name, student_email, course_id, course_start_date, username,
+										course_end_date, githubUrl
+									).then(corestackStudentInstance => {
+										console.log('connecting Corestack student');
+										collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+											if (corestackStudentRelationerr) {
+												console.log('corestackStudentRelationerr');
+												console.log(corestackStudentRelationerr);
+											} else {
+												console.log('corestackStudentRelation');
+												console.log(corestackStudentRelation);
+											}
+											participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
+												if (peerCorestackRelationInstanceerr) {
+													console.log('peerCorestackRelationInstanceerr');
+													console.log(peerCorestackRelationInstanceerr);
+												} else {
+													console.log('peerCorestackRelationInstance');
+													console.log(peerCorestackRelationInstance);
 												}
 											});
-										}
+										});
+									}).catch(err => {
+										console.log(err);
 									});
+								});
+							};
+
+							const query = {
+								include: [
+									{
+										'relation': 'peer',
+										'scope': {
+											'where': { 'id': participantUserInstance.id }
+										}
+									}
+								]
+							};
+
+
+							collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+								if (errorcorestackStudents) {
+									addToCoreStack();
+								} else if (corestackStudents && corestackStudents.length === 1) {
+									console.log('already added');
+								} else {
+									addToCoreStack();
 								}
 							});
-						}
-					});
 
-					// if collection is a guide join participant to corestack
-					if (collectionInstance.type === 'guide') {
-						collectionInstance.__get__calendars({}, (error, calendarInstances) => {
-							const participantJSON = participantUserInstance.toJSON();
-							const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
-							const student_id = participantJSON.id;
-							const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
-							const student_email = participantJSON.email;
-							const course_id = 'ETHEREUM';
-							const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
-							const username = participantJSON.email;
-							const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');
-							const githubUrl = collectionInstance.githubUrl;
-							Collection.app.models.corestack_student.registerStudent(
-								student_id,
-								student_name, student_email, course_id, course_start_date, username,
-								course_end_date, githubUrl
-							).then(data => {
-								console.log('Corestack ');
-								console.log(data);
-							}).catch(err => {
-								console.log(err);
-							});
-						});
+						}
+					} else {
+						next(err);
 					}
-				} else {
-					next(err);
 				}
-			}
-		});
+			});
 	});
 
 	Collection.afterRemote('prototype.__create__comments', function (ctx, newCommentInstance, next) {
@@ -614,7 +662,7 @@ module.exports = function (Collection) {
 					else {
 						let message = '', subject = '';
 						let title = '', description = '', actionUrl = [];
-						let customUrl = collectionInstance.customUrl !== undefined && collectionInstance.customUrl.length > 0 ? collectionInstance.customUrl: collectionInstance.id;
+						let customUrl = collectionInstance.customUrl !== undefined && collectionInstance.customUrl.length > 0 ? collectionInstance.customUrl : collectionInstance.id;
 						message = { type: collectionInstance.type, customUrl: customUrl };
 						switch (collectionInstance.type) {
 							case 'class':
@@ -1092,7 +1140,7 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-								
+
 								// Copy payoutrules from old collection to new collection
 								collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
 									if (!err && oldPayoutInstances !== null) {
@@ -1101,11 +1149,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied payoutrules for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy certificate templates
 								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 									if (!err && oldCertificateTemplates !== null) {
@@ -1114,11 +1162,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied certificate template for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy promo codes
 								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 									if (!err && oldPromoCodes !== null) {
@@ -1127,11 +1175,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied promo codes for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy rewards
 								collectionInstance.__get__rewards(function (err, oldRewards) {
 									if (!err && oldRewards !== null) {
@@ -1140,11 +1188,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied rewards for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy Assessment models
 								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 									if (!err && oldAssessmentModels !== null) {
@@ -1153,7 +1201,7 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied assessment model for new collection');
 											});
-											
+
 										});
 									}
 								});
@@ -1278,7 +1326,7 @@ module.exports = function (Collection) {
 													if (!err && newCreatedContentInstance !== null) {
 														console.log('Cloned content for collection');
 														let oldContentInstance = oldContentInstances[m].__data;
-														
+
 														delete newCreatedContentInstance.isNewInstance;
 														// Add content to array to pass in result
 														resultContents.push(newCreatedContentInstance);
@@ -1380,7 +1428,7 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-								
+
 								// Copy certificate templates
 								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 									if (!err && oldCertificateTemplates !== null) {
@@ -1389,11 +1437,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied certificate template for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy promo codes
 								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 									if (!err && oldPromoCodes !== null) {
@@ -1402,11 +1450,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied promo codes for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy rewards
 								collectionInstance.__get__rewards(function (err, oldRewards) {
 									if (!err && oldRewards !== null) {
@@ -1415,11 +1463,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied rewards for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy Assessment models
 								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 									if (!err && oldAssessmentModels !== null) {
@@ -1428,7 +1476,7 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied assessment model for new collection');
 											});
-											
+
 										});
 									}
 								});
@@ -1530,7 +1578,7 @@ module.exports = function (Collection) {
 												newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
 													if (!err && newCreatedContentInstance !== null) {
 														console.log('Created content for collection');
-														
+
 														delete newCreatedContentInstance.isNewInstance;
 														// Add content to array to pass as result
 														resultContents.push(newCreatedContentInstance.toJSON());
@@ -1611,7 +1659,7 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-								
+
 								// Copy certificate templates
 								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 									if (!err && oldCertificateTemplates !== null) {
@@ -1620,11 +1668,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied certificate template for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy promo codes
 								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 									if (!err && oldPromoCodes !== null) {
@@ -1633,11 +1681,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied promo codes for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy rewards
 								collectionInstance.__get__rewards(function (err, oldRewards) {
 									if (!err && oldRewards !== null) {
@@ -1646,11 +1694,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied rewards for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy Assessment models
 								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 									if (!err && oldAssessmentModels !== null) {
@@ -1659,11 +1707,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied assessment model for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 							}
 						});
 					}
@@ -1822,7 +1870,7 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-								
+
 								// Copy certificate templates
 								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 									if (!err && oldCertificateTemplates !== null) {
@@ -1831,11 +1879,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied certificate template for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy promo codes
 								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 									if (!err && oldPromoCodes !== null) {
@@ -1844,11 +1892,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied promo codes for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy rewards
 								collectionInstance.__get__rewards(function (err, oldRewards) {
 									if (!err && oldRewards !== null) {
@@ -1857,11 +1905,11 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied rewards for new collection');
 											});
-											
+
 										});
 									}
 								});
-								
+
 								// Copy Assessment models
 								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 									if (!err && oldAssessmentModels !== null) {
@@ -1870,7 +1918,7 @@ module.exports = function (Collection) {
 												// Do nothing here.
 												console.log('Copied assessment model for new collection');
 											});
-											
+
 										});
 									}
 								});
@@ -2146,7 +2194,7 @@ module.exports = function (Collection) {
 			}, function (err, response, data) {
 				if (err) {
 					console.error(err);
-					cb(null, {result: false, participantId: fk.toLowerCase()});
+					cb(null, { result: false, participantId: fk.toLowerCase() });
 				} else if (data && data.error) {
 					cb(data.error);
 				} else {

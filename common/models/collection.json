@@ -357,7 +357,7 @@
       "through": "content_has_course",
       "keyThrough": "sourceId"
     },
-    "corestacStudents": {
+    "corestackStudents": {
       "type": "hasMany",
       "model": "corestack_student",
       "foreignKey": "targetId",

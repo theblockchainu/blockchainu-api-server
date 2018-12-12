@@ -14,6 +14,7 @@ let host = app.get('host');
 let port = app.get('port');
 let restApiRoot = app.get('restApiRoot');
 const Promise = require('bluebird');
+let requestPromise = require('request-promise-native');
 
 module.exports = function setupCron(server) {
 
@@ -606,8 +607,18 @@ module.exports = function setupCron(server) {
 	);
 
 
+	// const testCron = new CronJob('*/5 * * * * *',
+	// 	function (params) {
+
+	// 	},
+	// 	function () {
+	// 	},
+	// 	true,
+	// 	'UTC'
+	// );
+
 	// Runs once every 10 minutes
-	const upcomingActivityCron = new CronJob('00 */10 * * * *',
+	const tenMinuteCron = new CronJob('00 */10 * * * *',
 		// const upcomingActivityCron = new CronJob('*/5 * * * * *',
 
 		function () {
@@ -891,6 +902,8 @@ module.exports = function setupCron(server) {
 			// 	});
 			// });
 
+			// upcoming session cron
+
 			server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': 'session' }] }, 'include': [{ 'contents': [{ 'peers': ['profiles', 'topicsLearning', 'wallet'] }, 'availabilities', 'packages'] }, { 'owners': ['profiles', 'topicsTeaching', 'wallet'] }] }, function (err, collectionInstances) {
 				collectionInstances.forEach(collection => {
 					if (collection !== undefined && typeof collection === 'object') {
@@ -987,6 +1000,56 @@ module.exports = function setupCron(server) {
 					}
 				});
 			});
+
+			// check corestack student enrollment status
+			console.log('check corestack student enrollment status');
+			const corestack_student_query = {
+				where: {
+					'student_course_status': 'registered'
+				}
+			};
+			let tokenObject;
+			app.models.corestack_token
+				.getTokenObject()
+				.then(tokenObjectInstance => {
+					tokenObject = tokenObjectInstance;
+					return server.models.corestack_student.find(corestack_student_query);
+				})
+				.then(corestack_students => {
+					console.log('corestack_students');
+					console.log(corestack_students);
+					corestack_students.forEach(corestack_student => {
+						console.log('corestack_student');
+						console.log(corestack_student);
+						const promise = requestPromise.get({
+							url: app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/'
+								+ corestack_student.student_id + '/' + corestack_student.course_id,
+							json: true,
+							headers: {
+								'X-Auth-Token': tokenObject.data.token.key,
+								'X-Auth-User': app.get('corestackUserName')
+							},
+						}).then(student_detail => {
+							console.log('student details for ' + corestack_student.student_email);
+							console.log(student_detail);
+							if (student_detail.data.student_course_status === 'active') {
+								console.log('saving data');
+								corestack_student.student_course_status = 'active';
+								corestack_student.save().then(savedinstance => {
+									console.log('Updated ' + corestack_student.student_email);
+									console.log(savedinstance);
+								});
+							}
+						}).catch(err => {
+							console.log('Error in processing ' + corestack_student.student_email);
+							console.log(err);
+						});
+					});
+				})
+				.catch(err => {
+					console.log('Error in corestack student cron');
+					console.log(err);
+				});
 		},
 		function () {
 

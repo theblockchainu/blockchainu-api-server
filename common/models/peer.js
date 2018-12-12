@@ -2206,4 +2206,42 @@ module.exports = function (Peer) {
 			return err('email');
 	}
 
+	Peer.getSetUserName = async (peerInstance, input_string) => {
+		if (!peerInstance.userName || peerInstance.userName.length < 1) {
+			console.log('setting userName');
+			const userNameString = input_string.replace(/ /g, '-');
+			if (userNameString.length > 10) {
+				userNameString = userNameString.slice(0, 10);
+			}
+			const query = {
+				'where': {
+					'userName': userNameString
+				}
+			};
+			const data = await Peer.find(query);
+			if (!data || data.length === 0) {
+				peerInstance.userName = userNameString;
+				peerInstance.save();
+				return peerInstance.userName;
+			} else {
+				for (let i = 0; i < 100; i++) {
+					const userNameTestString = userNameString + '-' + i.toString();
+					const query = {
+						'where': {
+							'userName': userNameTestString
+						}
+					};
+					const data = await Peer.find(query);
+					if (!data || data.length === 0) {
+						peerInstance.userName = userNameTestString;
+						peerInstance.save();
+						return peerInstance.userName;
+					}
+				}
+			}
+		} else {
+			return peerInstance.userName;
+		}
+	};
+
 };
