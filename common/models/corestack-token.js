@@ -12,8 +12,11 @@ module.exports = function (Corestacktoken) {
             .then(tokenInstances => {
                 if (tokenInstances.length > 0) {
                     const tokenObject = JSON.parse(tokenInstances[0].stringifiedObject);
-                    if (tokenObject.status === 'success' && tokenObject.data.token !== null && moment(tokenObject.data.token.expires_at).isAfter(now.add(10, 'minutes'))) {
-                        console.log('Token Found in DB');
+                    const endMoment = moment.utc(tokenObject.data.token.expires_at);
+                    console.log(tokenObject);
+                    console.log(moment(now).toDate());
+                    console.log('moment ' + endMoment.isAfter(now.add(10, 'minutes')));
+                    if (tokenObject.status === 'success' && tokenObject.data.token !== null && endMoment.isAfter(now.add(5, 'minutes'))) {
                         return Promise.resolve(tokenObject);
                     } else {
                         return this.generateToken();

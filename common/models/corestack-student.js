@@ -23,6 +23,10 @@ module.exports = function (Corestackstudent) {
                 user_script_path: user_script_path // provide the path to user script
             };
         }
+
+        console.log('studentData');
+        console.log(studentData);
+
         return Corestackstudent.app.models.corestack_token.getTokenObject()
             .then(tokenObject => {
                 console.log('tokenObject');
@@ -82,7 +86,7 @@ module.exports = function (Corestackstudent) {
                 });
             })
             .then((body) => {
-                console.log('Student Rceived from corestack');
+                console.log('core_stack_added_student');
                 console.log(body);
                 if (body.status === 'success') {
                     studentData.student_course_status = 'registered';
@@ -92,6 +96,7 @@ module.exports = function (Corestackstudent) {
                 }
             })
             .catch(err => {
+                console.log('core_stack_add_error');
                 console.log(err);
                 return Promise.reject('Error');
             });
@@ -184,8 +189,10 @@ module.exports = function (Corestackstudent) {
     Corestackstudent.getStudentAccessDetails = async function (student_id, course_id) {
         return Corestackstudent.app.models.corestack_token.getTokenObject()
             .then(tokenObject => {
+                console.log('tokenObjectReceived');
+                console.log(tokenObject);
                 return request.get({
-                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.projects[0].id
+                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
                         + '/cloudlab/access_details/' + student_id + '/' + course_id,
                     json: true,
                     headers: {
@@ -208,7 +215,7 @@ module.exports = function (Corestackstudent) {
         return Corestackstudent.app.models.corestack_token.getTokenObject()
             .then(tokenObject => {
                 return request.get({
-                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.projects[0].id
+                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
                         + '/cloudlab/student/' + student_id + '/' + course_id,
                     json: true,
                     headers: {
@@ -226,5 +233,17 @@ module.exports = function (Corestackstudent) {
                 return Promise.reject(err);
             });
     };
+
+    Corestackstudent.remoteMethod(
+        'getStudentAccessDetails',
+        {
+            accepts: [
+                { arg: 'student_id', type: 'string', required: true },
+                { arg: 'course_id', type: 'string', required: true },
+                { arg: 'req', type: 'object', http: { source: 'req' } }
+            ],
+            returns: { arg: 'result', type: 'object', root: true },
+            http: { path: '/:student_id/course/:course_id/access_details', verb: 'get' }
+        });
 
 };
