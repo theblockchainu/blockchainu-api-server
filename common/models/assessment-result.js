@@ -174,6 +174,8 @@ module.exports = function (Assessmentresult) {
 												}, (err, response, data) => {
 													if (err) {
 														console.error(err);
+													} else if (data && data.error) {
+														console.error(data.error);
 													} else if (data) {
 														console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
 														console.log(data);
@@ -224,8 +226,9 @@ module.exports = function (Assessmentresult) {
 							if (err) {
 								console.error(err);
 								cb(err);
-							}
-							else if (data && data.length > 0) {
+							} else if (data && data.error) {
+								cb(data.error);
+							} else if (data && data.length > 0) {
 								console.log('GOT ASSESSMENT HASH FROM BC ');
 								console.log(data);
 								const signature = {
@@ -343,6 +346,8 @@ module.exports = function (Assessmentresult) {
 												console.log(response);
 												if (err) {
 													console.error(err);
+												} else if (data && data.error) {
+													console.error(data.error);
 												} else if (data && data.tx) {
 													console.log('RECORDED ASSESSMENT ON BLOCKCHAIN: ');
 													console.log(data);

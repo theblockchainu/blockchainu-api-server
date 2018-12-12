@@ -182,13 +182,15 @@ module.exports = function setupCron(server) {
 				}, function (err, response, data1) {
 					if (err) {
 						console.error(err);
+					} else if (data1 && data1.error) {
+						console.error(data1.error);
 					} else {
 						console.log('Tried karma minting: ' + JSON.stringify(data1));
 					}
 					// Send email to admin about status
 					let message = {
 						result: JSON.stringify(data1),
-						error: err
+						error: err || data1.error
 					};
 					let renderer = loopback.template(path.resolve(__dirname, '../../server/views/karmaRewardStatus.ejs'));
 					let html_body = renderer(message);
@@ -693,6 +695,8 @@ module.exports = function setupCron(server) {
 				}, function (err, response, data1) {
 					if (err) {
 						console.error(err);
+					} else if (data1 && data1.error) {
+						console.error(data1.error);
 					} else {
 						console.log('Got karma mint rate: ' + data1);
 						const cacheData = {
@@ -716,6 +720,8 @@ module.exports = function setupCron(server) {
 				}, function (err, response, data1) {
 					if (err) {
 						console.error(err);
+					} else if (data1 && data1.error) {
+						console.error(data1.error);
 					} else {
 						console.log('Got gyan earn rate: ' + data1);
 						const cacheData = {

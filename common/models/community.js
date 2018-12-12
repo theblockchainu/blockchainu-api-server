@@ -35,6 +35,8 @@ module.exports = function(Community) {
 									}, function (err, response, data) {
 										if (err) {
 											console.error(err);
+										} else if (data && data.error) {
+											console.error(data.error);
 										} else {
 											console.log('Added question on blockchain: ' + data);
 										}

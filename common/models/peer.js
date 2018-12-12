@@ -723,14 +723,19 @@ module.exports = function (Peer) {
 					}, (err, response, data) => {
 						if (err) {
 							console.error(err);
-						} else {
+						} else if (response.body && response.body.error) {
+							console.error(response.body.error);
+						} else if (data && data.error) {
+							console.error(data.error);
+						}
+						else {
 							Peer.dataSource.connector.execute(
 								"MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
 								(err, results) => {
 									console.log('Created ethereum wallet and saved address in DB');
 								}
 							);
-							// Send welcome email to user
+							// Send notification email to admin
 							let message = {
 								userName: profileObject.first_name + ' ' + profileObject.last_name,
 								userEmail: user.email,
@@ -774,6 +779,8 @@ module.exports = function (Peer) {
 												}, function (err, response, result) {
 													if (err) {
 														console.error(err);
+													} else if (result && result.error) {
+														console.error(result.error);
 													} else {
 														console.log('Added participant to scholarship on blockchain: ');
 														console.log(result);
@@ -793,7 +800,7 @@ module.exports = function (Peer) {
 										loopback.Email.send({
 											to: user.email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'The Blockchain University Global Scholarship',
+											subject: 'Your KARMA wallet is now ready!',
 											html: html_body
 										})
 											.then(function (response) {
@@ -804,7 +811,7 @@ module.exports = function (Peer) {
 											});
 									}
 								}).catch(function (err) {
-									console.log('Error in joining sholarship');
+									console.log('Error in joining scholarship');
 									console.log(err);
 
 								});
@@ -1146,6 +1153,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got floating gyan balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1188,6 +1197,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got fixed gyan balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1230,6 +1241,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got potential karma rewards of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1271,6 +1284,8 @@ module.exports = function (Peer) {
 						if (err) {
 							console.error(err);
 							cb(err);
+						} else if (data && data.error) {
+							cb(data.error);
 						} else {
 							console.log('Got karma balance of user: ' + data);
 							if (req.query && req.query.convertTo && req.query.convertTo === 'USD') {
@@ -1323,6 +1338,8 @@ module.exports = function (Peer) {
 								if (err) {
 									console.error(err);
 									cb(err);
+								} else if (data && data.error) {
+									cb(data.error);
 								} else {
 									console.log('Created new wallet address for user: ' + data);
 									peerInstance.updateAttributes({
@@ -1360,6 +1377,8 @@ module.exports = function (Peer) {
 				if (err) {
 					console.error(err);
 					cb(err);
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got karma supply: ' + data);
 					cb(null, data);
@@ -1378,6 +1397,8 @@ module.exports = function (Peer) {
 				if (err) {
 					console.error(err);
 					cb(err);
+				} else if (data && data.error) {
+					cb(data.error);
 				} else {
 					console.log('Got transactions of this peer: ' + data);
 					cb(null, data);
@@ -1391,7 +1412,6 @@ module.exports = function (Peer) {
 		const trendingIds = [
 			'75a2aac4-bddd-4cd6-b967-d5b9d05f7a8e', // abhijeet
 			'e7c3eb57-1180-4876-9758-7431746641fc', // sahil
-			'3332fe86-0ba8-4418-81b7-3e20989b389f', // akash
 			'd60de369-8962-466a-8f2b-dbad1a77b383', // lawrence
 			'cd253120-c073-4e41-af42-2e1b74b1a431',  // gnana
 			'9ddcbba0-40ab-45f7-a02c-03c8c38e69c0' // Shiv Gupta

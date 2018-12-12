@@ -33,6 +33,8 @@ module.exports = function(Question) {
 									}, function (err, response, data) {
 										if (err) {
 											console.error(err);
+										} else if (data && data.error) {
+											console.error(data.error);
 										} else {
 											console.log('Added answer on blockchain: ' + data);
 										}
@@ -177,6 +179,8 @@ module.exports = function(Question) {
 											if (err) {
 												console.error(err);
 												cb(err);
+											} else if (data && data.error) {
+												cb(data.error);
 											} else {
 												console.log('Accepted answer on blockchain: ' + data);
 											}
