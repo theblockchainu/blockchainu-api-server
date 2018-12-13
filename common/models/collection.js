@@ -190,8 +190,9 @@ module.exports = function (Collection) {
 										if (username.length > 10) {
 											username = username.slice(0, 9);
 										}
-										console.log(username);
 									}
+									console.log('corestack_username');
+									console.log(username);
 									const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides							
 									const student_id = participantJSON.id;
 									const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
@@ -199,11 +200,12 @@ module.exports = function (Collection) {
 									const course_id = 'ETHEREUM';
 									const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
 									const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');;
-									const githubUrl = collectionInstance.githubUrl;
+									// const githubUrl = collectionInstance.githubUrl;
+									const user_script_path = 'https://ethereumlabstorage.blob.core.windows.net/ethereum-userdata/ethereum_userdata_script_dec6.sh';
 									Collection.app.models.corestack_student.registerStudent(
 										student_id,
 										student_name, student_email, course_id, course_start_date, username,
-										course_end_date, githubUrl
+										course_end_date, user_script_path
 									).then(corestackStudentInstance => {
 										console.log('connecting Corestack student');
 										collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
@@ -225,6 +227,7 @@ module.exports = function (Collection) {
 											});
 										});
 									}).catch(err => {
+										console.log('registerStudentError');
 										console.log(err);
 									});
 								});
@@ -232,23 +235,22 @@ module.exports = function (Collection) {
 
 							const query = {
 								include: [
-									{
-										'relation': 'peer',
-										'scope': {
-											'where': { 'id': participantUserInstance.id }
-										}
-									}
+									'peer'
 								]
 							};
-
-
 							collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+								console.log('corestackStudents');
+								console.log(corestackStudents);
 								if (errorcorestackStudents) {
-									addToCoreStack();
-								} else if (corestackStudents && corestackStudents.length === 1) {
-									console.log('already added');
+									// addToCoreStack();
+									console.log('Error in fetching students in DB');
 								} else {
-									addToCoreStack();
+									const studentPresent = corestackStudents.some(student => (student.student_id === participantUserInstance.id));
+									if (studentPresent) {
+										console.log('already added to the collection');
+									} else {
+										addToCoreStack();
+									}
 								}
 							});
 
@@ -403,18 +405,18 @@ module.exports = function (Collection) {
 		return cookie.split(/[ \:.]+/)[0];
 	};
 
-	Collection.afterRemote('prototype.__unlink__participants', function (ctx, next1) {
+	Collection.afterRemote('prototype.__unlink__participants', function (ctx, participantLinkInstance, next) {
 		// Participant canceled collection. Notify collection owner.
 		let collectionInstance = ctx.instance;
 		let participantId = ctx.args.fk;
 		Collection.app.models.peer.findById(participantId, { "include": "profiles" }, function (err, participantUserInstance) {
 			if (err) {
-				next1(err);
+				next(err);
 			}
 			else {
 				collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
 					if (err) {
-						next1(err);
+						next(err);
 					}
 					else {
 						let ownerInstance = ownerInstances[0];
@@ -425,12 +427,12 @@ module.exports = function (Collection) {
 							actionUrl: [collectionInstance.type, collectionInstance.id]
 						}, function (err, notificationInstance) {
 							if (err) {
-								next1(err);
+								next(err);
 							}
 							else {
 								notificationInstance.actor.add(participantId, function (err, actorInstance) {
 									if (err) {
-										next1(err);
+										next(err);
 									}
 									else {
 										notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
@@ -450,9 +452,10 @@ module.exports = function (Collection) {
 													}, function (err, response, data) {
 														if (err) {
 															console.error(err);
-															next(err);
+															// next(err);
 														} else if (data && data.error) {
-															next(data.error);
+															console.error(data);
+															// next(data.error);
 														} else {
 															console.log('Recorded student participation on blockchain ' + data);
 														}

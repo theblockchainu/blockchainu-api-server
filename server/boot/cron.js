@@ -1006,7 +1006,8 @@ module.exports = function setupCron(server) {
 			const corestack_student_query = {
 				where: {
 					'student_course_status': 'registered'
-				}
+				},
+				include: ['collections']
 			};
 			let tokenObject;
 			app.models.corestack_token
@@ -1034,11 +1035,31 @@ module.exports = function setupCron(server) {
 							console.log(student_detail);
 							if (student_detail.data.student_course_status === 'active') {
 								console.log('saving data');
-								corestack_student.student_course_status = 'active';
-								corestack_student.save().then(savedinstance => {
-									console.log('Updated ' + corestack_student.student_email);
-									console.log(savedinstance);
-								});
+								const updatedData = { student_course_status: 'active' };
+								const corestack_student_json = corestack_student.toJSON();
+								app.models.corestack_student.upsertWithWhere({ id: corestack_student.id }, updatedData)
+									.then(savedinstance => {
+										console.log('Updated ' + corestack_student.student_email);
+										console.log(savedinstance);
+										let message = {
+											guideUrl: 'https://theblockchainu.com/guide/' + corestack_student_json.collections[0].customUrl,
+											guideTitle: corestack_student_json.collections[0].title.toUpperCase()
+										};
+										let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackActivated.ejs'));
+										let html_body = renderer(message);
+										return loopback.Email.send({
+											to: corestack_student_json.student_email,
+											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+											subject: 'Code Labs Activated!',
+											html: html_body
+										});
+									}).then(function (response) {
+										console.log('email sent! - ');
+									})
+									.catch(function (err) {
+										console.log('email error! - ' + err);
+									});
+
 							}
 						}).catch(err => {
 							console.log('Error in processing ' + corestack_student.student_email);
@@ -1050,6 +1071,8 @@ module.exports = function setupCron(server) {
 					console.log('Error in corestack student cron');
 					console.log(err);
 				});
+
+
 		},
 		function () {
 

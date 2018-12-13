@@ -7,8 +7,8 @@ module.exports = function (Corestackstudent) {
 
     Corestackstudent.registerStudent = async function (student_id,
         student_name, student_email, course_id, course_start_date, username,
-        course_end_date, githubUrl) {
-        const user_script_path = await this.getUserScriptPath(githubUrl);
+        course_end_date, user_script_path) {
+        // const user_script_path = await this.getUserScriptPath(githubUrl);
         let studentData = {
             student_id: student_id,
             student_name: student_name,
@@ -90,6 +90,9 @@ module.exports = function (Corestackstudent) {
                 console.log(body);
                 if (body.status === 'success') {
                     studentData.student_course_status = 'registered';
+                    console.log(studentData);
+                    studentData.custom_options_stringified = JSON.stringify(studentData.custom_options);
+                    delete studentData.custom_options;
                     return Corestackstudent.create(studentData);
                 } else {
                     return Promise.reject(body);
@@ -97,10 +100,24 @@ module.exports = function (Corestackstudent) {
             })
             .catch(err => {
                 console.log('core_stack_add_error');
-                console.log(err);
-                return Promise.reject('Error');
+                console.log(err.error.message);
+                // Check existing student in corestack DB, if present create a node in local DB and return the instance else return error
+                return Corestackstudent.getStudentDetails(studentData.student_id, studentData.course_id).then(existingCorestackStudent => {
+                    const existingStudent = existingCorestackStudent.data;
+                    if (existingStudent) {
+                        console.log('existingStudent');
+                        console.log(existingStudent);
+                        existingStudent.student_course_status = 'registered';
+                        existingStudent.custom_options_stringified = JSON.stringify(studentData.custom_options);
+                        delete existingStudent.custom_options;
+                        return Corestackstudent.create(existingStudent);
+                    } else {
+                        return Promise.reject('Error');
+                    }
+                });
             });
     };
+
 
     Corestackstudent.getUserScriptPath = async function (githubUrl) {
         return null;
@@ -187,6 +204,7 @@ module.exports = function (Corestackstudent) {
     };
 
     Corestackstudent.getStudentAccessDetails = async function (student_id, course_id) {
+        let access_data;
         return Corestackstudent.app.models.corestack_token.getTokenObject()
             .then(tokenObject => {
                 console.log('tokenObjectReceived');
@@ -201,36 +219,60 @@ module.exports = function (Corestackstudent) {
                     }
                 });
             }).then((body) => {
+                let blockchainKeys;
+                let blockchainPromise;
+
                 if (body.status === 'success') {
-                    return body.data;
+                    access_data = body.data;
+                    access_data.some(accessDetail => {
+                        if (accessDetail.application_name === 'Additional Information') {
+                            blockchainPromise = request(
+                                {
+                                    url: accessDetail.keys_file_path,
+                                    json: true
+                                }
+                            );
+                            return true;
+                        }
+                    });
+                    return blockchainPromise ? blockchainPromise : Promise.resolve(null);
                 } else {
                     return Promise.reject(body);
                 }
-            }).catch(err => {
+            }).then(keysJSON => {
+                if (keysJSON) {
+                    access_data.map(accessDetail => {
+                        if (accessDetail.application_name === 'Additional Information') {
+                            accessDetail.keys = keysJSON;
+                            return accessDetail;
+                        } else {
+                            return accessDetail;
+                        }
+                    });
+                }
+                return access_data;
+            })
+            .catch(err => {
                 return Promise.reject(err);
             });
     };
 
-    Corestackstudent.getStudentDetails = async function (student_id, course_id) {
-        return Corestackstudent.app.models.corestack_token.getTokenObject()
+    Corestackstudent.getStudentDetails = function (student_id, course_id) {
+        return Corestackstudent.app.models.corestack_token
+            .getTokenObject()
             .then(tokenObject => {
                 return request.get({
-                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
-                        + '/cloudlab/student/' + student_id + '/' + course_id,
+                    url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/'
+                        + student_id + '/' + course_id,
                     json: true,
                     headers: {
                         'X-Auth-Token': tokenObject.data.token.key,
                         'X-Auth-User': Corestackstudent.app.get('corestackUserName')
-                    }
+                    },
                 });
-            }).then((body) => {
-                if (body.status === 'success') {
-                    return body.data;
-                } else {
-                    return Promise.reject(body);
-                }
             }).catch(err => {
-                return Promise.reject(err);
+                console.log('Error in corestack getStudentDetails');
+                console.log(err);
             });
     };
 
