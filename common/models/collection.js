@@ -199,7 +199,8 @@ module.exports = function (Collection) {
 									const student_email = participantJSON.email;
 									const course_id = 'ETHEREUM';
 									const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
-									const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');;
+									const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');
+									console.log('EndDate' + course_end_date);
 									// const githubUrl = collectionInstance.githubUrl;
 									const user_script_path = 'https://ethereumlabstorage.blob.core.windows.net/ethereum-userdata/ethereum_userdata_script_dec6.sh';
 									Collection.app.models.corestack_student.registerStudent(
@@ -538,8 +539,62 @@ module.exports = function (Collection) {
 						});
 					}
 				});
+
+				// if collection is a guide unlink participant from corestack
+				if (collectionInstance.type === 'guide') {
+					console.log('deregistering_corestack_student');
+					const removeFromCoreStack = (corestackStudent) => {
+						const participantJSON = participantUserInstance.toJSON();
+						Collection.app.models.corestack_student.deregisterStudent(
+							corestackStudent.student_id, 'ETHEREUM'
+						).then(corestackStudentInstance => {
+							console.log('Email Corestack student the he has been de registered');
+							let message = {
+								guideUrl: 'https://theblockchainu.com/guide/' + collectionInstance.customUrl,
+								guideTitle: collectionInstance.title.toUpperCase()
+							};
+							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackDeActivated.ejs'));
+							let html_body = renderer(message);
+							return loopback.Email.send({
+								to: participantJSON.email,
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+								subject: 'Code Labs DeActivated!',
+								html: html_body
+							});
+						}).then(emailInstance => {
+							console.log('Email Sent!');
+						}).catch(err => {
+							console.log('registerStudentError');
+							console.log(err);
+						});
+						return true;
+					};
+					const query = {
+						where: {
+							student_id: participantUserInstance.id
+						}
+					};
+					collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+						console.log('corestackStudents');
+						console.log(corestackStudents);
+						if (errorcorestackStudents) {
+							// removeFromCoreStack();
+							console.log('Error in fetching students in DB');
+						} else {
+							if (corestackStudents) {
+								removeFromCoreStack(corestackStudents[0]);
+							} else {
+								console.log('Student Not added to the collection');
+							}
+						}
+					});
+
+				}
+
 			}
 		});
+
+
 	});
 
 	Collection.submitForReview = (id, req, cb) => {
