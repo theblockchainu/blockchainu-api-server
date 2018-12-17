@@ -1050,7 +1050,7 @@ module.exports = function setupCron(server) {
 										return loopback.Email.send({
 											to: corestack_student_json.student_email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'Code Labs Activated!',
+											subject: 'Your CodeLab is up and running!',
 											html: html_body
 										});
 									}).then(function (response) {
