@@ -221,11 +221,13 @@ module.exports = function (Corestackstudent) {
             }).then((body) => {
                 let blockchainKeys;
                 let blockchainPromise;
-
                 if (body.status === 'success') {
+                    console.log(body);
                     access_data = body.data;
+                    console.log('requesting_keys_file_path');
                     access_data.some(accessDetail => {
                         if (accessDetail.application_name === 'Additional Information') {
+                            console.log(accessDetail.keys_file_path);
                             blockchainPromise = request(
                                 {
                                     url: accessDetail.keys_file_path,
@@ -237,7 +239,7 @@ module.exports = function (Corestackstudent) {
                     });
                     return blockchainPromise ? blockchainPromise : Promise.resolve(null);
                 } else {
-                    return Promise.reject(body);
+                    return Promise.reject('CorestackError' + body);
                 }
             }).then(keysJSON => {
                 if (keysJSON) {
