@@ -235,11 +235,14 @@ module.exports = function (Collection) {
 							};
 
 							const query = {
+								where: {
+									student_id: participantUserInstance.id
+								},
 								include: [
 									'peer'
 								]
 							};
-							collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+							Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
 								console.log('corestackStudents');
 								console.log(corestackStudents);
 								if (errorcorestackStudents) {
@@ -541,55 +544,55 @@ module.exports = function (Collection) {
 				});
 
 				// if collection is a guide unlink participant from corestack
-				if (collectionInstance.type === 'guide') {
-					console.log('deregistering_corestack_student');
-					const removeFromCoreStack = (corestackStudent) => {
-						const participantJSON = participantUserInstance.toJSON();
-						Collection.app.models.corestack_student.deregisterStudent(
-							corestackStudent.student_id, 'ETHEREUM'
-						).then(corestackStudentInstance => {
-							console.log('Email Corestack student the he has been de registered');
-							let message = {
-								guideUrl: 'https://theblockchainu.com/guide/' + collectionInstance.customUrl,
-								guideTitle: collectionInstance.title.toUpperCase()
-							};
-							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackDeActivated.ejs'));
-							let html_body = renderer(message);
-							return loopback.Email.send({
-								to: participantJSON.email,
-								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'Code Labs DeActivated!',
-								html: html_body
-							});
-						}).then(emailInstance => {
-							console.log('Email Sent!');
-						}).catch(err => {
-							console.log('registerStudentError');
-							console.log(err);
-						});
-						return true;
-					};
-					const query = {
-						where: {
-							student_id: participantUserInstance.id
-						}
-					};
-					collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
-						console.log('corestackStudents');
-						console.log(corestackStudents);
-						if (errorcorestackStudents) {
-							// removeFromCoreStack();
-							console.log('Error in fetching students in DB');
-						} else {
-							if (corestackStudents) {
-								removeFromCoreStack(corestackStudents[0]);
-							} else {
-								console.log('Student Not added to the collection');
-							}
-						}
-					});
+				// if (collectionInstance.type === 'guide') {
+				// 	console.log('deregistering_corestack_student');
+				// 	const removeFromCoreStack = (corestackStudent) => {
+				// 		const participantJSON = participantUserInstance.toJSON();
+				// 		Collection.app.models.corestack_student.deregisterStudent(
+				// 			corestackStudent.student_id, 'ETHEREUM'
+				// 		).then(corestackStudentInstance => {
+				// 			console.log('Email Corestack student the he has been de registered');
+				// 			let message = {
+				// 				guideUrl: 'https://theblockchainu.com/guide/' + collectionInstance.customUrl,
+				// 				guideTitle: collectionInstance.title.toUpperCase()
+				// 			};
+				// 			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackDeActivated.ejs'));
+				// 			let html_body = renderer(message);
+				// 			return loopback.Email.send({
+				// 				to: participantJSON.email,
+				// 				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+				// 				subject: 'Code Labs DeActivated!',
+				// 				html: html_body
+				// 			});
+				// 		}).then(emailInstance => {
+				// 			console.log('Email Sent!');
+				// 		}).catch(err => {
+				// 			console.log('registerStudentError');
+				// 			console.log(err);
+				// 		});
+				// 		return true;
+				// 	};
+				// 	const query = {
+				// 		where: {
+				// 			student_id: participantUserInstance.id
+				// 		}
+				// 	};
+				// 	collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+				// 		console.log('corestackStudents');
+				// 		console.log(corestackStudents);
+				// 		if (errorcorestackStudents) {
+				// 			// removeFromCoreStack();
+				// 			console.log('Error in fetching students in DB');
+				// 		} else {
+				// 			if (corestackStudents) {
+				// 				removeFromCoreStack(corestackStudents[0]);
+				// 			} else {
+				// 				console.log('Student Not added to the collection');
+				// 			}
+				// 		}
+				// 	});
 
-				}
+				// }
 
 			}
 		});
