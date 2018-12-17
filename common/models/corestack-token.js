@@ -17,6 +17,7 @@ module.exports = function (Corestacktoken) {
                     console.log(moment(now).toDate());
                     console.log('moment ' + endMoment.isAfter(now.add(10, 'minutes')));
                     if (tokenObject.status === 'success' && tokenObject.data.token !== null && endMoment.isAfter(now.add(5, 'minutes'))) {
+                        console.log('returning token in DB');
                         return Promise.resolve(tokenObject);
                     } else {
                         return this.generateToken();

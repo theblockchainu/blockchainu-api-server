@@ -35,6 +35,9 @@
     },
     "student_course_status": {
       "type": "string"
+    },
+    "custom_options_stringified": {
+      "type": "string"
     }
   },
   "validations": [],
