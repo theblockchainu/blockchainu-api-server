@@ -2208,7 +2208,8 @@ module.exports = function (Collection) {
 
 	Collection.fetchTrending = function (req, cb) {
 		const queryObj = req.query;
-		const type = queryObj['type'];
+		let type = queryObj['type'];
+		type = (type === 'learning-path') ? 'learningPath' : type;
 		const query = {
 			fields: {}
 		};
