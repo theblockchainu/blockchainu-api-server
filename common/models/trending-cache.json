@@ -25,6 +25,11 @@
       "type": [
         "string"
       ]
+    },
+    "learningPathArray": {
+      "type": [
+        "string"
+      ]
     }
   },
   "validations": [],

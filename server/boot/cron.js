@@ -472,6 +472,13 @@ module.exports = function setupCron(server) {
 
 	const saveCollectionCache = (type) => {
 		const today = moment();
+		const trendingLearningPathIds = [
+			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
+			'4166c51a-4cb5-447d-bbaf-7d3539773182',
+			'2224b149-fb86-4946-b93b-8d7f03dcc556',
+			'e89ee13b-5eea-4313-beaa-dc9cda1ada77',
+		];
+
 		const query = {
 			'include': [
 				'calendars',
@@ -491,71 +498,80 @@ module.exports = function setupCron(server) {
 				'type': type
 			}
 		};
+		if (type === 'learning-path') {
+			query['where'] = { 'id': { 'inq': trendingLearningPathIds } };
+		}
 		let resultArray = [];
 		return server.models.collection.find(query)
 			.then((allCollectionInstances) => {
-				let collectionInstances = [];
-				allCollectionInstances.forEach(collectionInstance => {
-					const collection = collectionInstance.toJSON();
-					if (collection.status === 'active') {
-						let hasActiveCalendar = false;
-						if (collection.type === 'experience' && collection.contents) {
-							let experienceLocation = 'Unknown location';
-							let lat = 37.5293864;
-							let lng = -122.008471;
-							collection.contents.forEach(content => {
-								if (content.locations && content.locations.length > 0
-									&& content.locations[0].city !== undefined
-									&& content.locations[0].city.length > 0
-									&& content.locations[0].map_lat !== undefined
-									&& content.locations[0].map_lat.length > 0) {
-									experienceLocation = content.locations[0].city;
-									lat = parseFloat(content.locations[0].map_lat);
-									lng = parseFloat(content.locations[0].map_lng);
-								}
-							});
-							collection.location = experienceLocation;
-							collection.lat = lat;
-							collection.lng = lng;
+				if (type === 'learning-path') {
+					resultArray = allCollectionInstances.map(collectionInstances => {
+						return JSON.stringify(collectionInstances);
+					});
+				} else {
+					let collectionInstances = [];
+					allCollectionInstances.forEach(collectionInstance => {
+						const collection = collectionInstance.toJSON();
+						if (collection.status === 'active') {
+							let hasActiveCalendar = false;
+							if (collection.type === 'experience' && collection.contents) {
+								let experienceLocation = 'Unknown location';
+								let lat = 37.5293864;
+								let lng = -122.008471;
+								collection.contents.forEach(content => {
+									if (content.locations && content.locations.length > 0
+										&& content.locations[0].city !== undefined
+										&& content.locations[0].city.length > 0
+										&& content.locations[0].map_lat !== undefined
+										&& content.locations[0].map_lat.length > 0) {
+										experienceLocation = content.locations[0].city;
+										lat = parseFloat(content.locations[0].map_lat);
+										lng = parseFloat(content.locations[0].map_lng);
+									}
+								});
+								collection.location = experienceLocation;
+								collection.lat = lat;
+								collection.lng = lng;
+							}
+							if (collection.calendars) {
+								collection.calendars.some(calendar => {
+									if (moment(calendar.endDate).diff(today, 'days') >= -1) {
+										hasActiveCalendar = true;
+										return;
+									}
+								});
+							}
+							if (collection.owners && collection.owners.length > 0 && collection.owners[0].reviewsAboutYou) {
+								collection.rating = calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
+								collection.ratingCount = calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
+							}
+							if (hasActiveCalendar || collection.type === 'guide') {
+								collectionInstances.push(collection);
+							}
 						}
-						if (collection.calendars) {
-							collection.calendars.some(calendar => {
-								if (moment(calendar.endDate).diff(today, 'days') >= -1) {
-									hasActiveCalendar = true;
-									return;
-								}
-							});
-						}
-						if (collection.owners && collection.owners.length > 0 && collection.owners[0].reviewsAboutYou) {
-							collection.rating = calculateCollectionRating(collection.id, collection.owners[0].reviewsAboutYou);
-							collection.ratingCount = calculateCollectionRatingCount(collection.id, collection.owners[0].reviewsAboutYou);
-						}
-						if (hasActiveCalendar || collection.type === 'guide') {
-							collectionInstances.push(collection);
-						}
-					}
-				});
+					});
 
-				const latestCollections = [];
+					const latestCollections = [];
 
-				for (let i = 0; i < collectionInstances.length && latestCollections.length < 2; i++) {
-					latestCollections.push(JSON.stringify(collectionInstances[i]));
-				}
-				const popularCollections = [];
-				collectionInstances = collectionInstances.slice(2);
-				collectionInstances.sort((a, b) => {
-					if (a.views.length > b.views.length) {
-						return -1;
-					} else if (a.views.length < b.views.length) {
-						return 1;
-					} else {
-						return 0;
+					for (let i = 0; i < collectionInstances.length && latestCollections.length < 2; i++) {
+						latestCollections.push(JSON.stringify(collectionInstances[i]));
 					}
-				});
-				for (let i = 0; i < collectionInstances.length && popularCollections.length < 3; i++) {
-					popularCollections.push(JSON.stringify(collectionInstances[i]));
+					const popularCollections = [];
+					collectionInstances = collectionInstances.slice(2);
+					collectionInstances.sort((a, b) => {
+						if (a.views.length > b.views.length) {
+							return -1;
+						} else if (a.views.length < b.views.length) {
+							return 1;
+						} else {
+							return 0;
+						}
+					});
+					for (let i = 0; i < collectionInstances.length && popularCollections.length < 3; i++) {
+						popularCollections.push(JSON.stringify(collectionInstances[i]));
+					}
+					resultArray = popularCollections.concat(latestCollections);
 				}
-				resultArray = popularCollections.concat(latestCollections);
 				return server.models.trending_cache.find();
 			})
 			.then((cacheInstance) => {
@@ -579,6 +595,9 @@ module.exports = function setupCron(server) {
 					case 'bounty':
 						cacheInstance.bountyArray = resultArray;
 						break;
+					case 'learning-path':
+						cacheInstance.learningPathArray = resultArray;
+						break;
 					default:
 						break;
 				}
@@ -586,8 +605,9 @@ module.exports = function setupCron(server) {
 			});
 	};
 
+	// const trendingCollectionCron = new CronJob('*/5 * * * * *', function (params) {
 	const trendingCollectionCron = new CronJob('00 00 * * * *', function (params) {
-		const collectionTypes = ['guide', 'experience', 'class', 'bounty'];
+		const collectionTypes = ['guide', 'experience', 'class', 'bounty', 'learning-path'];
 		//set trending collections for 24 hours
 
 		Promise.each(collectionTypes, (type) => {
