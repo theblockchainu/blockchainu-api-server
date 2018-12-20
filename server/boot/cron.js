@@ -472,6 +472,14 @@ module.exports = function setupCron(server) {
 
 	const saveCollectionCache = (type) => {
 		const today = moment();
+		// const trendingLearningPathIds = [
+		// 	'e022bacb-15a8-422a-82d5-b02ceaa2c0b5',
+		// 	'643c9bdd-744b-4c39-8996-1f06143b90de',
+		// 	'c5011060-8cec-4d28-a883-2e635de8536b',
+		// 	'5885afc8-15e2-42fa-b75f-3260f69d6f99',
+		// ];
+
+		// prod paths
 		const trendingLearningPathIds = [
 			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
 			'4166c51a-4cb5-447d-bbaf-7d3539773182',
@@ -479,27 +487,47 @@ module.exports = function setupCron(server) {
 			'e89ee13b-5eea-4313-beaa-dc9cda1ada77',
 		];
 
-		const query = {
-			'include': [
-				'calendars',
-				'views',
-				{ 'owners': ['reviewsAboutYou', 'profiles'] },
-				'participants',
-				{ 'bookmarks': 'peer' },
-				{
-					'contents':
-						['schedules', 'locations']
-				},
-				'rewards',
-				'topics'
-			],
-			'order': 'createdAt DESC',
-			'where': {
-				'type': type
-			}
-		};
+		let query;
+
 		if (type === 'learning-path') {
-			query['where'] = { 'id': { 'inq': trendingLearningPathIds } };
+			query = {
+				'include': [
+					'topics',
+					{ 'owners': ['profiles', 'topicsTeaching'] },
+					{
+						'relation': 'contents',
+						'scope': {
+							'include': [{ 'courses': [{ 'owners': ['profiles'] }] }],
+							'order': 'contentIndex ASC'
+						}
+					},
+				],
+				'order': 'createdAt DESC',
+				'where': {
+					'type': type,
+					'id': { 'inq': trendingLearningPathIds }
+				}
+			};
+		} else {
+			query = {
+				'include': [
+					'calendars',
+					'views',
+					{ 'owners': ['reviewsAboutYou', 'profiles'] },
+					'participants',
+					{ 'bookmarks': 'peer' },
+					{
+						'contents':
+							['schedules', 'locations']
+					},
+					'rewards',
+					'topics'
+				],
+				'order': 'createdAt DESC',
+				'where': {
+					'type': type
+				}
+			};
 		}
 		let resultArray = [];
 		return server.models.collection.find(query)
