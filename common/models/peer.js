@@ -1735,16 +1735,16 @@ module.exports = function (Peer) {
 
 	};
 
-	Peer.afterRemote('prototype.__create__reviewsAboutYou', function (ctx, newReviewInstance, next) {
+	Peer.afterRemote('prototype.__create__reviewsAboutYou', (ctx, newReviewInstance, next) => {
 		// A new review was created. Send email to teacher who got review
 		let loggedinPeer = Peer.getCookieUserId(ctx.req);
 		if (loggedinPeer) {
-			Peer.findById(ctx.instance.id, { include: 'profiles' }, function (err, reviewedPeerInstance) {
+			Peer.findById(ctx.instance.id, { include: 'profiles' }, (err, reviewedPeerInstance) => {
 				if (!err) {
-					Peer.app.models.collection.findById(newReviewInstance.collectionId, function (err, reviewedCollectionInstance) {
+					Peer.app.models.collection.findById(newReviewInstance.collectionId, (err, reviewedCollectionInstance) => {
 						if (!err) {
-							Peer.findById(loggedinPeer, { include: 'profiles' }, function (err, reviewerInstance) {
-								if (!err) {
+							Peer.findById(loggedinPeer, { include: 'profiles' }, (err, reviewerInstance) => {
+								if (!err && reviewedCollectionInstance) {
 									// Send token in email to user.
 									let message = { reviewedPeerName: reviewedPeerInstance.toJSON().profiles[0].first_name, reviewerName: reviewerInstance.toJSON().profiles[0].first_name + ' ' + reviewerInstance.toJSON().profiles[0].last_name, reviewScore: newReviewInstance.score, reviewDesc: newReviewInstance.description, collectionTitle: reviewedCollectionInstance.title };
 									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newReviewToTeacher.ejs'));
