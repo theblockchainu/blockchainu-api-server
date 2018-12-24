@@ -178,7 +178,6 @@ module.exports = function (Collection) {
 
 						// if collection is a guide join participant to corestack
 						if (collectionInstance.type === 'guide') {
-
 							const addToCoreStack = function () {
 								collectionInstance.__get__calendars({}, (error, calendarInstances) => {
 									const participantJSON = participantUserInstance.toJSON();
@@ -199,7 +198,7 @@ module.exports = function (Collection) {
 									const student_email = participantJSON.email;
 									const course_id = 'ETHEREUM';
 									const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
-									const course_end_date = moment(calendar.endDate).format('YYYY-MM-DD');
+									const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
 									console.log('EndDate' + course_end_date);
 									// const githubUrl = collectionInstance.githubUrl;
 									const user_script_path = 'https://ethereumlabstorage.blob.core.windows.net/ethereum-userdata/ethereum_userdata_script_dec6.sh';

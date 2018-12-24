@@ -142,6 +142,28 @@ module.exports = function (Media) {
         }
     };
 
+    Media.getDownloadUrl = function (fileName, ctx, cb) {
+        // /:fileName
+        const container = 'peerbuds-dev1290';
+        var loggedinPeer = Media.getCookieUserId(ctx.req);
+        if (loggedinPeer) {
+            var params = { Bucket: container, Key: fileName };
+            console.log('signing');
+            s3.getSignedUrl('getObject', params, (err, downloadUrl) => {
+                if (err) {
+                    console.log(err);
+                    cb(err);
+                } else {
+                    console.log('The URL is', downloadUrl);
+                    cb(null, downloadUrl);
+                }
+            });
+        }
+        else {
+            cb(new Error('Requested API not allowed for unauthenticated requests.'));
+        }
+    };
+
     Media.getCookieUserId = function (req) {
 
         var cookieArray = req.headers.cookie.split(';');
@@ -199,6 +221,21 @@ module.exports = function (Media) {
                 arg: 'fileObject', type: 'object', root: true
             },
             http: { verb: 'post' }
+        }
+    );
+    
+    Media.remoteMethod(
+        'getDownloadUrl',
+        {
+            description: 'Get Download URL',
+            accepts: [
+                { arg: 'fileName', type: 'string', required: true },
+                { arg: 'ctx', type: 'object', http: { source: 'context' } },
+            ],
+            returns: {
+                arg: 'fileUrl', type: 'string', root: true
+            },
+            http: { path: '/:fileName', verb: 'post' }
         }
     );
 
