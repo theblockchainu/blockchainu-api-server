@@ -223,7 +223,7 @@ module.exports = function (Media) {
             http: { verb: 'post' }
         }
     );
-    
+
     Media.remoteMethod(
         'getDownloadUrl',
         {
@@ -235,7 +235,7 @@ module.exports = function (Media) {
             returns: {
                 arg: 'fileUrl', type: 'string', root: true
             },
-            http: { path: '/:fileName', verb: 'post' }
+            http: { path: '/getDownloadUrl/:fileName', verb: 'get' }
         }
     );
 
