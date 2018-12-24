@@ -453,6 +453,11 @@ module.exports = function setupCron(server) {
 		'UTC'
 	);
 
+	const calculateDuration = function (descriptionLength) {
+		// in Hours
+		return parseFloat((descriptionLength / 72000).toFixed(2)); // word per minute considering 6 char per word and 200 word per minute
+	};
+
 	const calculateCollectionRating = function (collectionId, reviewArray) {
 		let reviewScore = 0;
 		for (const reviewObject of reviewArray) {
@@ -479,7 +484,7 @@ module.exports = function setupCron(server) {
 		// 	'5885afc8-15e2-42fa-b75f-3260f69d6f99',
 		// ];
 
-		// prod paths
+		// // prod paths
 		const trendingLearningPathIds = [
 			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
 			'4166c51a-4cb5-447d-bbaf-7d3539773182',
@@ -533,8 +538,22 @@ module.exports = function setupCron(server) {
 		return server.models.collection.find(query)
 			.then((allCollectionInstances) => {
 				if (type === 'learning-path') {
-					resultArray = allCollectionInstances.map(collectionInstances => {
-						return JSON.stringify(collectionInstances);
+					resultArray = allCollectionInstances.map(retreivedInstance => {
+						let totalHours = 0;
+						const collectionInstance = retreivedInstance.toJSON();
+						collectionInstance.contents.forEach(content => {
+							if (content.courses && content.courses.length > 0) {
+								if (content.courses[0].type === 'guide') {
+									const guideHours = calculateDuration(content.courses[0].description.length);
+									console.log('guideHours' + guideHours);
+									totalHours += guideHours;
+								} else {
+									totalHours += content.courses[0].totalHours;
+								}
+							}
+						});
+						collectionInstance.totalHours = totalHours;
+						return JSON.stringify(collectionInstance);
 					});
 				} else {
 					let collectionInstances = [];
