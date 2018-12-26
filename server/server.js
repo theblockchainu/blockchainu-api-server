@@ -172,11 +172,15 @@ app.post('/signup', function (req, res, next) {
     console.log(req.connection);
     console.log(req.socket);
     console.log(req.info);
-    const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+    const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
-    console.log('*** remoteIp is: ' + remoteIp);
+
+    // const rawIpAddress = '::ffff:45.112.22.240'; //sample ip address
+
+    const ipAddressDataArray = rawIpAddress.split(':');
+    const remoteIp = ipAddressDataArray[3];
     const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
@@ -439,6 +443,7 @@ app.post('/signup', function (req, res, next) {
                                 if (err) {
                                     console.error(err);
                                 } else {
+                                    console.log('saveUserCountry');
                                     console.log(data);
                                     User.dataSource.connector.execute(
                                         "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
@@ -463,9 +468,9 @@ app.post('/signup', function (req, res, next) {
                                     if (err) {
                                         console.error(err);
                                     } else if (response.body && response.body.error) {
-	                                    console.error(response.body.error);
+                                        console.error(response.body.error);
                                     } else if (data && data.error) {
-	                                    console.error(data.error);
+                                        console.error(data.error);
                                     }
                                     else {
                                         console.log(data);
@@ -519,7 +524,7 @@ app.post('/signup', function (req, res, next) {
                                                                 if (err) {
                                                                     console.error(err);
                                                                 } else if (result && result.error) {
-	                                                                console.error(result.error);
+                                                                    console.error(result.error);
                                                                 } else {
                                                                     console.log('Added participant to scholarship on blockchain: ' + result);
                                                                 }
@@ -585,7 +590,7 @@ app.post('/getKarmaToBurn', function (req, res, next) {
                 console.error(err);
                 next(err);
             } else if (data && data.error) {
-	            next(data.error);
+                next(data.error);
             } else {
                 console.log('Got karma to burn: ' + data);
                 res.json({ karma: data });
