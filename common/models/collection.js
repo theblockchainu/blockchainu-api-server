@@ -1082,6 +1082,8 @@ module.exports = function (Collection) {
 				}
 			});
 		} else {
+			next();
+
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -2334,6 +2336,7 @@ module.exports = function (Collection) {
 	Collection.cloneCollection = async (collectionId, body) => {
 		console.log('Cloning Collection' + collectionId);
 		let oldCollectionInstance;
+		let newCollectionInstance;
 		return Collection
 			.findById(collectionId)
 			.then((oldCollectionInstanceData) => {
@@ -2345,218 +2348,328 @@ module.exports = function (Collection) {
 				delete newCollection.createdAt;
 				delete newCollection.updatedAt;
 				// assign fresh values to new collection
+				newCollection.title = 'Cloned:' + newCollection.title;
 				newCollection.status = 'draft';
 				newCollection.isCanceled = false;
 				newCollection.isApproved = false;
 				newCollection.isNewInstance = false;
 				return Collection.create(newCollection);
-			}).catch(err => {
-				console.log('oldCollectionInstanceError');
-				console.log(err);
-				return Promise.reject(err);
 			})
-			.then((newCollectionInstance) => {
-				console.log('newCollectionInstance' + newCollectionInstance);
+			.then((newCollectionInstanceData) => {
+				newCollectionInstance = newCollectionInstanceData;
 				// Create a relation between logged in user and this new collection node
-				console.log('oldCollectionInstance');
-				console.log(oldCollectionInstance);
-				oldCollectionInstance.__get__owners((err, oldOwnerInstances) => {
-					if (!err && oldOwnerInstances !== null) {
-						oldOwnerInstances.forEach((oldOwnerInstance) => {
-							newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
-								if (!err && ownerLinkInstance !== null) {
-									console.log('Linked owner to cloned collection.');
-								}
-								else {
-									next(err);
-								}
+				const linkOwners = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__owners((error, oldOwnerInstances) => {
+						if (error) {
+							console.log('linkOwnersError');
+							console.log(error);
+							reject(error);
+						} else {
+							const linkOwnerPromises = [];
+							oldOwnerInstances.forEach((oldOwnerInstance) => {
+								linkOwnerPromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__owners(oldOwnerInstance.id, (err, data) => {
+											if (err) {
+												rej(err);
+											} else {
+												res(data);
+											}
+										});
+									})
+								);
 							});
-						});
-					}
-					else {
-						next(err);
-					}
+							Promise.all(linkOwnerPromises).then(allLinked => {
+								console.log('linkOwners_copied');
+								resolve(allLinked);
+							}).catch(err => {
+								reject(err);
+							});
+						}
+					});
 				});
-				const linkOwners = oldCollectionInstance.__get__owners()
-					.then((oldOwnerInstances) => {
-						console.log('oldOwnerInstances' + oldOwnerInstances);
-
-						const linkOwnerPromises = [];
-						oldOwnerInstances.forEach((oldOwnerInstance) => {
-							linkOwnerPromises.push(
-								newCollectionInstance.__link__owners(oldOwnerInstance.id)
-							);
-						});
-						return Promise.all(linkOwnerPromises);
-					})
-					.catch(err => {
-						console.log('linkOwnersError');
-						console.log(err);
-					});
-				console.log('linkOwners ' + linkOwners);
-
 				// Copy all contents from oldInstance to new instance
-				const linkContents = oldCollectionInstance.__get__contents({ "include": ["schedules", "locations"] })
-					.then((oldContentInstances) => {
-						console.log('oldContentInstances' + oldContentInstances);
-						const linkContentPromises = [];
-						oldContentInstances.forEach((oldContentInstance) => {
-							// Link new clone to all existing contents.
-							linkContentPromises.push(
-								newCollectionInstance.__link__contents(oldContentInstance.id)
-							);
+				const linkContents = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__contents({ "include": ["schedules", "locations"] },
+						(error, oldContentInstances) => {
+							if (error) {
+								console.log('linkContentsError');
+								console.log(error);
+								reject(error);
+							} else {
+								const linkContentPromises = [];
+								oldContentInstances.forEach((oldContentInstance) => {
+									// Link new clone to all existing contents.
+									linkContentPromises.push(
+										new Promise((res, rej) => {
+											newCollectionInstance.__link__contents(oldContentInstance.id, (err, data) => {
+												if (err) {
+													rej(err);
+												} else {
+													res(data);
+												}
+											});
+										})
+									);
+								});
+								Promise.all(linkContentPromises)
+									.then(result => {
+										console.log('linkContent_copied');
+										resolve(result);
+									}).catch(err => {
+										reject(err);
+									});
+							}
 						});
-						return Promise.all(linkContentPromises);
-					})
-					.catch(err => {
-						console.log('linkContentsError');
-						console.log(err);
-					});
-				console.log('linkContents ' + linkContents);
+
+				});
 
 				// Copy calendars from old collection to new collection
-				const linkCalendars = oldCollectionInstance.__get__calendars()
-					.then((oldCalendarInstances) => {
-						console.log('oldCalendarInstances' + oldCalendarInstances);
-
-						const calendarLinkPromises = [];
-						oldCalendarInstances.forEach((oldCalendarInstance) => {
-							calendarLinkPromises.push(
-								newCollectionInstance.__link__calendars(oldCalendarInstance.id)
-							);
-						});
-						return Promise.all(calendarLinkPromises);
-					})
-					.catch(err => {
-						console.log('linkCalendarsError');
-						console.log(err);
+				const linkCalendars = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__calendars((error, oldCalendarInstances) => {
+						if (error) {
+							console.log('linkCalendarsError');
+							console.log(error);
+							reject(error);
+						} else {
+							const calendarLinkPromises = [];
+							oldCalendarInstances.forEach((oldCalendarInstance) => {
+								calendarLinkPromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__calendars(oldCalendarInstance.id, (err, data) => {
+											if (err) {
+												rej(err);
+											} else {
+												res(data);
+											}
+										});
+									})
+								);
+							});
+							Promise.all(calendarLinkPromises)
+								.then(result => {
+									console.log('calendarLink_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkCalendars ' + linkCalendars);
+				});
 
 				// Copy topics from old collection to new collection
-				const linkTopics = oldCollectionInstance.__get__topics()
-					.then((oldTopicInstances) => {
-						console.log('oldTopicInstances' + oldTopicInstances);
-
-						const linkTopicPromises = [];
-						oldTopicInstances.forEach((oldTopicInstance) => {
-							linkTopicPromises.push(newCollectionInstance.__link__topics(oldTopicInstance.id));
-						});
-						return Promise.all(linkTopicPromises);
-					})
-					.catch(err => {
-						console.log('linkTopicsError');
-						console.log(err);
+				const linkTopics = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__topics((error, oldTopicInstances) => {
+						if (error) {
+							console.log('linkTopicsError');
+							console.log(error);
+							reject(error);
+						} else {
+							const linkTopicPromises = [];
+							oldTopicInstances.forEach((oldTopicInstance) => {
+								linkTopicPromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__topics(oldTopicInstance.id, (err, data) => {
+											if (err) {
+												rej(err);
+											} else {
+												res(data);
+											}
+										});
+									})
+								);
+							});
+							Promise.all(linkTopicPromises)
+								.then(result => {
+									console.log('linkTopic_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkTopics ' + linkTopics);
-
+				});
 				// Copy payoutrules from old collection to new collection
-				const linkPayoutRules = oldCollectionInstance.__get__payoutrules()
-					.then((oldPayoutInstances) => {
-						console.log('oldPayoutInstances' + oldPayoutInstances);
-
-						const payoutRulePromises = [];
-						oldPayoutInstances.forEach((oldPayoutInstance) => {
-							payoutRulePromises.push(
-								newCollectionInstance.__link__payoutrules(oldPayoutInstance.id)
-							);
-						});
-						Promise.all(payoutRulePromises);
-					})
-					.catch(err => {
-						console.log('linkPayoutRulesError');
-						console.log(err);
+				const linkPayoutRules = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__payoutrules((error, oldPayoutInstances) => {
+						if (error) {
+							console.log('linkPayoutRulesError');
+							console.log(error);
+							reject(error);
+						} else {
+							const payoutRulePromises = [];
+							oldPayoutInstances.forEach((oldPayoutInstance) => {
+								payoutRulePromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, (err, data) => {
+											if (err) {
+												rej(err);
+											} else {
+												res(data);
+											}
+										});
+									})
+								);
+							});
+							Promise.all(payoutRulePromises)
+								.then(result => {
+									console.log('payoutRule_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkPayoutRules ' + linkPayoutRules);
+				});
 
 				// Copy certificate templates
-				const linkCertificateTemplate = oldCollectionInstance.__get__certificate_templates()
-					.then((oldCertificateTemplates) => {
-						console.log('oldCertificateTemplates' + oldCertificateTemplates);
-						const certificateTemplatePromises = [];
-						oldCertificateTemplates.forEach((oldCertificateInstance) => {
-							certificateTemplatePromises.push(
-								newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id)
-							);
-						});
-						return Promise.all(certificateTemplatePromises);
-					})
-					.catch(err => {
-						console.log('linkCertificateTemplateError');
-						console.log(err);
+				const linkCertificateTemplate = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__certificate_templates((error, oldCertificateTemplates) => {
+						if (error) {
+							console.log('linkCertificateTemplateError');
+							console.log(error);
+							reject(error);
+						} else {
+							const certificateTemplatePromises = [];
+							oldCertificateTemplates.forEach((oldCertificateInstance) => {
+								certificateTemplatePromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id,
+											(err, data) => {
+												if (err) {
+													rej(err);
+												} else {
+													res(data);
+												}
+											});
+									})
+								);
+							});
+							Promise.all(certificateTemplatePromises)
+								.then(result => {
+									console.log('certificateTemplate_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkCertificateTemplate ' + linkCertificateTemplate);
+				});
 
 				// Copy promo codes
-				const linkPromoCodes = oldCollectionInstance.__get__promoCodes()
-					.then((oldPromoCodes) => {
-						console.log('oldPromoCodes' + oldPromoCodes);
-						const promoCodePromises = [];
-						oldPromoCodes.forEach((oldPromoCodeInstance) => {
-							promoCodePromises.push(
-								newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id)
-							);
-						});
-						return Promise.all(promoCodePromises);
-					})
-					.catch(err => {
-						console.log('linkPromoCodesError');
-						console.log(err);
+				const linkPromoCodes = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__promoCodes((error, oldPromoCodes) => {
+						if (error) {
+							console.log('linkPromoCodesError');
+							console.log(error);
+							reject(error);
+						} else {
+							const promoCodePromises = [];
+							oldPromoCodes.forEach((oldPromoCodeInstance) => {
+								promoCodePromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id,
+											(err, data) => {
+												if (err) {
+													rej(err);
+												} else {
+													res(data);
+												}
+											});
+									})
+								);
+							});
+							Promise.all(promoCodePromises)
+								.then(result => {
+									console.log('promoCode_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkPromoCodes ' + linkPromoCodes);
+				});
 
 				// Copy rewards
-				const linkRewards = oldCollectionInstance.__get__rewards()
-					.then((oldRewards) => {
-						console.log('oldRewards' + oldRewards);
-
-						const rewardPromises = [];
-						oldRewards.forEach((oldRewardInstance) => {
-							rewardPromises.push(
-								newCollectionInstance.__link__rewards(oldRewardInstance.id)
-							);
-						});
-						return Promise.all(rewardPromises);
-					})
-					.catch(err => {
-						console.log('linkRewardsError');
-						console.log(err);
+				const linkRewards = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__rewards((error, oldRewards) => {
+						if (error) {
+							console.log('linkRewardsError');
+							console.log(error);
+							reject(error);
+						} else {
+							const rewardPromises = [];
+							oldRewards.forEach((oldRewardInstance) => {
+								rewardPromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__rewards(oldRewardInstance.id,
+											(err, data) => {
+												if (err) {
+													rej(err);
+												} else {
+													res(data);
+												}
+											});
+									})
+								);
+							});
+							Promise.all(rewardPromises)
+								.then(result => {
+									console.log('reward_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
-				console.log('linkRewards ' + linkRewards);
+				});
 
 				// Copy Assessment models
-				const linkAssessment = oldCollectionInstance.__get__assessment_models()
-					.then((oldAssessmentModels) => {
-						console.log('oldAssessmentModels' + oldAssessmentModels);
-
-						const assessmentPromises = [];
-						oldAssessmentModels.forEach((oldAssessmentInstance) => {
-							assessmentPromises.push(
-								newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id)
-							);
-						});
-					})
-					.catch(err => {
-						console.log('linkAssessmentError');
-						console.log(err);
+				const linkAssessment = new Promise((resolve, reject) => {
+					oldCollectionInstance.__get__assessment_models((error, oldAssessmentModels) => {
+						if (error) {
+							console.log('linkAssessmentError');
+							console.log(error);
+							reject(error);
+						} else {
+							const assessmentPromises = [];
+							oldAssessmentModels.forEach((oldAssessmentInstance) => {
+								assessmentPromises.push(
+									new Promise((res, rej) => {
+										newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id,
+											(err, data) => {
+												if (err) {
+													rej(err);
+												} else {
+													res(data);
+												}
+											});
+									})
+								);
+							});
+							Promise.all(assessmentPromises)
+								.then(result => {
+									console.log('assessment_copied');
+									resolve(result);
+								}).catch(err => {
+									reject(err);
+								});
+						}
 					});
+				});
 				console.log('linkAssessment ' + linkAssessment);
-
-				return Promise.all([linkOwners, linkContents, linkCalendars, linkTopics,
-					linkPayoutRules, linkCertificateTemplate, linkPromoCodes, linkRewards, linkAssessment])
-					.then((copiedData => {
-						console.log(copiedData);
-						return Promise.resolve({
-							status: 'success',
-							newCollectionId: newCollectionInstance.id
-						});
-					}))
-					.catch(err => {
-						console.log('Promise.all');
-						console.log(err);
-					});
-			})
-			.catch(err => {
+				return Promise.all([
+					linkOwners, linkContents, linkCalendars, linkTopics, linkPayoutRules, linkCertificateTemplate,
+					linkPromoCodes, linkRewards, linkAssessment
+				]);
+			}).then((dataCopied => {
+				console.log('All data copied successfully sending response');
+				return Promise.resolve({
+					status: 'success',
+					newCollectionId: newCollectionInstance.id
+				});
+			})).catch(err => {
+				console.log('Error in copying data');
 				console.log(err);
 				return Promise.reject(new Error(g.f(err)));
 			});
