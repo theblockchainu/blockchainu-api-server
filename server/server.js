@@ -172,15 +172,21 @@ app.post('/signup', function (req, res, next) {
     console.log(req.connection);
     console.log(req.socket);
     console.log(req.info);
-    const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-        req.connection.remoteAddress ||
-        req.socket.remoteAddress ||
-        req.connection.socket.remoteAddress;
-
-    // const rawIpAddress = '::ffff:45.112.22.240'; //sample ip address
-
+    // const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+    //     req.connection.remoteAddress ||
+    //     req.socket.remoteAddress ||
+    //     req.connection.socket.remoteAddress;
+    const rawIpAddress = '::ffff:45.112.22.240';
+    let remoteIp;
     const ipAddressDataArray = rawIpAddress.split(':');
-    const remoteIp = ipAddressDataArray[3];
+
+    if (ipAddressDataArray.length > 1) {
+        // const rawIpAddress = '::ffff:45.112.22.240'; //sample ipv6 address
+        remoteIp = ipAddressDataArray.pop(); // extracting ipv4 address out of ipv6 address
+    } else {
+        remoteIp = rawIpAddress; // its a ipv4 address 
+    }
+
     const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
@@ -437,7 +443,7 @@ app.post('/signup', function (req, res, next) {
 
                         let saveUserCountry = (ip) => {
                             request.get({
-                                url: 'https://ipapi.co/' + ip + '/json',
+                                url: 'https://ipapi.co/' + ip + '/json/?key=b14b9508ef9b791d4e5d4efd25871e6d2eb84750',
                                 json: true
                             }, function (err, response, data) {
                                 if (err) {
