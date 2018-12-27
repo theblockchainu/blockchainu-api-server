@@ -1082,7 +1082,16 @@ module.exports = function (Collection) {
 				}
 			});
 		} else {
-			next();
+
+			collectionInstance.status = 'draft';
+			collectionInstance.isApproved = false;
+			collectionInstance.save((err, data) => {
+				if (err) {
+					next(err);
+				} else {
+					next();
+				}
+			});
 
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
@@ -1300,262 +1309,272 @@ module.exports = function (Collection) {
 			next();
 		}
 		else {
+
+			collectionInstance.status = 'draft';
+			collectionInstance.isApproved = false;
+			collectionInstance.save((err, data) => {
+				if (err) {
+					next(err);
+				} else {
+					next();
+				}
+			});
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
-			if (collectionInstance.status === 'active') {
-				collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
-					if (err) {
-						next(err);
-					}
-					else if (participantInstances !== null && participantInstances.length > 0) {
+			// if (collectionInstance.status === 'active') {
+			// 	collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
+			// 		if (err) {
+			// 			next(err);
+			// 		}
+			// 		else if (participantInstances !== null && participantInstances.length > 0) {
 
-						// This collection has existing participants on it. It cannot be edited without branching out.
+			// 			// This collection has existing participants on it. It cannot be edited without branching out.
 
-						// Create a new collection by copying all the data of this collection
-						let newCollection = collectionInstance.toJSON();
-						delete newCollection.id;
-						delete newCollection.status;
-						delete newCollection.isCanceled;
-						delete newCollection.createdAt;
-						delete newCollection.updatedAt;
-						delete newCollection.isApproved;
-						delete newCollection.isNewInstance;
-						//newCollection.title = '[COPY] ' + newCollection.title;
-						newCollection.disableHasOneCreate = true;
+			// 			// Create a new collection by copying all the data of this collection
+			// 			let newCollection = collectionInstance.toJSON();
+			// 			delete newCollection.id;
+			// 			delete newCollection.status;
+			// 			delete newCollection.isCanceled;
+			// 			delete newCollection.createdAt;
+			// 			delete newCollection.updatedAt;
+			// 			delete newCollection.isApproved;
+			// 			delete newCollection.isNewInstance;
+			// 			//newCollection.title = '[COPY] ' + newCollection.title;
+			// 			newCollection.disableHasOneCreate = true;
 
-						Collection.create(newCollection, function (err, newCollectionInstance) {
-							if (err) {
-								next(err);
-							}
-							else {
-								newCollectionInstance.isNewInstance = true;
+			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
+			// 				if (err) {
+			// 					next(err);
+			// 				}
+			// 				else {
+			// 					newCollectionInstance.isNewInstance = true;
 
-								// Get all owners of this collection and link them to cloned collection
-								collectionInstance.__get__owners(function (err, oldOwnerInstances) {
-									if (!err && oldOwnerInstances !== null) {
-										oldOwnerInstances.forEach(function (oldOwnerInstance) {
-											newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
-												if (!err && ownerLinkInstance !== null) {
-													console.log('Linked owner to cloned collection.');
-												}
-											});
-										});
-									}
-								});
+			// 					// Get all owners of this collection and link them to cloned collection
+			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
+			// 						if (!err && oldOwnerInstances !== null) {
+			// 							oldOwnerInstances.forEach(function (oldOwnerInstance) {
+			// 								newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
+			// 									if (!err && ownerLinkInstance !== null) {
+			// 										console.log('Linked owner to cloned collection.');
+			// 									}
+			// 								});
+			// 							});
+			// 						}
+			// 					});
 
-								let resultContents = [];
+			// 					let resultContents = [];
 
-								// Copy all contents from oldInstance to new instance
-								collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
-									if (!err && oldContentInstances !== null) {
-										let m = 0;
-										for (let i = 0; i < oldContentInstances.length; i++) {
-											// If this content is not a dirty content
-											if (oldContentInstances[i].id !== ctx.args.fk) {
-												// Add content to array to pass in result
-												resultContents.push(oldContentInstances[i]);
-												// Link new clone to all non-dirty contents.
-												newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
-													if (!err && newLinkedContentInstance !== null) {
-														console.log('Linked non-dirty content to collection');
-													}
-													m++;
-													if (m === oldContentInstances.length) {
-														let resultCollectionInstance = newCollectionInstance.toJSON();
-														resultCollectionInstance['contents'] = resultContents;
-														ctx.res.json(resultCollectionInstance);
-													}
-												});
-											}
-											// If this content is a dirty content.
-											else {
-												let newContent = {};
-												newContent = oldContentInstances[i].toJSON();
+			// 					// Copy all contents from oldInstance to new instance
+			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
+			// 						if (!err && oldContentInstances !== null) {
+			// 							let m = 0;
+			// 							for (let i = 0; i < oldContentInstances.length; i++) {
+			// 								// If this content is not a dirty content
+			// 								if (oldContentInstances[i].id !== ctx.args.fk) {
+			// 									// Add content to array to pass in result
+			// 									resultContents.push(oldContentInstances[i]);
+			// 									// Link new clone to all non-dirty contents.
+			// 									newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
+			// 										if (!err && newLinkedContentInstance !== null) {
+			// 											console.log('Linked non-dirty content to collection');
+			// 										}
+			// 										m++;
+			// 										if (m === oldContentInstances.length) {
+			// 											let resultCollectionInstance = newCollectionInstance.toJSON();
+			// 											resultCollectionInstance['contents'] = resultContents;
+			// 											ctx.res.json(resultCollectionInstance);
+			// 										}
+			// 									});
+			// 								}
+			// 								// If this content is a dirty content.
+			// 								else {
+			// 									let newContent = {};
+			// 									newContent = oldContentInstances[i].toJSON();
 
-												let updatedContentKeys = Object.keys(ctx.args.data);
-												updatedContentKeys.forEach(function (updatedContentKey) {
-													newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
-												});
+			// 									let updatedContentKeys = Object.keys(ctx.args.data);
+			// 									updatedContentKeys.forEach(function (updatedContentKey) {
+			// 										newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
+			// 									});
 
-												delete newContent.id;
-												delete newContent.schedules;
-												delete newContent.locations;
-												newContent.disableHasOneCreate = true;
-												newContent.isNewInstance = true;
+			// 									delete newContent.id;
+			// 									delete newContent.schedules;
+			// 									delete newContent.locations;
+			// 									newContent.disableHasOneCreate = true;
+			// 									newContent.isNewInstance = true;
 
-												// Create clone of dirty content for new collection
-												newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
-													if (!err && newCreatedContentInstance !== null) {
-														console.log('Cloned content for collection');
-														let oldContentInstance = oldContentInstances[m].__data;
+			// 									// Create clone of dirty content for new collection
+			// 									newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
+			// 										if (!err && newCreatedContentInstance !== null) {
+			// 											console.log('Cloned content for collection');
+			// 											let oldContentInstance = oldContentInstances[m].__data;
 
-														delete newCreatedContentInstance.isNewInstance;
-														// Add content to array to pass in result
-														resultContents.push(newCreatedContentInstance);
+			// 											delete newCreatedContentInstance.isNewInstance;
+			// 											// Add content to array to pass in result
+			// 											resultContents.push(newCreatedContentInstance);
 
-														// Copy locations from old content to new content
-														let newContentLocation = oldContentInstance.locations[0].toJSON();
-														if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
-															delete newContentLocation.id;
-															newCreatedContentInstance.__create__locations(newContentLocation, function (err, copiedLocationInstance) {
-																// Do nothing here.
-																console.log('Cloned location for content');
-															});
-														}
+			// 											// Copy locations from old content to new content
+			// 											let newContentLocation = oldContentInstance.locations[0].toJSON();
+			// 											if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
+			// 												delete newContentLocation.id;
+			// 												newCreatedContentInstance.__create__locations(newContentLocation, function (err, copiedLocationInstance) {
+			// 													// Do nothing here.
+			// 													console.log('Cloned location for content');
+			// 												});
+			// 											}
 
 
-														// Copy schedules from old content to new content
-														let newContentSchedule = oldContentInstance.schedules[0].toJSON();
-														if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
-															delete newContentSchedule.id;
-															newCreatedContentInstance.__create__schedules(newContentSchedule, function (err, copiedScheduleInstance) {
-																// Do nothing here.
-																console.log('Cloned schedule for content');
-															});
-														}
+			// 											// Copy schedules from old content to new content
+			// 											let newContentSchedule = oldContentInstance.schedules[0].toJSON();
+			// 											if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
+			// 												delete newContentSchedule.id;
+			// 												newCreatedContentInstance.__create__schedules(newContentSchedule, function (err, copiedScheduleInstance) {
+			// 													// Do nothing here.
+			// 													console.log('Cloned schedule for content');
+			// 												});
+			// 											}
 
-													}
-													m++;
-													if (m === oldContentInstances.length) {
-														let resultCollectionInstance = newCollectionInstance.toJSON();
-														resultCollectionInstance['contents'] = resultContents;
-														ctx.res.json(resultCollectionInstance);
-													}
-												});
-											}
-										}
-									}
-									else {
-										console.log(err);
-										next(new Error(g.f('Cannot update collection. Error: ' + err)));
-									}
-								});
+			// 										}
+			// 										m++;
+			// 										if (m === oldContentInstances.length) {
+			// 											let resultCollectionInstance = newCollectionInstance.toJSON();
+			// 											resultCollectionInstance['contents'] = resultContents;
+			// 											ctx.res.json(resultCollectionInstance);
+			// 										}
+			// 									});
+			// 								}
+			// 							}
+			// 						}
+			// 						else {
+			// 							console.log(err);
+			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
+			// 						}
+			// 					});
 
-								// Copy calendars from old collection to new collection
-								collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
-									if (!err && oldCalendarInstances !== null) {
-										let hasOneCalendarCopied = false;
-										oldCalendarInstances.forEach(function (oldCalendarInstance) {
-											//participantInstances = participantInstances.toJSON();
-											let hasParticipant = participantInstances.some(function (participantInstance) {
-												return participantInstance.calendarId === oldCalendarInstance.id;
-											});
-											// If this calendar has no participant signed up
-											if (!hasParticipant) {
-												hasOneCalendarCopied = true;
-												newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
-													// Do nothing here.
-													console.log('Linked calendar to new collection');
-												});
-												collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
-													console.log('Unlinked calendar from old collection');
-												});
-											}
-											else {
-												console.log('Skipped cloning calendar with participants');
-											}
-										});
-										if (!hasOneCalendarCopied) {
-											// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
-											newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
-												// Do nothing here.
-												console.log('Linked calendar to new collection');
-											});
-										}
-									}
-								});
+			// 					// Copy calendars from old collection to new collection
+			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
+			// 						if (!err && oldCalendarInstances !== null) {
+			// 							let hasOneCalendarCopied = false;
+			// 							oldCalendarInstances.forEach(function (oldCalendarInstance) {
+			// 								//participantInstances = participantInstances.toJSON();
+			// 								let hasParticipant = participantInstances.some(function (participantInstance) {
+			// 									return participantInstance.calendarId === oldCalendarInstance.id;
+			// 								});
+			// 								// If this calendar has no participant signed up
+			// 								if (!hasParticipant) {
+			// 									hasOneCalendarCopied = true;
+			// 									newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
+			// 										// Do nothing here.
+			// 										console.log('Linked calendar to new collection');
+			// 									});
+			// 									collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
+			// 										console.log('Unlinked calendar from old collection');
+			// 									});
+			// 								}
+			// 								else {
+			// 									console.log('Skipped cloning calendar with participants');
+			// 								}
+			// 							});
+			// 							if (!hasOneCalendarCopied) {
+			// 								// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
+			// 								newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Linked calendar to new collection');
+			// 								});
+			// 							}
+			// 						}
+			// 					});
 
-								// Copy topics from old collection to new collection
-								collectionInstance.__get__topics(function (err, oldTopicInstances) {
-									if (!err && oldTopicInstances !== null) {
-										oldTopicInstances.forEach(function (oldTopicInstance) {
-											newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
-												// Do nothing here.
-												console.log('Copied topic for new collection');
-											});
+			// 					// Copy topics from old collection to new collection
+			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
+			// 						if (!err && oldTopicInstances !== null) {
+			// 							oldTopicInstances.forEach(function (oldTopicInstance) {
+			// 								newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied topic for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy payoutrules from old collection to new collection
-								collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
-									if (!err && oldPayoutInstances !== null) {
-										oldPayoutInstances.forEach(function (oldPayoutInstance) {
-											newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
-												// Do nothing here.
-												console.log('Copied payoutrules for new collection');
-											});
+			// 					// Copy payoutrules from old collection to new collection
+			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
+			// 						if (!err && oldPayoutInstances !== null) {
+			// 							oldPayoutInstances.forEach(function (oldPayoutInstance) {
+			// 								newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied payoutrules for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy certificate templates
-								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
-									if (!err && oldCertificateTemplates !== null) {
-										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
-											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
-												// Do nothing here.
-												console.log('Copied certificate template for new collection');
-											});
+			// 					// Copy certificate templates
+			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+			// 						if (!err && oldCertificateTemplates !== null) {
+			// 							oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+			// 								newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied certificate template for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy promo codes
-								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
-									if (!err && oldPromoCodes !== null) {
-										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
-											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
-												// Do nothing here.
-												console.log('Copied promo codes for new collection');
-											});
+			// 					// Copy promo codes
+			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+			// 						if (!err && oldPromoCodes !== null) {
+			// 							oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+			// 								newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied promo codes for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy rewards
-								collectionInstance.__get__rewards(function (err, oldRewards) {
-									if (!err && oldRewards !== null) {
-										oldRewards.forEach(function (oldRewardInstance) {
-											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
-												// Do nothing here.
-												console.log('Copied rewards for new collection');
-											});
+			// 					// Copy rewards
+			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
+			// 						if (!err && oldRewards !== null) {
+			// 							oldRewards.forEach(function (oldRewardInstance) {
+			// 								newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied rewards for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy Assessment models
-								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
-									if (!err && oldAssessmentModels !== null) {
-										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
-											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
-												// Do nothing here.
-												console.log('Copied assessment model for new collection');
-											});
+			// 					// Copy Assessment models
+			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+			// 						if (!err && oldAssessmentModels !== null) {
+			// 							oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+			// 								newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied assessment model for new collection');
+			// 								});
 
-										});
-									}
-								});
-							}
-						});
-					}
-					else {
-						// This collection has no participants on it. We can edit it but put it back in draft status.
-						ctx.args.data.status = 'draft';
-						next();
-					}
-				});
-			}
-			else {
-				// Collection status is neither draft or active.
-				next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
-			}
+			// 							});
+			// 						}
+			// 					});
+			// 				}
+			// 			});
+			// 		}
+			// 		else {
+			// 			// This collection has no participants on it. We can edit it but put it back in draft status.
+			// 			ctx.args.data.status = 'draft';
+			// 			next();
+			// 		}
+			// 	});
+			// }
+			// else {
+			// 	// Collection status is neither draft or active.
+			// 	next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
+			// }
 		}
 	});
 
@@ -1569,225 +1588,235 @@ module.exports = function (Collection) {
 			next();
 		}
 		else {
+
+			collectionInstance.status = 'draft';
+			collectionInstance.isApproved = false;
+			collectionInstance.save((err, data) => {
+				if (err) {
+					next(err);
+				} else {
+					next();
+				}
+			});
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
-			if (collectionInstance.status === 'active') {
-				collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
-					if (err) {
-						next(err);
-					}
-					else if (participantInstances !== null && participantInstances.length > 0) {
-						// This collection has existing participants on it. It cannot be edited without branching out.
+			// if (collectionInstance.status === 'active') {
+			// 	collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
+			// 		if (err) {
+			// 			next(err);
+			// 		}
+			// 		else if (participantInstances !== null && participantInstances.length > 0) {
+			// 			// This collection has existing participants on it. It cannot be edited without branching out.
 
-						// Create a new collection by copying all the data of this collection
-						let newCollection = collectionInstance.toJSON();
-						delete newCollection.id;
-						delete newCollection.status;
-						delete newCollection.isCanceled;
-						delete newCollection.createdAt;
-						delete newCollection.updatedAt;
-						delete newCollection.isApproved;
-						delete newCollection.isNewInstance;
-						newCollection.disableHasOneCreate = true;
+			// 			// Create a new collection by copying all the data of this collection
+			// 			let newCollection = collectionInstance.toJSON();
+			// 			delete newCollection.id;
+			// 			delete newCollection.status;
+			// 			delete newCollection.isCanceled;
+			// 			delete newCollection.createdAt;
+			// 			delete newCollection.updatedAt;
+			// 			delete newCollection.isApproved;
+			// 			delete newCollection.isNewInstance;
+			// 			newCollection.disableHasOneCreate = true;
 
-						Collection.create(newCollection, function (err, newCollectionInstance) {
-							if (err) {
-								next(err);
-							}
-							else {
-								newCollectionInstance.isNewInstance = true;
+			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
+			// 				if (err) {
+			// 					next(err);
+			// 				}
+			// 				else {
+			// 					newCollectionInstance.isNewInstance = true;
 
-								// Get all owners of this collection and link them to cloned collection
-								collectionInstance.__get__owners(function (err, oldOwnerInstances) {
-									if (!err && oldOwnerInstances !== null) {
-										oldOwnerInstances.forEach(function (oldOwnerInstance) {
-											newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
-												if (!err && ownerLinkInstance !== null) {
-													console.log('Linked owner to cloned collection.');
-												}
-											});
-										});
-									}
-								});
+			// 					// Get all owners of this collection and link them to cloned collection
+			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
+			// 						if (!err && oldOwnerInstances !== null) {
+			// 							oldOwnerInstances.forEach(function (oldOwnerInstance) {
+			// 								newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
+			// 									if (!err && ownerLinkInstance !== null) {
+			// 										console.log('Linked owner to cloned collection.');
+			// 									}
+			// 								});
+			// 							});
+			// 						}
+			// 					});
 
-								let resultContents = [];
+			// 					let resultContents = [];
 
 
-								// Copy all contents from oldInstance to new instance
-								collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
-									if (!err && oldContentInstances !== null) {
-										let m = 0;
-										for (let i = 0; i < oldContentInstances.length; i++) {
-											// Link new clone to all non-dirty contents.
-											newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
-												if (!err && newLinkedContentInstance !== null) {
-													console.log('Linked existing content to collection');
-													// Add content to array to pass as result
-													resultContents.push(newLinkedContentInstance.toJSON());
-												}
-												m++;
-											});
-											if (m === oldContentInstances.length) {
+			// 					// Copy all contents from oldInstance to new instance
+			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
+			// 						if (!err && oldContentInstances !== null) {
+			// 							let m = 0;
+			// 							for (let i = 0; i < oldContentInstances.length; i++) {
+			// 								// Link new clone to all non-dirty contents.
+			// 								newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
+			// 									if (!err && newLinkedContentInstance !== null) {
+			// 										console.log('Linked existing content to collection');
+			// 										// Add content to array to pass as result
+			// 										resultContents.push(newLinkedContentInstance.toJSON());
+			// 									}
+			// 									m++;
+			// 								});
+			// 								if (m === oldContentInstances.length) {
 
-												// Create new content for this collection
-												let newContent = {};
-												let updatedContentKeys = Object.keys(ctx.args.data);
-												updatedContentKeys.forEach(function (updatedContentKey) {
-													newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
-												});
-												newContent.isNewInstance = true;
-												// Create new content for this new collection
-												newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
-													if (!err && newCreatedContentInstance !== null) {
-														console.log('Created content for collection');
+			// 									// Create new content for this collection
+			// 									let newContent = {};
+			// 									let updatedContentKeys = Object.keys(ctx.args.data);
+			// 									updatedContentKeys.forEach(function (updatedContentKey) {
+			// 										newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
+			// 									});
+			// 									newContent.isNewInstance = true;
+			// 									// Create new content for this new collection
+			// 									newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
+			// 										if (!err && newCreatedContentInstance !== null) {
+			// 											console.log('Created content for collection');
 
-														delete newCreatedContentInstance.isNewInstance;
-														// Add content to array to pass as result
-														resultContents.push(newCreatedContentInstance.toJSON());
-														// Sent result response
-														let resultCollectionInstance = newCollectionInstance.toJSON();
-														resultCollectionInstance['contents'] = resultContents;
-														ctx.res.json(resultCollectionInstance);
-													}
-													else {
-														next(new Error(g.f('Cannot update collection. Error: ' + err)));
-													}
-												});
-											}
-										}
-									}
-									else {
-										console.log(err);
-										next(new Error(g.f('Cannot update collection. Error: ' + err)));
-									}
-								});
+			// 											delete newCreatedContentInstance.isNewInstance;
+			// 											// Add content to array to pass as result
+			// 											resultContents.push(newCreatedContentInstance.toJSON());
+			// 											// Sent result response
+			// 											let resultCollectionInstance = newCollectionInstance.toJSON();
+			// 											resultCollectionInstance['contents'] = resultContents;
+			// 											ctx.res.json(resultCollectionInstance);
+			// 										}
+			// 										else {
+			// 											next(new Error(g.f('Cannot update collection. Error: ' + err)));
+			// 										}
+			// 									});
+			// 								}
+			// 							}
+			// 						}
+			// 						else {
+			// 							console.log(err);
+			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
+			// 						}
+			// 					});
 
-								// Copy calendars from old collection to new collection
-								collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
-									if (!err && oldCalendarInstances !== null) {
-										let hasOneCalendarCopied = false;
-										oldCalendarInstances.forEach(function (oldCalendarInstance) {
-											//participantInstances = participantInstances.toJSON();
-											let hasParticipant = participantInstances.some(function (participantInstance) {
-												return participantInstance.calendarId === oldCalendarInstance.id;
-											});
-											// If this calendar has no participant signed up
-											if (!hasParticipant) {
-												hasOneCalendarCopied = true;
-												newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
-													// Do nothing here.
-													console.log('Linked calendar to new collection');
-												});
-												collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
-													console.log('Unlinked calendar from old collection');
-												});
-											}
-											else {
-												console.log('Skipped cloning calendar with participants');
-											}
-										});
-										if (!hasOneCalendarCopied) {
-											// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
-											newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
-												// Do nothing here.
-												console.log('Linked calendar to new collection');
-											});
-										}
-									}
-								});
+			// 					// Copy calendars from old collection to new collection
+			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
+			// 						if (!err && oldCalendarInstances !== null) {
+			// 							let hasOneCalendarCopied = false;
+			// 							oldCalendarInstances.forEach(function (oldCalendarInstance) {
+			// 								//participantInstances = participantInstances.toJSON();
+			// 								let hasParticipant = participantInstances.some(function (participantInstance) {
+			// 									return participantInstance.calendarId === oldCalendarInstance.id;
+			// 								});
+			// 								// If this calendar has no participant signed up
+			// 								if (!hasParticipant) {
+			// 									hasOneCalendarCopied = true;
+			// 									newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
+			// 										// Do nothing here.
+			// 										console.log('Linked calendar to new collection');
+			// 									});
+			// 									collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
+			// 										console.log('Unlinked calendar from old collection');
+			// 									});
+			// 								}
+			// 								else {
+			// 									console.log('Skipped cloning calendar with participants');
+			// 								}
+			// 							});
+			// 							if (!hasOneCalendarCopied) {
+			// 								// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
+			// 								newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Linked calendar to new collection');
+			// 								});
+			// 							}
+			// 						}
+			// 					});
 
-								// Copy topics from old collection to new collection
-								collectionInstance.__get__topics(function (err, oldTopicInstances) {
-									if (!err && oldTopicInstances !== null) {
-										oldTopicInstances.forEach(function (oldTopicInstance) {
-											newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
-												// Do nothing here.
-												console.log('Copied topic for new collection');
-											});
+			// 					// Copy topics from old collection to new collection
+			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
+			// 						if (!err && oldTopicInstances !== null) {
+			// 							oldTopicInstances.forEach(function (oldTopicInstance) {
+			// 								newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied topic for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy payoutrules from old collection to new collection
-								collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
-									if (!err && oldPayoutInstances !== null) {
-										oldPayoutInstances.forEach(function (oldPayoutInstance) {
-											newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
-												// Do nothing here.
-												console.log('Copied payoutrules for new collection');
-											});
+			// 					// Copy payoutrules from old collection to new collection
+			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
+			// 						if (!err && oldPayoutInstances !== null) {
+			// 							oldPayoutInstances.forEach(function (oldPayoutInstance) {
+			// 								newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied payoutrules for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy certificate templates
-								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
-									if (!err && oldCertificateTemplates !== null) {
-										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
-											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
-												// Do nothing here.
-												console.log('Copied certificate template for new collection');
-											});
+			// 					// Copy certificate templates
+			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+			// 						if (!err && oldCertificateTemplates !== null) {
+			// 							oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+			// 								newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied certificate template for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy promo codes
-								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
-									if (!err && oldPromoCodes !== null) {
-										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
-											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
-												// Do nothing here.
-												console.log('Copied promo codes for new collection');
-											});
+			// 					// Copy promo codes
+			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+			// 						if (!err && oldPromoCodes !== null) {
+			// 							oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+			// 								newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied promo codes for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy rewards
-								collectionInstance.__get__rewards(function (err, oldRewards) {
-									if (!err && oldRewards !== null) {
-										oldRewards.forEach(function (oldRewardInstance) {
-											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
-												// Do nothing here.
-												console.log('Copied rewards for new collection');
-											});
+			// 					// Copy rewards
+			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
+			// 						if (!err && oldRewards !== null) {
+			// 							oldRewards.forEach(function (oldRewardInstance) {
+			// 								newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied rewards for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy Assessment models
-								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
-									if (!err && oldAssessmentModels !== null) {
-										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
-											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
-												// Do nothing here.
-												console.log('Copied assessment model for new collection');
-											});
+			// 					// Copy Assessment models
+			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+			// 						if (!err && oldAssessmentModels !== null) {
+			// 							oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+			// 								newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied assessment model for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-							}
-						});
-					}
-					else {
-						// This collection has no participants on it. We can edit it but put it back in draft status.
-						ctx.args.data.status = 'draft';
-						next();
-					}
-				});
-			}
-			else {
-				// Collection status is neither draft or active.
-				next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
-			}
+			// 				}
+			// 			});
+			// 		}
+			// 		else {
+			// 			// This collection has no participants on it. We can edit it but put it back in draft status.
+			// 			ctx.args.data.status = 'draft';
+			// 			next();
+			// 		}
+			// 	});
+			// }
+			// else {
+			// 	// Collection status is neither draft or active.
+			// 	next(new Error(g.f('Cannot update collection in state: ' + collectionInstance.status)));
+			// }
 		}
 	});
 
@@ -1800,203 +1829,212 @@ module.exports = function (Collection) {
 		else {
 			// User is trying to delete a non draft collection
 			// We need to check if this collection is active and if it has any participants.
-			if (collectionInstance.status === 'active') {
-				console.log('***** DELETING CONTENT OF ACTIVE COLLECTION');
-				collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
-					if (err) {
-						next(err);
-					}
-					else if (participantInstances !== null && participantInstances.length > 0) {
-						console.log('***** DELETING CONTENT OF ACTIVE COLLECTION WITH PARTICIPANTS');
+			// if (collectionInstance.status === 'active') {
+			// 	console.log('***** DELETING CONTENT OF ACTIVE COLLECTION');
+			// 	collectionInstance.__get__participants({ "relInclude": "calendarId" }, function (err, participantInstances) {
+			// 		if (err) {
+			// 			next(err);
+			// 		}
+			// 		else if (participantInstances !== null && participantInstances.length > 0) {
+			// 			console.log('***** DELETING CONTENT OF ACTIVE COLLECTION WITH PARTICIPANTS');
 
-						// This collection has existing participants on it. It cannot be edited without branching out.
+			// 			// This collection has existing participants on it. It cannot be edited without branching out.
 
-						// Create a new collection by copying all the data of this collection
-						let newCollection = collectionInstance.toJSON();
-						delete newCollection.id;
-						delete newCollection.status;
-						delete newCollection.isCanceled;
-						delete newCollection.createdAt;
-						delete newCollection.updatedAt;
-						delete newCollection.isApproved;
-						delete newCollection.isNewInstance;
-						newCollection.disableHasOneCreate = true;
+			// 			// Create a new collection by copying all the data of this collection
+			// 			let newCollection = collectionInstance.toJSON();
+			// 			delete newCollection.id;
+			// 			delete newCollection.status;
+			// 			delete newCollection.isCanceled;
+			// 			delete newCollection.createdAt;
+			// 			delete newCollection.updatedAt;
+			// 			delete newCollection.isApproved;
+			// 			delete newCollection.isNewInstance;
+			// 			newCollection.disableHasOneCreate = true;
 
-						Collection.create(newCollection, function (err, newCollectionInstance) {
-							if (err) {
-								next(err);
-							}
-							else {
-								newCollectionInstance.isNewInstance = true;
+			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
+			// 				if (err) {
+			// 					next(err);
+			// 				}
+			// 				else {
+			// 					newCollectionInstance.isNewInstance = true;
 
-								// Get all owners of this collection and link them to cloned collection
-								collectionInstance.__get__owners(function (err, oldOwnerInstances) {
-									if (!err && oldOwnerInstances !== null) {
-										oldOwnerInstances.forEach(function (oldOwnerInstance) {
-											newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
-												if (!err && ownerLinkInstance !== null) {
-													console.log('Linked owner to cloned collection.');
-												}
-											});
-										});
-									}
-								});
+			// 					// Get all owners of this collection and link them to cloned collection
+			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
+			// 						if (!err && oldOwnerInstances !== null) {
+			// 							oldOwnerInstances.forEach(function (oldOwnerInstance) {
+			// 								newCollectionInstance.__link__owners(oldOwnerInstance.id, function (err, ownerLinkInstance) {
+			// 									if (!err && ownerLinkInstance !== null) {
+			// 										console.log('Linked owner to cloned collection.');
+			// 									}
+			// 								});
+			// 							});
+			// 						}
+			// 					});
 
-								let resultContents = [];
+			// 					let resultContents = [];
 
-								// Copy all contents from oldInstance to new instance
-								collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
-									if (!err && oldContentInstances !== null) {
-										let m = 0;
-										for (let i = 0; i < oldContentInstances.length; i++) {
+			// 					// Copy all contents from oldInstance to new instance
+			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
+			// 						if (!err && oldContentInstances !== null) {
+			// 							let m = 0;
+			// 							for (let i = 0; i < oldContentInstances.length; i++) {
 
-											if (oldContentInstances[i].id !== ctx.args.fk) {
-												// Add content to array to pass as result
-												// Link new clone to all non-dirty contents.
-												newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
-													if (!err && newLinkedContentInstance !== null) {
-														console.log('Linked existing content to collection');
-														resultContents.push(newLinkedContentInstance.toJSON());
-													}
-													m++;
-													if (m === (oldContentInstances.length - 1)) {
-														let resultCollectionInstance = newCollectionInstance.toJSON();
-														resultCollectionInstance['contents'] = resultContents;
-														ctx.res.json(resultCollectionInstance);
-													}
-												});
-											}
-										}
-									}
-									else {
-										console.log(err);
-										next(new Error(g.f('Cannot update collection. Error: ' + err)));
-									}
-								});
+			// 								if (oldContentInstances[i].id !== ctx.args.fk) {
+			// 									// Add content to array to pass as result
+			// 									// Link new clone to all non-dirty contents.
+			// 									newCollectionInstance.__link__contents(oldContentInstances[i].id, function (err, newLinkedContentInstance) {
+			// 										if (!err && newLinkedContentInstance !== null) {
+			// 											console.log('Linked existing content to collection');
+			// 											resultContents.push(newLinkedContentInstance.toJSON());
+			// 										}
+			// 										m++;
+			// 										if (m === (oldContentInstances.length - 1)) {
+			// 											let resultCollectionInstance = newCollectionInstance.toJSON();
+			// 											resultCollectionInstance['contents'] = resultContents;
+			// 											ctx.res.json(resultCollectionInstance);
+			// 										}
+			// 									});
+			// 								}
+			// 							}
+			// 						}
+			// 						else {
+			// 							console.log(err);
+			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
+			// 						}
+			// 					});
 
-								// Copy calendars from old collection to new collection
-								collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
-									if (!err && oldCalendarInstances !== null) {
-										let hasOneCalendarCopied = false;
-										oldCalendarInstances.forEach(function (oldCalendarInstance) {
-											let hasParticipant = participantInstances.some(function (participantInstance) {
-												return participantInstance.calendarId === oldCalendarInstance.id;
-											});
-											// If this calendar has no participant signed up
-											if (!hasParticipant) {
-												hasOneCalendarCopied = true;
-												newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
-													// Do nothing here.
-													console.log('Linked calendar to new collection');
-												});
-												collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
-													console.log('Unlinked calendar from old collection');
-												});
-											}
-											else {
-												console.log('Skipped cloning calendar with participants');
-											}
-										});
-										if (!hasOneCalendarCopied) {
-											// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
-											newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
-												// Do nothing here.
-												console.log('Linked calendar to new collection');
-											});
-										}
-									}
-								});
+			// 					// Copy calendars from old collection to new collection
+			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
+			// 						if (!err && oldCalendarInstances !== null) {
+			// 							let hasOneCalendarCopied = false;
+			// 							oldCalendarInstances.forEach(function (oldCalendarInstance) {
+			// 								let hasParticipant = participantInstances.some(function (participantInstance) {
+			// 									return participantInstance.calendarId === oldCalendarInstance.id;
+			// 								});
+			// 								// If this calendar has no participant signed up
+			// 								if (!hasParticipant) {
+			// 									hasOneCalendarCopied = true;
+			// 									newCollectionInstance.__link__calendars(oldCalendarInstance.id, function (err, copiedCalendarInstance) {
+			// 										// Do nothing here.
+			// 										console.log('Linked calendar to new collection');
+			// 									});
+			// 									collectionInstance.__unlink__calendars(oldCalendarInstance.id, function (err, deletedCalendarInstance) {
+			// 										console.log('Unlinked calendar from old collection');
+			// 									});
+			// 								}
+			// 								else {
+			// 									console.log('Skipped cloning calendar with participants');
+			// 								}
+			// 							});
+			// 							if (!hasOneCalendarCopied) {
+			// 								// If no calendar was copied to new instance, we need to link one of the existing calendars to this instance
+			// 								newCollectionInstance.__link__calendars(oldCalendarInstances[oldCalendarInstances.length - 1].id, function (err, copiedCalendarInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Linked calendar to new collection');
+			// 								});
+			// 							}
+			// 						}
+			// 					});
 
-								// Copy topics from old collection to new collection
-								collectionInstance.__get__topics(function (err, oldTopicInstances) {
-									if (!err && oldTopicInstances !== null) {
-										oldTopicInstances.forEach(function (oldTopicInstance) {
-											newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
-												// Do nothing here.
-												console.log('Copied topic for new collection');
-											});
+			// 					// Copy topics from old collection to new collection
+			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
+			// 						if (!err && oldTopicInstances !== null) {
+			// 							oldTopicInstances.forEach(function (oldTopicInstance) {
+			// 								newCollectionInstance.__link__topics(oldTopicInstance.id, function (err, copiedTopicInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied topic for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy payoutrules from old collection to new collection
-								collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
-									if (!err && oldPayoutInstances !== null) {
-										oldPayoutInstances.forEach(function (oldPayoutInstance) {
-											newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
-												// Do nothing here.
-												console.log('Copied payoutrules for new collection');
-											});
+			// 					// Copy payoutrules from old collection to new collection
+			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
+			// 						if (!err && oldPayoutInstances !== null) {
+			// 							oldPayoutInstances.forEach(function (oldPayoutInstance) {
+			// 								newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, function (err, copiedPayoutInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied payoutrules for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy certificate templates
-								collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
-									if (!err && oldCertificateTemplates !== null) {
-										oldCertificateTemplates.forEach(function (oldCertificateInstance) {
-											newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
-												// Do nothing here.
-												console.log('Copied certificate template for new collection');
-											});
+			// 					// Copy certificate templates
+			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
+			// 						if (!err && oldCertificateTemplates !== null) {
+			// 							oldCertificateTemplates.forEach(function (oldCertificateInstance) {
+			// 								newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id, function (err, copiedCertificateInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied certificate template for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy promo codes
-								collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
-									if (!err && oldPromoCodes !== null) {
-										oldPromoCodes.forEach(function (oldPromoCodeInstance) {
-											newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
-												// Do nothing here.
-												console.log('Copied promo codes for new collection');
-											});
+			// 					// Copy promo codes
+			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
+			// 						if (!err && oldPromoCodes !== null) {
+			// 							oldPromoCodes.forEach(function (oldPromoCodeInstance) {
+			// 								newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id, function (err, copiedPromoCodeInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied promo codes for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy rewards
-								collectionInstance.__get__rewards(function (err, oldRewards) {
-									if (!err && oldRewards !== null) {
-										oldRewards.forEach(function (oldRewardInstance) {
-											newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
-												// Do nothing here.
-												console.log('Copied rewards for new collection');
-											});
+			// 					// Copy rewards
+			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
+			// 						if (!err && oldRewards !== null) {
+			// 							oldRewards.forEach(function (oldRewardInstance) {
+			// 								newCollectionInstance.__link__rewards(oldRewardInstance.id, function (err, copiedRewardInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied rewards for new collection');
+			// 								});
 
-										});
-									}
-								});
+			// 							});
+			// 						}
+			// 					});
 
-								// Copy Assessment models
-								collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
-									if (!err && oldAssessmentModels !== null) {
-										oldAssessmentModels.forEach(function (oldAssessmentInstance) {
-											newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
-												// Do nothing here.
-												console.log('Copied assessment model for new collection');
-											});
+			// 					// Copy Assessment models
+			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
+			// 						if (!err && oldAssessmentModels !== null) {
+			// 							oldAssessmentModels.forEach(function (oldAssessmentInstance) {
+			// 								newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id, function (err, copiedAssessmentInstance) {
+			// 									// Do nothing here.
+			// 									console.log('Copied assessment model for new collection');
+			// 								});
 
-										});
-									}
-								});
-							}
-						});
-					}
-					else {
-						// This collection has no participants on it. We can edit it but put it back in draft status.
-						next();
-					}
-				});
-			}
-			else {
-				// Collection status is neither draft or active.
-				next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
-			}
+			// 							});
+			// 						}
+			// 					});
+			// 				}
+			// 			});
+			// 		}
+			// 		else {
+			// 			// This collection has no participants on it. We can edit it but put it back in draft status.
+			// 			next();
+			// 		}
+			// 	});
+			// }
+			// else {
+			// 	// Collection status is neither draft or active.
+			// 	next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
+			// }
+			collectionInstance.status = 'draft';
+			collectionInstance.isApproved = false;
+			collectionInstance.save((err, data) => {
+				if (err) {
+					next(err);
+				} else {
+					next();
+				}
+			});
 		}
 	});
 
@@ -2333,20 +2371,41 @@ module.exports = function (Collection) {
 		}
 	};
 
+	//strip off loopback inserted preoperties from objects
+	const sanitize = (rawObject) => {
+		// delete loopback inserted properties
+		delete rawObject.id;
+		delete rawObject.createdAt;
+		delete rawObject.updatedAt;
+		return rawObject;
+	};
+
 	Collection.cloneCollection = async (collectionId, body) => {
 		console.log('Cloning Collection' + collectionId);
-		let oldCollectionInstance;
+		let oldCollectionData;
 		let newCollectionInstance;
+		let oldCollectionInstance;
+		const collecitonQuery = {
+			include: [
+				'owners',
+				{ 'contents': ['locations', 'schedules'] },
+				'calendars',
+				'topics',
+				'certificate_templates',
+				'payoutrules',
+				'promoCodes',
+				'rewards',
+				{ 'assessment_models': ['assessment_na_rules', 'assessment_rules'] }
+			]
+		};
 		return Collection
-			.findById(collectionId)
+			.findById(collectionId, collecitonQuery)
 			.then((oldCollectionInstanceData) => {
-				console.log('oldCollectionInstance' + oldCollectionInstanceData.toJSON());
 				oldCollectionInstance = oldCollectionInstanceData;
-				let newCollection = oldCollectionInstance.toJSON();
-				// delete loopback inserted properties
-				delete newCollection.id;
-				delete newCollection.createdAt;
-				delete newCollection.updatedAt;
+				oldCollectionData = oldCollectionInstanceData.toJSON();
+				let newCollection = oldCollectionData;
+				console.log(newCollection);
+				newCollection = sanitize(newCollection);
 				// assign fresh values to new collection
 				newCollection.title = 'Cloned:' + newCollection.title;
 				newCollection.status = 'draft';
@@ -2358,104 +2417,76 @@ module.exports = function (Collection) {
 			.then((newCollectionInstanceData) => {
 				newCollectionInstance = newCollectionInstanceData;
 				// Create a relation between logged in user and this new collection node
-				const linkOwners = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__owners((error, oldOwnerInstances) => {
-						if (error) {
-							console.log('linkOwnersError');
-							console.log(error);
-							reject(error);
-						} else {
-							const linkOwnerPromises = [];
-							oldOwnerInstances.forEach((oldOwnerInstance) => {
-								linkOwnerPromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__owners(oldOwnerInstance.id, (err, data) => {
-											if (err) {
-												rej(err);
-											} else {
-												res(data);
-											}
-										});
-									})
-								);
+				const linkOwnerPromises = [];
+				oldCollectionData.owners.forEach((oldOwnerInstance) => {
+					linkOwnerPromises.push(
+						new Promise((res, rej) => {
+							newCollectionInstance.__link__owners(oldOwnerInstance.id, (err, data) => {
+								if (err) {
+									rej(err);
+								} else {
+									res(data);
+								}
 							});
-							Promise.all(linkOwnerPromises).then(allLinked => {
-								console.log('linkOwners_copied');
-								resolve(allLinked);
-							}).catch(err => {
-								reject(err);
-							});
-						}
-					});
+						})
+					);
 				});
+				const linkOwners = Promise.all(linkOwnerPromises).map(linked => {
+					console.log('linkedOwner');
+					return linked;
+				});
+
 				// Copy all contents from oldInstance to new instance
-				const linkContents = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__contents({ "include": ["schedules", "locations"] },
-						(error, oldContentInstances) => {
-							if (error) {
-								console.log('linkContentsError');
-								console.log(error);
-								reject(error);
-							} else {
-								const linkContentPromises = [];
-								oldContentInstances.forEach((oldContentInstance) => {
-									// Link new clone to all existing contents.
-									linkContentPromises.push(
-										new Promise((res, rej) => {
-											newCollectionInstance.__link__contents(oldContentInstance.id, (err, data) => {
-												if (err) {
-													rej(err);
-												} else {
-													res(data);
-												}
-											});
-										})
-									);
-								});
-								Promise.all(linkContentPromises)
-									.then(result => {
-										console.log('linkContent_copied');
-										resolve(result);
-									}).catch(err => {
-										reject(err);
-									});
-							}
-						});
-
-				});
-
-				// Copy calendars from old collection to new collection
-				const linkCalendars = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__calendars((error, oldCalendarInstances) => {
-						if (error) {
-							console.log('linkCalendarsError');
-							console.log(error);
-							reject(error);
-						} else {
-							const calendarLinkPromises = [];
-							oldCalendarInstances.forEach((oldCalendarInstance) => {
-								calendarLinkPromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__calendars(oldCalendarInstance.id, (err, data) => {
-											if (err) {
-												rej(err);
-											} else {
-												res(data);
-											}
-										});
-									})
+				const contentPromises = [];
+				oldCollectionData.contents.forEach(content => {
+					content = sanitize(content);
+					let schedules = content.schedules;
+					let locations = content.locations;
+					delete content.schedules;
+					delete content.locations;
+					const contentPromise = newCollectionInstance.contents.create(content)
+						.then(newContentInstance => {
+							const relationPromises = [];
+							if (schedules && schedules.length > 0) {
+								schedules = schedules.map(schedule => sanitize(schedule));
+								relationPromises.push(
+									newContentInstance.schedules.create(schedules)
 								);
-							});
-							Promise.all(calendarLinkPromises)
-								.then(result => {
-									console.log('calendarLink_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
-					});
+							}
+							if (locations && locations.length > 0) {
+								locations = locations.map(location => sanitize(location));
+								relationPromises.push(
+									newContentInstance.locations.create(locations)
+								);
+							}
+							return Promise.all(relationPromises);
+						});
+					contentPromises.push(contentPromise);
 				});
+				const linkContents = Promise.all(contentPromises)
+					.catch((exception) => {
+						console.error('linkContents:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('contents linked');
+						console.log(linked);
+						return linked;
+					});
+
+				// link calendars
+				const newCalendards = oldCollectionData.calendars.map(calendar => sanitize(calendar));
+				const linkCalendars = newCollectionInstance.calendars
+					.create(newCalendards)
+					.catch((exception) => {
+						console.error('linkCalendars:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('Calendars Created');
+						console.log(linked);
+						return linked;
+					});
 
 				// Copy topics from old collection to new collection
 				const linkTopics = new Promise((resolve, reject) => {
@@ -2489,175 +2520,103 @@ module.exports = function (Collection) {
 						}
 					});
 				});
+
 				// Copy payoutrules from old collection to new collection
-				const linkPayoutRules = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__payoutrules((error, oldPayoutInstances) => {
-						if (error) {
-							console.log('linkPayoutRulesError');
-							console.log(error);
-							reject(error);
-						} else {
-							const payoutRulePromises = [];
-							oldPayoutInstances.forEach((oldPayoutInstance) => {
-								payoutRulePromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__payoutrules(oldPayoutInstance.id, (err, data) => {
-											if (err) {
-												rej(err);
-											} else {
-												res(data);
-											}
-										});
-									})
-								);
-							});
-							Promise.all(payoutRulePromises)
-								.then(result => {
-									console.log('payoutRule_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
+
+				const newPayoutRules = oldCollectionData.payoutrules.map(payoutrule => sanitize(payoutrules));
+				const linkPayoutRules = newCollectionInstance.payoutrules
+					.create(newPayoutRules)
+					.catch((exception) => {
+						console.error('linkPayoutRules:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('Payout Rules Created');
+						console.log(linked);
+						return linked;
 					});
-				});
 
 				// Copy certificate templates
-				const linkCertificateTemplate = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__certificate_templates((error, oldCertificateTemplates) => {
-						if (error) {
-							console.log('linkCertificateTemplateError');
-							console.log(error);
-							reject(error);
-						} else {
-							const certificateTemplatePromises = [];
-							oldCertificateTemplates.forEach((oldCertificateInstance) => {
-								certificateTemplatePromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__certificate_templates(oldCertificateInstance.id,
-											(err, data) => {
-												if (err) {
-													rej(err);
-												} else {
-													res(data);
-												}
-											});
-									})
-								);
-							});
-							Promise.all(certificateTemplatePromises)
-								.then(result => {
-									console.log('certificateTemplate_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
+				const newCertificateTemplates = oldCollectionData.certificate_templates
+					.map(certificate_template => sanitize(certificate_template));
+				const linkCertificateTemplate = newCollectionInstance
+					.certificate_templates.create(newCertificateTemplates)
+					.catch((exception) => {
+						console.error('certificate_templates:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('Certificate templates linked');
+						console.log(linked);
+						return linked;
 					});
-				});
 
-				// Copy promo codes
-				const linkPromoCodes = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__promoCodes((error, oldPromoCodes) => {
-						if (error) {
-							console.log('linkPromoCodesError');
-							console.log(error);
-							reject(error);
-						} else {
-							const promoCodePromises = [];
-							oldPromoCodes.forEach((oldPromoCodeInstance) => {
-								promoCodePromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__promoCodes(oldPromoCodeInstance.id,
-											(err, data) => {
-												if (err) {
-													rej(err);
-												} else {
-													res(data);
-												}
-											});
-									})
-								);
-							});
-							Promise.all(promoCodePromises)
-								.then(result => {
-									console.log('promoCode_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
+				// Copy Promo Codes
+				const newpromoCodes = oldCollectionData.promoCodes.map(promoCode => sanitize(promoCode));
+				const linkPromoCodes = newCollectionInstance.promoCodes
+					.create(newpromoCodes)
+					.catch((exception) => {
+						console.error('linkPromoCodes:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('Promocodes linked');
+						console.log(linked);
+						return linked;
 					});
-				});
 
 				// Copy rewards
-				const linkRewards = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__rewards((error, oldRewards) => {
-						if (error) {
-							console.log('linkRewardsError');
-							console.log(error);
-							reject(error);
-						} else {
-							const rewardPromises = [];
-							oldRewards.forEach((oldRewardInstance) => {
-								rewardPromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__rewards(oldRewardInstance.id,
-											(err, data) => {
-												if (err) {
-													rej(err);
-												} else {
-													res(data);
-												}
-											});
-									})
-								);
-							});
-							Promise.all(rewardPromises)
-								.then(result => {
-									console.log('reward_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
+				const newReward = oldCollectionData.rewards.map(reward => sanitize(reward));
+				const linkRewards = newCollectionInstance.rewards
+					.create(newReward)
+					.catch((exception) => {
+						console.error('linkRewards:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('Rewards Linked');
+						console.log(linked);
 					});
-				});
 
-				// Copy Assessment models
-				const linkAssessment = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__assessment_models((error, oldAssessmentModels) => {
-						if (error) {
-							console.log('linkAssessmentError');
-							console.log(error);
-							reject(error);
-						} else {
-							const assessmentPromises = [];
-							oldAssessmentModels.forEach((oldAssessmentInstance) => {
-								assessmentPromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__assessment_models(oldAssessmentInstance.id,
-											(err, data) => {
-												if (err) {
-													rej(err);
-												} else {
-													res(data);
-												}
-											});
-									})
+				// { 'assessment_models': ['assessment_na_rules', 'assessment_rules'] }
+
+				const assessment_models_promises = [];
+				oldCollectionData.assessment_models.forEach(assessment_model => {
+					assessment_model = sanitize(assessment_model);
+					let assessment_na_rules = assessment_model.assessment_na_rules;
+					let assessment_rules = assessment_model.assessment_rules;
+					delete assessment_model.assessment_na_rule;
+					delete assessment_model.assessment_rules;
+					const relationPromises = [];
+					const createAssessmentModel = newCollectionInstance.assessment_models
+						.create(assessment_model).then(newAssessmentInstance => {
+							if (assessment_na_rules && assessment_na_rules.length > 0) {
+								assessment_na_rules = assessment_na_rules.map(assessment_na_rule => sanitize(assessment_na_rule));
+								relationPromises.push(
+									newAssessmentInstance.assessment_na_rules.create(assessment_na_rules)
 								);
-							});
-							Promise.all(assessmentPromises)
-								.then(result => {
-									console.log('assessment_copied');
-									resolve(result);
-								}).catch(err => {
-									reject(err);
-								});
-						}
-					});
+							}
+							if (assessment_rules && assessment_rules.length > 0) {
+								assessment_rules = assessment_rules.map(assessment_rule => sanitize(assessment_rule));
+								relationPromises.push(
+									newAssessmentInstance.assessment_rules.create(assessment_rules)
+								);
+							}
+							return Promise.all(relationPromises);
+						});
+					assessment_models_promises.push(createAssessmentModel);
 				});
-				console.log('linkAssessment ' + linkAssessment);
+				const linkAssessment = Promise.all(assessment_models_promises)
+					.catch((exception) => {
+						console.error('linkAssessment:', exception);
+						return Promise.reject(exception);
+					})
+					.map(linked => {
+						console.log('ASsessments created');
+						console.log(linked);
+						return linked;
+					});
+
 				return Promise.all([
 					linkOwners, linkContents, linkCalendars, linkTopics, linkPayoutRules, linkCertificateTemplate,
 					linkPromoCodes, linkRewards, linkAssessment

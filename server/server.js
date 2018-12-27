@@ -17,6 +17,7 @@ let https = require('https');
 let http = require('http');
 let sslConfig = require('./ssl-config');
 var Puppeteer = require('puppeteer');
+const util = require('util');
 
 try {
     // Try the native module first
@@ -172,11 +173,11 @@ app.post('/signup', function (req, res, next) {
     console.log(req.connection);
     console.log(req.socket);
     console.log(req.info);
-    const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-        req.connection.remoteAddress ||
-        req.socket.remoteAddress ||
-        req.connection.socket.remoteAddress;
-    // const rawIpAddress = '::ffff:45.112.22.240';
+    // const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+    //     req.connection.remoteAddress ||
+    //     req.socket.remoteAddress ||
+    //     req.connection.socket.remoteAddress;
+    const rawIpAddress = '::ffff:45.112.22.240';
     let remoteIp;
     const ipAddressDataArray = rawIpAddress.split(':');
 
@@ -451,13 +452,71 @@ app.post('/signup', function (req, res, next) {
                                 } else {
                                     console.log('saveUserCountry');
                                     console.log(data);
+                                    // const data = {
+                                    //     city: "Chennai",
+                                    //     continent_code: "AS",
+                                    //     country: "IN",
+                                    //     country_calling_code: "+91",
+                                    //     country_name: "India",
+                                    //     currency: "INR",
+                                    //     in_eu: false,
+                                    //     ip: "45.112.22.240",
+                                    //     languages: "en-IN,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,bh,sat,ks,ne,sd,kok,doi,mni,sit,sa,fr,lus,inc",
+                                    //     latitude: 13.0833,
+                                    //     longitude: 80.2833,
+                                    //     postal: "600003",
+                                    //     region: "Tamil Nadu",
+                                    //     region_code: "TN",
+                                    //     timezone: "Asia/Kolkata",
+                                    //     utc_offset: "+0530"
+                                    // };
+
+                                    // update peer model country
                                     User.dataSource.connector.execute(
                                         "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
                                         function (err, results) {
                                             console.log('Saved user country code in database');
                                         }
                                     );
+
+                                    // update profile model
+                                    User.dataSource.connector.execute(
+                                        "MATCH p=({email:'" + user.email + "'})-[r:peer_has_profile]->(pro) RETURN pro",
+                                        (err, results) => {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                console.log('retreived profile');
+                                                console.log(results);
+                                                if (results && results.length > 0) {
+                                                    const profileNodeId = results[0].pro.properties.id;
+                                                    const profileUpdateObject = {
+                                                        currency: data.currency,
+                                                        timezone: data.timezone,
+                                                        location_sring: data.region,
+                                                        location_lat: data.latitude,
+                                                        location_lng: data.longitude
+                                                    };
+                                                    const cypherQuery = "MATCH (p:profile {id: '" + profileNodeId + "'}) SET p+= " + util.inspect(profileUpdateObject);
+                                                    User.dataSource.connector.execute(
+                                                        cypherQuery
+                                                        , (error, results) => {
+                                                            if (err) {
+                                                                console.log('UpdateError');
+                                                                console.log(error);
+                                                            } else {
+                                                                console.log('UpdateSuccessful');
+                                                                console.log(results);
+                                                            }
+
+                                                        });
+                                                }
+                                            }
+
+                                        }
+                                    );
                                 }
+
                             });
                         };
 
