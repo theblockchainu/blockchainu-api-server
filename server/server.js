@@ -173,11 +173,11 @@ app.post('/signup', function (req, res, next) {
     console.log(req.connection);
     console.log(req.socket);
     console.log(req.info);
-    // const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-    //     req.connection.remoteAddress ||
-    //     req.socket.remoteAddress ||
-    //     req.connection.socket.remoteAddress;
-    const rawIpAddress = '::ffff:45.112.22.240';
+    const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+    // const rawIpAddress = '::ffff:45.112.22.240';
     let remoteIp;
     const ipAddressDataArray = rawIpAddress.split(':');
 
