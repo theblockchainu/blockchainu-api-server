@@ -17,6 +17,7 @@ let https = require('https');
 let http = require('http');
 let sslConfig = require('./ssl-config');
 var Puppeteer = require('puppeteer');
+const util = require('util');
 
 try {
     // Try the native module first
@@ -172,11 +173,21 @@ app.post('/signup', function (req, res, next) {
     console.log(req.connection);
     console.log(req.socket);
     console.log(req.info);
-    const remoteIp = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-        req.connection.remoteAddress ||
-        req.socket.remoteAddress ||
-        req.connection.socket.remoteAddress;
-    console.log('*** remoteIp is: ' + remoteIp);
+    // const rawIpAddress = (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+    //     req.connection.remoteAddress ||
+    //     req.socket.remoteAddress ||
+    //     req.connection.socket.remoteAddress;
+    const rawIpAddress = '::ffff:45.112.22.240';
+    let remoteIp;
+    const ipAddressDataArray = rawIpAddress.split(':');
+
+    if (ipAddressDataArray.length > 1) {
+        // const rawIpAddress = '::ffff:45.112.22.240'; //sample ipv6 address
+        remoteIp = ipAddressDataArray.pop(); // extracting ipv4 address out of ipv6 address
+    } else {
+        remoteIp = rawIpAddress; // its a ipv4 address 
+    }
+
     const cookieDomain = app.get('cookieDomain');
     let hashedPassword = '';
     let query;
@@ -433,20 +444,79 @@ app.post('/signup', function (req, res, next) {
 
                         let saveUserCountry = (ip) => {
                             request.get({
-                                url: 'https://ipapi.co/' + ip + '/json',
+                                url: 'https://ipapi.co/' + ip + '/json/?key=b14b9508ef9b791d4e5d4efd25871e6d2eb84750',
                                 json: true
                             }, function (err, response, data) {
                                 if (err) {
                                     console.error(err);
                                 } else {
+                                    console.log('saveUserCountry');
                                     console.log(data);
+                                    // const data = {
+                                    //     city: "Chennai",
+                                    //     continent_code: "AS",
+                                    //     country: "IN",
+                                    //     country_calling_code: "+91",
+                                    //     country_name: "India",
+                                    //     currency: "INR",
+                                    //     in_eu: false,
+                                    //     ip: "45.112.22.240",
+                                    //     languages: "en-IN,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,bh,sat,ks,ne,sd,kok,doi,mni,sit,sa,fr,lus,inc",
+                                    //     latitude: 13.0833,
+                                    //     longitude: 80.2833,
+                                    //     postal: "600003",
+                                    //     region: "Tamil Nadu",
+                                    //     region_code: "TN",
+                                    //     timezone: "Asia/Kolkata",
+                                    //     utc_offset: "+0530"
+                                    // };
+
+                                    // update peer model country
                                     User.dataSource.connector.execute(
                                         "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
                                         function (err, results) {
                                             console.log('Saved user country code in database');
                                         }
                                     );
+
+                                    // update profile model
+                                    User.dataSource.connector.execute(
+                                        "MATCH p=({email:'" + user.email + "'})-[r:peer_has_profile]->(pro) RETURN pro",
+                                        (err, results) => {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                console.log('retreived profile');
+                                                console.log(results);
+                                                if (results && results.length > 0) {
+                                                    const profileNodeId = results[0].pro.properties.id;
+                                                    const profileUpdateObject = {
+                                                        currency: data.currency,
+                                                        timezone: data.timezone,
+                                                        location_sring: data.region,
+                                                        location_lat: data.latitude,
+                                                        location_lng: data.longitude
+                                                    };
+                                                    const cypherQuery = "MATCH (p:profile {id: '" + profileNodeId + "'}) SET p+= " + util.inspect(profileUpdateObject);
+                                                    User.dataSource.connector.execute(
+                                                        cypherQuery
+                                                        , (error, results) => {
+                                                            if (err) {
+                                                                console.log('UpdateError');
+                                                                console.log(error);
+                                                            } else {
+                                                                console.log('UpdateSuccessful');
+                                                                console.log(results);
+                                                            }
+
+                                                        });
+                                                }
+                                            }
+
+                                        }
+                                    );
                                 }
+
                             });
                         };
 
@@ -463,9 +533,9 @@ app.post('/signup', function (req, res, next) {
                                     if (err) {
                                         console.error(err);
                                     } else if (response.body && response.body.error) {
-	                                    console.error(response.body.error);
+                                        console.error(response.body.error);
                                     } else if (data && data.error) {
-	                                    console.error(data.error);
+                                        console.error(data.error);
                                     }
                                     else {
                                         console.log(data);
@@ -519,7 +589,7 @@ app.post('/signup', function (req, res, next) {
                                                                 if (err) {
                                                                     console.error(err);
                                                                 } else if (result && result.error) {
-	                                                                console.error(result.error);
+                                                                    console.error(result.error);
                                                                 } else {
                                                                     console.log('Added participant to scholarship on blockchain: ' + result);
                                                                 }
@@ -585,7 +655,7 @@ app.post('/getKarmaToBurn', function (req, res, next) {
                 console.error(err);
                 next(err);
             } else if (data && data.error) {
-	            next(data.error);
+                next(data.error);
             } else {
                 console.log('Got karma to burn: ' + data);
                 res.json({ karma: data });
