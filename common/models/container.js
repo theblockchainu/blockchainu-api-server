@@ -64,7 +64,7 @@ module.exports = function(Container) {
 				});
 				downloadStream.on('error', function (err) {
 					cb (err);
-				})
+				});
 			} else {
 				cb(null, response);
 			}
