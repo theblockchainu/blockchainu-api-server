@@ -35,7 +35,7 @@
     "loopback": "^3.9.0",
     "loopback-boot": "^2.26.0",
     "loopback-component-explorer": "^4.0.0",
-    "loopback-component-passport-neo4j": "0.0.24",
+    "loopback-component-passport-neo4j": "0.0.25",
     "loopback-component-storage": "^3.2.0",
     "loopback-connector-es": "1.4.0",
     "loopback-connector-mailgun": "0.0.8",

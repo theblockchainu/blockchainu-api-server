@@ -1,11 +1,7 @@
 let request = require('request');
-
 let bignumJSON = require('json-bignum');
-
 let async = require('async');
-
 let Q = require('q');
-
 let queryString = require('querystring');
 
 
@@ -60,8 +56,6 @@ FBExtension.prototype.permissionsGiven = function (uid, accessToken, cb) {
                 error: e
             });
         }
-
-
     });
 
     deferred.promise.nodeify(cb);
