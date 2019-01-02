@@ -192,12 +192,12 @@ module.exports = function (Collection) {
 									}
 									console.log('corestack_username');
 									console.log(username);
-									const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides							
+									const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
 									const student_id = participantJSON.id;
 									const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
 									const student_email = participantJSON.email;
 									const course_id = 'ETHEREUM';
-									const course_start_date = moment(calendar.startDate).format('YYYY-MM-DD');
+									const course_start_date = moment(calendar.startDate).add('330', 'm').format('YYYY-MM-DD');
 									const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
 									console.log('EndDate' + course_end_date);
 									// const githubUrl = collectionInstance.githubUrl;

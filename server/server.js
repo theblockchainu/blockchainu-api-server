@@ -180,7 +180,7 @@ app.post('/signup', function (req, res, next) {
         // const rawIpAddress = '::ffff:45.112.22.240'; //sample ipv6 address
         remoteIp = ipAddressDataArray.pop(); // extracting ipv4 address out of ipv6 address
     } else {
-        remoteIp = rawIpAddress; // its a ipv4 address 
+        remoteIp = rawIpAddress; // its a ipv4 address
     }
     
     const cookieDomain = app.get('cookieDomain');
@@ -399,7 +399,6 @@ app.post('/signup', function (req, res, next) {
                                             if (remoteIp && remoteIp.length > 0) {
                                                 saveUserCountry(remoteIp);
                                             }
-                                            updateOnMailchimp();
                                             console.log('Logging in user');
                                             loopbackLogin(user);
                                         } else {
@@ -414,7 +413,7 @@ app.post('/signup', function (req, res, next) {
                             }
                         });
 
-                        let updateOnMailchimp = () => {
+                        let updateOnMailchimp = (data) => {
                             let hash = crypto.createHash('md5').update(user.email.toLowerCase()).digest('hex');
                             request.put({
                                 url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
@@ -425,6 +424,13 @@ app.post('/signup', function (req, res, next) {
                                     merge_fields: {
                                         FNAME: profileObject.first_name,
                                         LNAME: profileObject.last_name
+                                    },
+                                    location: {
+                                        latitude: data.latitude,
+                                        longitude: data.longitude,
+                                        country_code: data.country,
+                                        gmtoff: data.utc_offset,
+                                        timezone: data.timezone
                                     }
                                 },
                                 json: true
@@ -446,25 +452,8 @@ app.post('/signup', function (req, res, next) {
                                     console.error(err);
                                 } else {
                                     console.log('saveUserCountry');
-                                    console.log(data);
-                                    // const data = {
-                                    //     city: "Chennai",
-                                    //     continent_code: "AS",
-                                    //     country: "IN",
-                                    //     country_calling_code: "+91",
-                                    //     country_name: "India",
-                                    //     currency: "INR",
-                                    //     in_eu: false,
-                                    //     ip: "45.112.22.240",
-                                    //     languages: "en-IN,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,bh,sat,ks,ne,sd,kok,doi,mni,sit,sa,fr,lus,inc",
-                                    //     latitude: 13.0833,
-                                    //     longitude: 80.2833,
-                                    //     postal: "600003",
-                                    //     region: "Tamil Nadu",
-                                    //     region_code: "TN",
-                                    //     timezone: "Asia/Kolkata",
-                                    //     utc_offset: "+0530"
-                                    // };
+	
+	                                updateOnMailchimp(data);
 
                                     // update peer model country
                                     User.dataSource.connector.execute(
