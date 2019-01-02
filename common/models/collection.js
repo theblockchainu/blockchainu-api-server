@@ -184,6 +184,9 @@ module.exports = function (Collection) {
 									let username;
 									if (participantJSON.username) {
 										username = participantJSON.username;
+										if (username.length > 10) {
+											username = username.slice(0, 9);
+										}
 									} else {
 										username = participantJSON.email.replace(/\W/g, '');
 										if (username.length > 10) {
