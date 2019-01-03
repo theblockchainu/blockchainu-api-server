@@ -244,6 +244,7 @@ module.exports = function (Collection) {
 									'peer'
 								]
 							};
+							
 							Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
 								console.log('corestackStudents');
 								console.log(corestackStudents);

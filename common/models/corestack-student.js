@@ -116,9 +116,9 @@ module.exports = function (Corestackstudent) {
 									return Promise.reject('Error');
 								}
 							})
-                            .catch(err => {
-                                return Promise.reject('Error');
-                            });
+							.catch(err => {
+								return Promise.reject('Error');
+							});
 				});
 	};
 	
@@ -232,7 +232,7 @@ module.exports = function (Corestackstudent) {
 						access_data.some(accessDetail => {
 							if (accessDetail.application_name === 'Additional Information') {
 								console.log(accessDetail.keys_file_path);
-								blockchainPromise = request(
+								blockchainPromise = request.get(
 										{
 											url: accessDetail.keys_file_path,
 											json: true
