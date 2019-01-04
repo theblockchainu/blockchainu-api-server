@@ -2283,7 +2283,7 @@ module.exports = function (Collection) {
 					console.error(err);
 					cb(null, { result: false, participantId: fk.toLowerCase() });
 				} else if (data && data.error) {
-					cb(data.error);
+					cb(null, { result: false, participantId: fk.toLowerCase() });
 				} else {
 					console.log('Got list of participants for this collection: ' + data);
 					const peers = JSON.parse(data);
@@ -2294,6 +2294,25 @@ module.exports = function (Collection) {
 					}
 				}
 			});
+	};
+	
+	Collection.getBlockchainParticipants = function (id, req, cb) {
+		// Get participants from blockchain
+		request
+				.get({
+					url: protocolUrl + 'collections/' + id + '/peers',
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(null, { result: false, participants: [] });
+					} else if (data && data.error) {
+						cb(null, { result: false, participants: [] });
+					} else {
+						console.log('Got list of participants for this collection: ' + data);
+						const peers = JSON.parse(data);
+						cb(null, { result: true, participants: peers });
+					}
+				});
 	};
 
 	Collection.setCustomUrl = async (collectionInstance) => {
@@ -2724,6 +2743,17 @@ module.exports = function (Collection) {
 			returns: { arg: 'result', type: 'object', root: true },
 			http: { path: '/:id/peers/:fk/ether', verb: 'get' }
 		});
+	
+	Collection.remoteMethod(
+			'getBlockchainParticipants',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/ether', verb: 'get' }
+			});
 
 	Collection.remoteMethod(
 		'addParticipantToEthereum',
