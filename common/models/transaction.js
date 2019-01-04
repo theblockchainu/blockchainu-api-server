@@ -556,16 +556,25 @@ module.exports = function (Transaction) {
                             transferInstance.destroy();
                             res.redirect(clientUrl + '/paymentError');
                         } else {
-                            if (responseData.order_status === 'Success') {
-                                // txn success
-                                if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
-                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transferInstance.id);
-                                } else {
-                                    res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+	                        Transaction.app.models.collection.findById(responseData.merchant_param1.split('/')[3], function (err, collection) {
+		                        if (!err && collection !== null) {
+			                        collection.__link__payments(transferInstance.id, function (err, collectionPaymentInstance) {
+				                        if (!err && collectionPaymentInstance !== null) {
+					                        console.log('Payment made for collection');
+				                        }
+			                        });
                                 }
-                            } else {
-                                res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
-                            }
+		                        if (responseData.order_status === 'Success') {
+			                        // txn success
+			                        if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
+				                        res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transferInstance.id);
+			                        } else {
+				                        res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+			                        }
+		                        } else {
+			                        res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
+		                        }
+	                        });
                         }
                     });
                 }

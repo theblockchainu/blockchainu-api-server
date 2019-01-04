@@ -232,12 +232,10 @@ module.exports = function (Corestackstudent) {
 						access_data.some(accessDetail => {
 							if (accessDetail.application_name === 'Additional Information') {
 								console.log(accessDetail.keys_file_path);
-								blockchainPromise = request.get(
-										{
+								blockchainPromise = request.get({
 											url: accessDetail.keys_file_path,
-											json: true
-										}
-								);
+											json: false
+										});
 								return true;
 							}
 						});
