@@ -1086,16 +1086,9 @@ module.exports = function (Collection) {
 				}
 			});
 		} else {
-
-			collectionInstance.status = 'draft';
-			collectionInstance.isApproved = false;
-			collectionInstance.save((err, data) => {
-				if (err) {
-					next(err);
-				} else {
-					next();
-				}
-			});
+			
+			ctx.args.data.status = 'draft';
+			next();
 
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
@@ -1314,15 +1307,9 @@ module.exports = function (Collection) {
 		}
 		else {
 
-			collectionInstance.status = 'draft';
-			collectionInstance.isApproved = false;
-			collectionInstance.save((err, data) => {
-				if (err) {
-					next(err);
-				} else {
-					next();
-				}
-			});
+			ctx.args.data.status = 'draft';
+			next();
+			
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -1593,15 +1580,9 @@ module.exports = function (Collection) {
 		}
 		else {
 
-			collectionInstance.status = 'draft';
-			collectionInstance.isApproved = false;
-			collectionInstance.save((err, data) => {
-				if (err) {
-					next(err);
-				} else {
-					next();
-				}
-			});
+			ctx.args.data.status = 'draft';
+			next();
+			
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -2030,6 +2011,7 @@ module.exports = function (Collection) {
 			// 	// Collection status is neither draft or active.
 			// 	next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
 			// }
+			
 			collectionInstance.status = 'draft';
 			collectionInstance.isApproved = false;
 			collectionInstance.save((err, data) => {

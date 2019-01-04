@@ -556,7 +556,15 @@ module.exports = function (Transaction) {
                             transferInstance.destroy();
                             res.redirect(clientUrl + '/paymentError');
                         } else {
-	                        Transaction.app.models.collection.findById(responseData.merchant_param1.split('/')[3], function (err, collection) {
+                            const query = {
+                                'where': {
+	                                'or': [
+		                                {id: responseData.merchant_param1.split('/')[3]},
+		                                {customUrl: responseData.merchant_param1.split('/')[3]}
+	                                ]
+                                }
+                            };
+	                        Transaction.app.models.collection.find(query, function (err, collection) {
 		                        if (!err && collection !== null) {
 			                        collection.__link__payments(transferInstance.id, function (err, collectionPaymentInstance) {
 				                        if (!err && collectionPaymentInstance !== null) {

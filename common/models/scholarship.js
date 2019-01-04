@@ -5,7 +5,7 @@ const protocolUrl = app.get('protocolUrl');
 let request = require('request');
 
 module.exports = function (Scholarship) {
-    Scholarship.validatesInclusionOf('type', { in: ['public', 'private'] });
+	Scholarship.validatesInclusionOf('type', { in: ['public', 'private'] });
 	
 	Scholarship.karmaBalance = function (id, req, cb) {
 		// Find the collection by given ID
@@ -50,9 +50,9 @@ module.exports = function (Scholarship) {
 	};
 	
 	Scholarship.observe('after save', function (ctx, next) {
-	   const instance = ctx.instance || ctx.data;
-	   console.log(Object.keys(ctx));
-		request
+		const instance = ctx.instance || ctx.data;
+		console.log(Object.keys(ctx));
+		/*request
 				.post({
 					url: protocolUrl + 'scholarships',
 					body: {
@@ -75,9 +75,9 @@ module.exports = function (Scholarship) {
 					} else {
 						console.log('Created new scholarship on blockchain: ' + data);
 					}
-				});
-	   /*const loggedInUserId = Scholarship.getCookieUserId(ctx.req);*/
-		/*Scholarship.app.models.peer.findById(loggedInUserId, function (err, peerUserInstance) {
+				});*/
+		const loggedInUserId = Scholarship.getCookieUserId(ctx.req);
+		Scholarship.app.models.peer.findById(loggedInUserId, function (err, peerUserInstance) {
 			if (err) {
 				console.log(err);
 			} else {
@@ -87,7 +87,7 @@ module.exports = function (Scholarship) {
 								url: protocolUrl + 'scholarships',
 								body: {
 									uniqueId: instance.id,
-									ownerAddress: '',
+									ownerAddress: peerUserInstance.ethAddress,
 									type: instance.type,
 									title: instance.title,
 									description: instance.description,
@@ -106,9 +106,28 @@ module.exports = function (Scholarship) {
 							});
 				}
 			}
-		});*/
-	   next();
+		});
+		next();
 	});
+	
+	Scholarship.getPeerBlockchainData = function (id, fk, req, cb) {
+		// Get from blockchain
+		request
+				.get({
+					url: protocolUrl + 'scholarships/' + id + '/peers/' + fk,
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(null, { result: false, participantId: fk.toLowerCase() });
+					} else if (data && data.error) {
+						cb(null, { result: false, participantId: fk.toLowerCase() });
+					} else {
+						console.log('Got scholarship participant blockchain info ' + data);
+						const peerData = JSON.parse(data);
+						cb(null, { result: true, participantId: fk.toLowerCase(), participantData: peerData });
+					}
+				});
+	};
 	
 	// Record scholarship participation on BC.
 	Scholarship.afterRemote('prototype.__link__peers_joined', function(ctx, peerInstance, next) {
@@ -178,6 +197,19 @@ module.exports = function (Scholarship) {
 				],
 				returns: { arg: 'result', type: 'object', root: true },
 				http: { path: '/:id/karmaBalance', verb: 'get' }
+			}
+	);
+	
+	Scholarship.remoteMethod(
+			'getPeerBlockchainData',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'fk', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/:fk/ether', verb: 'get' }
 			}
 	);
 };
