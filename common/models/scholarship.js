@@ -122,9 +122,8 @@ module.exports = function (Scholarship) {
 					} else if (data && data.error) {
 						cb(null, { result: false, participantId: fk.toLowerCase() });
 					} else {
-						console.log('Got scholarship participant blockchain info ' + data);
-						const peerData = JSON.parse(data);
-						cb(null, { result: true, participantId: fk.toLowerCase(), participantData: peerData });
+						console.log('Got scholarship participant blockchain timestamp ' + data);
+						cb(null, { result: true, participantId: fk.toLowerCase(), participantData: data });
 					}
 				});
 	};
