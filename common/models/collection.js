@@ -813,7 +813,7 @@ module.exports = function (Collection) {
 																					const nonAcademicRules = [];
 																					const topicArray = [];
 																					let learningHours = 0;
-																					if (assessmentRules !== undefined) {
+																					if (assessmentRules !== undefined && assessmentRules.length > 0) {
 																						assessmentRules.forEach(assessmentRule => {
 																							assessmentRuleKeys.push(assessmentRule.value);
 																							assessmentRuleValues.push(assessmentRule.gyan);
@@ -824,7 +824,7 @@ module.exports = function (Collection) {
 																						assessmentRuleValues.push(100);
 																						assessmentRuleValues.push(1);
 																					}
-																					if (assessmentNARules !== undefined) {
+																					if (assessmentNARules !== undefined && assessmentRules.length > 0) {
 																						assessmentNARules.forEach(assessmentNARule => {
 																							if (assessmentNARule.value === 'engagement') {
 																								nonAcademicRules[0] = assessmentNARule.gyan;
