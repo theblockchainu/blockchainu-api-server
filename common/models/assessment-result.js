@@ -8,6 +8,8 @@ let moment = require('moment');
 const qrcode = require('yaqrcode');
 var sha256 = require('js-sha256');
 var intoStream = require('into-stream');
+let path = require('path');
+
 module.exports = function (Assessmentresult) {
 	
 	Assessmentresult.observe('after save', function (ctx, next) {
@@ -217,123 +219,242 @@ module.exports = function (Assessmentresult) {
 						console.log('CERTIFICATE HASH READY: ' + hash);
 						console.log('CHECKING IF HASH EXISTS ON BLOCKCHAIN');
 						
-						// check if hash exists on blockchain
-						request
-								.get({
-									url: protocolUrl + 'collections/' + body.collectionId + '/peers/' + peer.ethAddress + '/hash',
-									json: true
-								}, (err, response, data) => {
-									if (err) {
-										console.error(err);
-										cb(err);
-									} else if (data && data.error) {
-										cb(data.error);
-									} else if (data && data.length > 0) {
-										console.log('GOT ASSESSMENT HASH FROM BC ');
-										console.log(data);
-										const signature = {
-											"type": [
-												"sha256"
-											],
-											"targetHash": data,
-											"anchors": [
-												{
-													"sourceId": data,
-													"type": "EthData",
-													"chain": "ethereumTestnet"
+						// If peer has a valid ethereum address
+						if (peer.ethAddress && peer.ethAddress.length > 0 && peer.ethAddress.substring(0, 2) === '0x') {
+							// check if hash exists on blockchain
+							request
+									.get({
+										url: protocolUrl + 'collections/' + body.collectionId + '/peers/' + peer.ethAddress + '/hash',
+										json: true
+									}, (err, response, data) => {
+										// Hash EXISTS on blockchain.
+										if (data && data.length > 0) {
+											console.log('GOT ASSESSMENT HASH FROM BC ');
+											console.log(data);
+											const signature = {
+												"type": [
+													"sha256"
+												],
+												"targetHash": data,
+												"anchors": [
+													{
+														"sourceId": data,
+														"type": "EthData",
+														"chain": "ethereumTestnet"
+													}
+												]
+											};
+											if (!certificate.signature) {
+												certificate.signature = signature;
+											}
+											certificateInstance.stringifiedJSON = JSON.stringify(certificate);
+											certificateInstance.updateAttributes({
+												stringifiedJSON: JSON.stringify(certificate)
+											}, (error, updatedInstance) => {
+												if (error) {
+													console.log(error);
+													cb(error);
+												} else {
+													console.log('SAVED CERTIFICATE JSON WITH HASH IN NEO4J DB');
+													let html_body = ' <html> <head> <title>The Blockchain University</title></head>  <body> <div> <div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">' +
+															'<div style="vertical-align: middle; ">' +
+															'<img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>' +
+															'</div>' +
+															'<div style="font-weight: 800; font-size: 30px; margin-top: 40px; text-transform: capitalize;">' +
+															'Congratulations!' +
+															'</div>' +
+															'<div>' +
+															'<div style="font-size: 17px; margin-top: 25px;">' +
+															'Hi ' + peer.profiles()[0].first_name +
+															'<br><br>' +
+															'Your certificate is ready.' +
+															'<br><br>' +
+															'You can share your certificate with anyone using this link -' +
+															'<a href="https://theblockchainu.com/certificate/' + updatedInstance.id + '" style="white-space: pre-wrap; color: #33bd9e;"><b>https://theblockchainu.com/certificate/' + updatedInstance.id + '</b></a>' +
+															'<br><br>' +
+															'<div style="line-height: 3.2rem;">' +
+															'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
+															'</div><br/><br/>' +
+															'</div>' +
+															'</div>' +
+															'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
+															'Cheers,' +
+															'<br>' +
+															'The Blockchain U Team' +
+															'</div>' +
+															'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
+															'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
+															'<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">' +
+															'Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U' +
+															'<br><br>' +
+															'Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538' +
+															'</div>' +
+															'</div> </div> </body> </html>';
+													const attachment = {
+														data: intoStream(updatedInstance.stringifiedJSON),
+														filename: 'SmartCertificate_' + body.collectionTitle.substring(0, 10) + '.json',
+														knownLength: updatedInstance.stringifiedJSON.length,
+														contentType: 'application/json'
+													};
+													Assessmentresult.generatePdf(displayHtml)
+															.then(pdfBuffer => {
+																return loopback.Email.send({
+																	to: peer.email,
+																	from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+																	subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
+																	html: html_body,
+																	attachments: [
+																		{
+																			filename: 'certificate.pdf',
+																			data: pdfBuffer,
+																			contentType: 'application/pdf',
+																			knownLength: pdfBuffer.length
+																		}
+																	]
+																});
+															})
+															.then(function (response) {
+																console.log('email sent! - ' + JSON.stringify(response));
+															}).catch(function (err) {
+														console.log('email error! - ' + err);
+													});
+													console.log('CERTIFICATE EMAIL SENT');
+													cb(null, certificate);
 												}
-											]
-										};
-										if (!certificate.signature) {
-											certificate.signature = signature;
+											});
 										}
-										certificateInstance.stringifiedJSON = JSON.stringify(certificate);
-										certificateInstance.updateAttributes({
-											stringifiedJSON: JSON.stringify(certificate)
-										}, (error, updatedInstance) => {
-											if (error) {
-												console.log(error);
-												cb(error);
-											} else {
-												console.log('SAVED CERTIFICATE JSON WITH HASH IN NEO4J DB');
-												let html_body = ' <html> <head> <title>The Blockchain University</title></head>  <body> <div> <div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">' +
-														'<div style="vertical-align: middle; ">' +
-														'<img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>' +
-														'</div>' +
-														'<div style="font-weight: 800; font-size: 30px; margin-top: 40px; text-transform: capitalize;">' +
-														'Congratulations!' +
-														'</div>' +
-														'<div>' +
-														'<div style="font-size: 17px; margin-top: 25px;">' +
-														'Hi ' + peer.profiles()[0].first_name +
-														'<br><br>' +
-														'Your certificate is ready.' +
-														'<br><br>' +
-														'You can share your certificate with anyone using this link -' +
-														'<a href="https://theblockchainu.com/certificate/' + updatedInstance.id + '" style="white-space: pre-wrap; color: #33bd9e;"><b>https://theblockchainu.com/certificate/' + updatedInstance.id + '</b></a>' +
-														'<br><br>' +
-														'<div style="line-height: 3.2rem;">' +
-														'On this link, you can <b>instantly verify</b> the authenticity of this certificate by clicking the <span style="background: #33bd9e; color: #ffffff; padding: 10px; border-radius: 2px; font-weight:700;">VERIFY</span> button.' +
-														'</div><br/><br/>' +
-														'</div>' +
-														'</div>' +
-														'<div style="font-size: 17px; margin-top: 30px; line-height: 24px;">' +
-														'Cheers,' +
-														'<br>' +
-														'The Blockchain U Team' +
-														'</div>' +
-														'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
-														'<hr style="margin-top: 40px; background-color: #dbdbdb;">' +
-														'<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">' +
-														'Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U' +
-														'<br><br>' +
-														'Peerbuds, Inc., 4580 Automall Pkwy, Fremont, CA 94538' +
-														'</div>' +
-														'</div> </div> </body> </html>';
-												const attachment = {
-													data: intoStream(updatedInstance.stringifiedJSON),
-													filename: 'SmartCertificate_' + body.collectionTitle.substring(0, 10) + '.json',
-													knownLength: updatedInstance.stringifiedJSON.length,
-													contentType: 'application/json'
-												};
-												Assessmentresult.generatePdf(displayHtml)
-														.then(pdfBuffer => {
-															return loopback.Email.send({
-																to: peer.email,
-																from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-																subject: 'Your certificate for ' + body.collectionType + ': ' + body.collectionTitle,
-																html: html_body,
-																attachments: [
-																	{
-																		filename: 'certificate.pdf',
-																		data: pdfBuffer,
-																		contentType: 'application/pdf',
-																		knownLength: pdfBuffer.length
+										// Hash DOES NOT EXIST on blockchain
+										else {
+											console.log('HASH NOT FOUND FOR THIS USER ON THIS COLLECTION');
+											console.log('SAVING NEW HASH ON BLOCKCHAIN');
+											
+											// Find the assessment result given to user
+											Assessmentresult.findById(body.assessmentId, {
+												include: [{ 'assessment_rules': { 'assessment_models': { 'collections': [{ 'owners': 'profiles' }, 'certificate_templates', 'topics', 'calendars'] } } },
+													'assessment_na_rules']
+											})
+													.then((assessmentResultInstance) => {
+														const assessmentResultInstanceJSON = assessmentResultInstance.toJSON();
+														
+														// Make student assessment on blockchain
+														request
+																.put({
+																	url: protocolUrl + 'collections/' + body.collectionId + '/peers/' + peer.ethAddress,
+																	body: {
+																		assessmentResult: assessmentResultInstanceJSON.assessment_rules[0].value,
+																		engagementResult: assessmentResultInstanceJSON.assessmentEngagementResult,
+																		commitmentResult: assessmentResultInstanceJSON.assessmentCommitmentResult,
+																		hash: hash // hash
+																	},
+																	json: true
+																}, (err, response, data) => {
+																	if (err) {
+																		console.error(err);
+																		cb(err);
+																	} else if (data && data.error) {
+																		console.error(data.error);
+																		cb(data.error);
+																	} else if (data) {
+																		console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
+																		console.log(data);
+																		cb(null, certificate);
+																	} else {
+																		console.log('Failed to send transaction to blockchain');
+																		console.log(data);
+																		cb(new Error('Failed to send transaction to blockchain'));
 																	}
-																]
-															});
-														})
-														.then(function (response) {
-															console.log('email sent! - ' + JSON.stringify(response));
-														}).catch(function (err) {
-													console.log('email error! - ' + err);
-												});
-												console.log('CERTIFICATE EMAIL SENT');
-												cb(null, certificate);
+																});
+													});
+										}
+									});
+						}
+						// Create an ethereum account for the user and then re-issue certificate
+						else {
+							this.createWallet(peer, body, hash, certificate, cb);
+						}
+					} else {
+						cb(new Error('No certificate JSON string available. Cannot re-issue certificate.'));
+					}
+				})
+				.catch(function (err) {
+					console.log(err);
+					cb(err);
+				});
+		
+	};
+	
+	Assessmentresult.createWallet = (peer, body, hash, certificate, cb) => {
+		// Create wallet on blockchain
+		request
+				.post({
+					url: app.get('protocolUrl') + 'peers',
+					body: {
+						password: '0C6&7vvvv'
+					},
+					json: true
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(err);
+					} else if (response.body && response.body.error) {
+						console.error(response.body.error);
+						cb(response.body.error);
+					} else if (data && data.error) {
+						console.error(data.error);
+						cb(data.error);
+					}
+					else {
+						console.log(data);
+						Assessmentresult.dataSource.connector.execute(
+								"MATCH (p:peer {email: '" + peer.email + "'}) SET p.ethAddress = '" + data + "'",
+								function (err, results) {
+									console.log('Created ethereum wallet and saved address in DB');
+								}
+						);
+						
+						// Add peer to all public scholarships
+						app.models.scholarship.find({
+							'where': {
+								'type': 'public'
+							}
+						})
+								.then(function (scholarshipInstances) {
+									scholarshipInstances.forEach(function (scholarship, i) {
+										scholarship.__link__peers_joined(peer.id, function (err, linkedPeerInstance) {
+											if (data && data.substring(0, 2) === '0x') {
+												request
+														.put({
+															url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
+															json: true
+														}, function (err, response, result) {
+															if (err) {
+																console.error(err);
+															} else if (result && result.error) {
+																console.error(result.error);
+															} else {
+																console.log('Added participant to scholarship on blockchain: ' + result);
+															}
+														});
 											}
 										});
-									}
-									else {
-										console.log('HASH NOT FOUND FOR THIS USER ON THIS COLLECTION');
+									});
+									return Promise.all(scholarshipInstances);
+								})
+								.then(function (scholarshipRelationInstances) {
+									if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+										
+										// SAVE NEW CERTIFICATE HASH ON BLOCKCHAIN
+										
 										console.log('SAVING NEW HASH ON BLOCKCHAIN');
+										
+										// Find the assessment result given to user
 										Assessmentresult.findById(body.assessmentId, {
-											include: [{ 'assessment_rules': { 'assessment_models': { 'collections': [{ 'owners': 'profiles' }, 'certificate_templates', 'topics', 'calendars'] } } },
-												'assessment_na_rules']
+											include: [{ 'assessment_rules': { 'assessment_models': { 'collections': [{ 'owners': 'profiles' }, 'certificate_templates', 'topics', 'calendars'] } } }, 'assessment_na_rules']
 										})
 												.then((assessmentResultInstance) => {
 													const assessmentResultInstanceJSON = assessmentResultInstance.toJSON();
 													
-													// Assess student on blockchain
+													// Make student assessment on blockchain
 													request
 															.put({
 																url: protocolUrl + 'collections/' + body.collectionId + '/peers/' + peer.ethAddress,
@@ -362,17 +483,31 @@ module.exports = function (Assessmentresult) {
 																}
 															});
 												});
+										
+										// Send email to user informing him about global scholarship
+										const message = {};
+										const renderer = loopback.template(path.resolve(__dirname, './views/welcomeGlobalScholarship.ejs'));
+										const html_body = renderer(message);
+										loopback.Email.send({
+											to: peer.email,
+											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+											subject: 'Your KARMA wallet is now ready!',
+											html: html_body
+										})
+												.then(function (response) {
+													console.log('The Blockchain University Global Scholarship email sent! - ' + response);
+												})
+												.catch(function (err) {
+													console.log('The Blockchain University Global Scholarship email error! - ' + err);
+												});
 									}
+								})
+								.catch(function (err) {
+									console.log('Error in joining scholarship');
+									console.log(err);
 								});
-					} else {
-						cb(new Error('No certificate JSON string available. Cannot re-issue certificate.'));
 					}
-				})
-				.catch(function (err) {
-					console.log(err);
-					cb(err);
 				});
-		
 	};
 	
 	
