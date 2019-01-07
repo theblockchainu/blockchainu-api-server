@@ -21,9 +21,6 @@ module.exports = function (Assessmentresult) {
 		// Then get the assessment result object with all the linked nodes and collection
 		assessment.calendars.add(assessment.calendarId)
 				.then((calendars) => {
-					console.log(calendars);
-					cohortStartDate = moment(calendars[0].startDate).format('Do MMM, YYYY');
-					cohortEndDate = moment(calendars[0].endDate).format('Do MMM, YYYY');
 					return assessment.assessment_rules.add(assessment.assessmentRuleId);
 				})
 				.then((assessment_rules) => {
@@ -38,9 +35,12 @@ module.exports = function (Assessmentresult) {
 				.then((assessees) => {
 					return Assessmentresult
 							.findById(assessment.id, {
-								include: [{ 'assessees': 'profiles' },
+								include: [
+									{ 'assessees': 'profiles' },
 									{ 'assessment_rules': { 'assessment_models': { 'collections': [{ 'owners': 'profiles' }, 'certificate_templates', 'topics', 'calendars'] } } },
-									'assessment_na_rules']
+									'assessment_na_rules',
+									'calendars'
+								]
 							});
 				})
 				.then((assessmentResultInstance) => {
@@ -53,6 +53,12 @@ module.exports = function (Assessmentresult) {
 						const template = certificateTemplate.certificateHTML.replace(/\\n/g, '');
 						_.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 						var compiled = _.template(template);
+						
+						// Set start and end date
+						if (assessmentResultInstanceJSON.calendars && assessmentResultInstanceJSON.calendars.length > 0) {
+							cohortStartDate = moment(assessmentResultInstanceJSON.calendars[0].startDate).format('Do MMM, YYYY');
+							cohortEndDate = moment(assessmentResultInstanceJSON.calendars[0].endDate).format('Do MMM, YYYY');
+						}
 						// Create a string of topics for blockchain
 						let topicString = '';
 						assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].topics.forEach(topic => {
