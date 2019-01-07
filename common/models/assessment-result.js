@@ -772,7 +772,6 @@ module.exports = function (Assessmentresult) {
 						}).catch(function (err) {
 							console.log('The Blockchain University Global Scholarship email error! - ' + err);
 						});
-						
 					}
 				}).catch(function (err) {
 					console.log('Error in joining scholarship');
@@ -785,15 +784,18 @@ module.exports = function (Assessmentresult) {
 	
 	
 	Assessmentresult.signCertificate = function (body, cb) {
-		
+		console.log('GOT ASSESSMENT RESPONSE FROM BLOCKCHAIN FOR COLLECTION: ' + body.collectionId);
 		if (body && body.certificateId && body.collectionId) {
 			Assessmentresult.app.models.certificate.findById(body.certificateId, {
 				include: [{
-					'peers': ['profiles', {
-						'relation': 'collections', 'scope': {
-							'where': { 'id': body.collectionId }
-						}
-					}]
+					'peers': [
+						'profiles',
+						{
+							relation: 'collections',
+							scope: {
+								where: { id: {'eq': body.collectionId } }
+							}
+						}]
 				}]
 			}).then((certificateInstance) => {
 				// If there is a certificate JSON string available
@@ -804,8 +806,7 @@ module.exports = function (Assessmentresult) {
 					// Check if we found a collection linked to this certificate
 					if (peer.collections && peer.collections().length > 0) {
 						const collection = peer.collections()[0];
-						console.log('GOT RESPONSE FROM BLOCKCHAIN');
-						
+						console.log('FETCHED COLLECTION FROM DB IS: ' + collection.id);
 						if (body.error) {
 							console.error(body.error);
 							cb(new Error(body.error));
