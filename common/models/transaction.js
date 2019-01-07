@@ -559,14 +559,15 @@ module.exports = function (Transaction) {
                             const query = {
                                 'where': {
 	                                'or': [
-		                                {id: responseData.merchant_param1.split('/')[3]},
-		                                {customUrl: responseData.merchant_param1.split('/')[3]}
+		                                { 'id': responseData.merchant_param1.split('/')[3] },
+		                                { 'customUrl': responseData.merchant_param1.split('/')[3] }
 	                                ]
                                 }
                             };
 	                        Transaction.app.models.collection.find(query, function (err, collection) {
-		                        if (!err && collection !== null) {
-			                        collection.__link__payments(transferInstance.id, function (err, collectionPaymentInstance) {
+	                            console.log(collection);
+		                        if (!err && collection !== null && collection !== undefined) {
+			                        collection.payments.add(transferInstance.id, function (err, collectionPaymentInstance) {
 				                        if (!err && collectionPaymentInstance !== null) {
 					                        console.log('Payment made for collection');
 				                        }
