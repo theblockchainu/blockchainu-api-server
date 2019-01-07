@@ -504,9 +504,8 @@ module.exports = function setupCron(server) {
 							'include': [{ 'courses': [{ 'owners': ['profiles'] }] }],
 							'order': 'contentIndex ASC'
 						}
-					},
+					}
 				],
-				'order': 'createdAt DESC',
 				'where': {
 					'type': type,
 					'id': { 'inq': trendingLearningPathIds }
