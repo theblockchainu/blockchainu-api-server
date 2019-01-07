@@ -52,7 +52,8 @@ module.exports = function (Scholarship) {
 	Scholarship.observe('after save', function (ctx, next) {
 		const instance = ctx.instance || ctx.data;
 		console.log(Object.keys(ctx));
-		/*request
+		console.log(ctx.options);
+		request
 				.post({
 					url: protocolUrl + 'scholarships',
 					body: {
@@ -75,8 +76,8 @@ module.exports = function (Scholarship) {
 					} else {
 						console.log('Created new scholarship on blockchain: ' + data);
 					}
-				});*/
-		const loggedInUserId = Scholarship.getCookieUserId(ctx.req);
+				});
+		/*const loggedInUserId = Scholarship.getCookieUserId(ctx.req);
 		Scholarship.app.models.peer.findById(loggedInUserId, function (err, peerUserInstance) {
 			if (err) {
 				console.log(err);
@@ -106,7 +107,7 @@ module.exports = function (Scholarship) {
 							});
 				}
 			}
-		});
+		});*/
 		next();
 	});
 	
