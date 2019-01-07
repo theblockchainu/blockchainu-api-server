@@ -488,8 +488,7 @@ module.exports = function setupCron(server) {
 		const trendingLearningPathIds = [
 			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
 			'4166c51a-4cb5-447d-bbaf-7d3539773182',
-			'2224b149-fb86-4946-b93b-8d7f03dcc556',
-			'e89ee13b-5eea-4313-beaa-dc9cda1ada77',
+			'ef6fbd67-d2d0-4b0f-aa0a-c728c954e98c'
 		];
 
 		let query;
