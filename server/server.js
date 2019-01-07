@@ -477,24 +477,23 @@ app.post('/signup', function (req, res, next) {
 													    if (results && results.length > 0) {
 														    const profileNodeId = results[0].pro.properties.id;
 														    const profileUpdateObject = {
+														    	id: profileNodeId,
 															    currency: data.currency,
 															    timezone: data.timezone,
 															    location_string: data.region,
 															    location_lat: data.latitude,
 															    location_lng: data.longitude
 														    };
-														    const cypherQuery = "MATCH (p:profile {id: '" + profileNodeId + "'}) SET p+= " + profileUpdateObject;
-														    User.dataSource.connector.execute(
-																    cypherQuery,
-																    (error, results) => {
-																	    if (error) {
-																		    console.log('UpdateError');
-																		    console.log(error);
-																	    } else {
-																		    console.log('UpdateSuccessful');
-																		    console.log(results);
-																	    }
-																    });
+														    
+														    User.app.models.profile.upsert(profileUpdateObject, function(error, results) {
+															    if (error) {
+																    console.log('UpdateError');
+																    console.log(error);
+															    } else {
+																    console.log('UpdateSuccessful');
+																    console.log(results);
+															    }
+														    });
 													    }
 												    }
 												
