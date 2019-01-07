@@ -18,11 +18,18 @@
       "type": "string",
       "required": true
     },
+    "collectionId": {
+      "type": "string"
+    },
     "stringifiedJSON": {
       "type": "string"
     },
     "stringifiedJSONWithoutSignature": {
       "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "default": "pending"
     }
   },
   "validations": [],

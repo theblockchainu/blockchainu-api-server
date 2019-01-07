@@ -90,7 +90,11 @@ module.exports = function (Assessmentresult) {
 								next(new Error('User ID not found. Skipping Certificate Save.'));
 							} else {
 								// Create a blank certificate node for this user
-								instancePeer.certificates.create({}, (err, certificateInstanceObj) => {
+								const certBody = {
+									collectionId: assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id,
+									status: 'new'
+								};
+								instancePeer.certificates.create(certBody, (err, certificateInstanceObj) => {
 									if (err) {
 										next(err);
 									} else {
@@ -173,6 +177,7 @@ module.exports = function (Assessmentresult) {
 										
 										// Save Certificate JSON without blockchain signature
 										certificateInstanceObj.stringifiedJSONWithoutSignature = JSON.stringify(certificate);
+										certificateInstanceObj.status = 'successDB';
 										certificateInstanceObj.save((error, updatedTempInstance) => {
 											if (error) {
 												console.log(error);
@@ -220,6 +225,12 @@ module.exports = function (Assessmentresult) {
 																		} else if (data) {
 																			console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
 																			console.log(data);
+																			updatedTempInstance.status = 'pendingBlockchain';
+																			updatedTempInstance.save((err, certInstance) => {
+																				if (certInstance) {
+																					console.log('Certificate status updated to pendingBlockchain');
+																				}
+																			});
 																			next(null, certificate);
 																		} else {
 																			console.log('transaction Id not found');
@@ -253,6 +264,12 @@ module.exports = function (Assessmentresult) {
 																					} else if (data) {
 																						console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
 																						console.log(data);
+																						updatedTempInstance.status = 'pendingBlockchain';
+																						updatedTempInstance.save((err, certInstance) => {
+																							if (certInstance) {
+																								console.log('Certificate status updated to pendingBlockchain');
+																							}
+																						});
 																						next(null, certificate);
 																					} else {
 																						console.log('transaction Id not found');
@@ -294,6 +311,12 @@ module.exports = function (Assessmentresult) {
 																				} else if (data) {
 																					console.log(data);
 																					console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
+																					updatedTempInstance.status = 'pendingBlockchain';
+																					updatedTempInstance.save((err, certInstance) => {
+																						if (certInstance) {
+																							console.log('Certificate status updated to pendingBlockchain');
+																						}
+																					});
 																					next(null, certificate);
 																				} else {
 																					console.log('Failed to send transaction to blockchain');
@@ -375,7 +398,8 @@ module.exports = function (Assessmentresult) {
 											}
 											certificateInstance.stringifiedJSON = JSON.stringify(certificate);
 											certificateInstance.updateAttributes({
-												stringifiedJSON: JSON.stringify(certificate)
+												stringifiedJSON: JSON.stringify(certificate),
+												status: 'issuedToStudent'
 											}, (error, updatedInstance) => {
 												if (error) {
 													console.log(error);
@@ -437,9 +461,10 @@ module.exports = function (Assessmentresult) {
 															})
 															.then(function (response) {
 																console.log('email sent! - ' + JSON.stringify(response));
-															}).catch(function (err) {
-														console.log('email error! - ' + err);
-													});
+															})
+															.catch(function (err) {
+																console.log('email error! - ' + err);
+															});
 													console.log('CERTIFICATE EMAIL SENT');
 													cb(null, certificate);
 												}
@@ -823,8 +848,10 @@ module.exports = function (Assessmentresult) {
 							};
 							certificate.signature = signature;
 							certificateInstance.stringifiedJSON = JSON.stringify(certificate);
+							certificateInstance.status = 'issuedToStudent';
 							certificateInstance.updateAttributes({
-								stringifiedJSON: JSON.stringify(certificate)
+								stringifiedJSON: JSON.stringify(certificate),
+								status: 'issuedToStudent'
 							}, (error, updatedInstance) => {
 								if (error) {
 									console.log(error);
@@ -920,7 +947,16 @@ module.exports = function (Assessmentresult) {
 					page = newpage;
 					return page.setContent(html);
 				}).then(() => {
-					const pageBuffer = page.pdf();
+					const pageBuffer = page.pdf({
+						width: '675px',
+						height: '720px',
+						margin: {
+							top: '30px',
+							left: '30px',
+							right: '30px',
+							bottom: '30px'
+						}
+					});
 					return Promise.resolve(pageBuffer);
 				});
 	};
