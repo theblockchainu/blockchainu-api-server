@@ -789,13 +789,8 @@ module.exports = function (Assessmentresult) {
 			Assessmentresult.app.models.certificate.findById(body.certificateId, {
 				include: [{
 					'peers': [
-						'profiles',
-						{
-							relation: 'collections',
-							scope: {
-								where: { id: {'eq': body.collectionId } }
-							}
-						}]
+						'profiles'
+					]
 				}]
 			}).then((certificateInstance) => {
 				// If there is a certificate JSON string available
@@ -803,10 +798,10 @@ module.exports = function (Assessmentresult) {
 					const certificate = JSON.parse(certificateInstance.stringifiedJSONWithoutSignature);
 					const displayHtml = certificate.displayHtml;
 					const peer = certificateInstance.peers()[0];
+					const collection = certificate.collection;
 					// Check if we found a collection linked to this certificate
-					if (peer.collections && peer.collections().length > 0) {
-						const collection = peer.collections()[0];
-						console.log('FETCHED COLLECTION FROM DB IS: ' + collection.id);
+					if (collection) {
+						console.log('FETCHED COLLECTION ID FROM CERTIFICATE: ' + collection.id);
 						if (body.error) {
 							console.error(body.error);
 							cb(new Error(body.error));
