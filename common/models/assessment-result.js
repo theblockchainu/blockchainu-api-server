@@ -948,13 +948,11 @@ module.exports = function (Assessmentresult) {
 					return page.setContent(html);
 				}).then(() => {
 					const pageBuffer = page.pdf({
-						width: '675px',
-						height: '720px',
 						margin: {
-							top: '30px',
-							left: '30px',
-							right: '30px',
-							bottom: '30px'
+							top: '70px',
+							left: '70px',
+							right: '70px',
+							bottom: '70px'
 						}
 					});
 					return Promise.resolve(pageBuffer);
