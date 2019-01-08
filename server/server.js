@@ -183,8 +183,6 @@ app.post('/signup', function (req, res, next) {
 		remoteIp = rawIpAddress !== '::1' ? rawIpAddress : '127.0.0.1'; // its a ipv4 address
 	}
 	
-	remoteIp = '49.33.197.211';
-	
 	const cookieDomain = app.get('cookieDomain');
 	let hashedPassword = '';
 	let query;
