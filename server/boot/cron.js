@@ -478,9 +478,9 @@ module.exports = function setupCron(server) {
 	const saveCollectionCache = (type) => {
 		const today = moment();
 		const trendingLearningPathIds = [
-			'e022bacb-15a8-422a-82d5-b02ceaa2c0b5',
-			'643c9bdd-744b-4c39-8996-1f06143b90de',
-			'c5011060-8cec-4d28-a883-2e635de8536b'
+			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
+			'4166c51a-4cb5-447d-bbaf-7d3539773182',
+			'ef6fbd67-d2d0-4b0f-aa0a-c728c954e98c'
 		];
 
 		// prod paths
@@ -503,9 +503,8 @@ module.exports = function setupCron(server) {
 							'include': [{ 'courses': [{ 'owners': ['profiles'] }] }],
 							'order': 'contentIndex ASC'
 						}
-					},
+					}
 				],
-				'order': 'createdAt DESC',
 				'where': {
 					'type': type,
 					'id': { 'inq': trendingLearningPathIds }
@@ -1115,7 +1114,7 @@ module.exports = function setupCron(server) {
 										return loopback.Email.send({
 											to: corestack_student_json.student_email,
 											from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-											subject: 'Your CodeLab is up and running!',
+											subject: 'Your CodeLab™ is up and running!',
 											html: html_body
 										});
 									}).then(function (response) {

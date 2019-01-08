@@ -4,19 +4,20 @@ let _ = require('lodash');
 module.exports = function(options) {
 	
 	const exemptUrls = [
-			'api/peers/forgotPassword',
-			'api/peers/resetPassword',
-			'api/transactions/ccavenueResponse',
-			'api/assessment_results/sign-certificate'
+		'api/peers/forgotPassword',
+		'api/peers/resetPassword',
+		'api/transactions/ccavenueResponse',
+		'api/assessment_results/sign-certificate',
+		'api/peers/save-wallet'
 	];
 	
 	const exemptModels = [
-			'container',
-			'emailSubscription',
-			'guestContact',
-			'country',
-			'currency',
-			'language'
+		'container',
+		'emailSubscription',
+		'guestContact',
+		'country',
+		'currency',
+		'language'
 	];
 	
 	const getHeaderAccessToken = function (req) {
