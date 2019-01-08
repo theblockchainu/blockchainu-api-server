@@ -176,12 +176,14 @@ app.post('/signup', function (req, res, next) {
 	let remoteIp;
 	const ipAddressDataArray = rawIpAddress.split(':');
 	
-	if (ipAddressDataArray.length > 1) {
+	if (ipAddressDataArray.length > 1 && rawIpAddress !== '::1') {
 		// const rawIpAddress = '::ffff:45.112.22.240'; //sample ipv6 address
 		remoteIp = ipAddressDataArray.pop(); // extracting ipv4 address out of ipv6 address
 	} else {
-		remoteIp = rawIpAddress; // its a ipv4 address
+		remoteIp = rawIpAddress !== '::1' ? rawIpAddress : '127.0.0.1'; // its a ipv4 address
 	}
+	
+	remoteIp = '49.33.197.211';
 	
 	const cookieDomain = app.get('cookieDomain');
 	let hashedPassword = '';
@@ -241,8 +243,9 @@ app.post('/signup', function (req, res, next) {
 		}
 	};
 	
-	let loopbackLogin = function (user) {
+	let loopbackLogin = function (peer) {
 		console.log("inside loopbackLogin");
+		console.log(peer);
 		User.login({ email: newUser.email, password: newUser.password }, function (err, accessToken) {
 			if (err) {
 				console.log("User model login error: " + err);
@@ -257,7 +260,7 @@ app.post('/signup', function (req, res, next) {
 				// that can be used to establish a login session. This function is
 				// primarily used when users sign up, during which req.login() can
 				// be invoked to log in the newly registered user.
-				req.login(user, function (err) {
+				req.login(peer, function (err) {
 					if (err) {
 						return res.json({
 							'status': 'failed',
@@ -269,15 +272,15 @@ app.post('/signup', function (req, res, next) {
 						domain: cookieDomain,
 						maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
 					});
-					if (user.accountVerified !== undefined) {
-						res.cookie('accountApproved', user.accountVerified.toString(), {
+					if (peer.accountVerified !== undefined) {
+						res.cookie('accountApproved', peer.accountVerified.toString(), {
 							signed: req.signedCookies ? true : false,
 							domain: cookieDomain,
 							maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
 						});
 					}
-					if (user.currency !== undefined) {
-						res.cookie('currency', user.currency.toString(),
+					if (peer.currency !== undefined) {
+						res.cookie('currency', peer.currency.toString(),
 								{
 									signed: req.signedCookies ? true : false,
 									domain: cookieDomain,
@@ -285,8 +288,8 @@ app.post('/signup', function (req, res, next) {
 									maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
 								});
 					}
-					if (user.timezone !== undefined) {
-						res.cookie('timezone', user.timezone.toString(),
+					if (peer.timezone !== undefined) {
+						res.cookie('timezone', peer.timezone.toString(),
 								{
 									signed: req.signedCookies ? true : false,
 									domain: cookieDomain,
@@ -294,7 +297,7 @@ app.post('/signup', function (req, res, next) {
 									maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl
 								});
 					}
-					res.cookie('userId', user.id.toString(), {
+					res.cookie('userId', peer.id.toString(), {
 						signed: req.signedCookies ? true : false,
 						domain: cookieDomain,
 						maxAge: rememberMe ? 315569520000 : 1000 * accessToken[0].token.properties.ttl,
@@ -314,22 +317,26 @@ app.post('/signup', function (req, res, next) {
 		});
 	};
 	
-	let createProfileNode = function (user) {
+	let updateProfileAndLogin = function (user, profileObject) {
 		let profile = app.models.profile;
-		console.log('Creating Profile Node');
-		user.updateProfileNode(profile, profileObject, user, function (err, user, profileNode) {
+		console.log('Updating Profile Node');
+		user.updateProfileNode(profile, profileObject, user, remoteIp, function (err, user, profileNode) {
 			if (!err) {
-				//console.log(user);
-				user.currency = profileNode.currency;
-				user.timezone = profileNode.timezone;
+				console.log('Logging in user');
+				loopbackLogin(user);
 			} else {
-				console.log("ERROR CREATING PROFILE");
+				console.log("ERROR UPDATING PROFILE");
+				console.log(err);
+				return res.json({
+					'status': 'failed',
+					'reason': err
+				});
 			}
 		});
 	};
 	
-	
 	console.log('trying to find user with query: ' + JSON.stringify(query));
+	
 	User.findOne({ where: query }, function (err, existingUserInstance) {
 		if (err) {
 			return res.json({
@@ -346,7 +353,7 @@ app.post('/signup', function (req, res, next) {
 				});
 			}
 			else {
-				console.log('Email not present in database. Creating user Now');
+				console.log('Email not present in database. Creating new user account.');
 				
 				User.create(newUser, function (err, user) {
 					if (err) {
@@ -371,11 +378,17 @@ app.post('/signup', function (req, res, next) {
 								});
 							} else {
 								stripeResponse = data;
-								console.log("NEW USER ACCOUNT CREATED");
+								console.log("NEW USER ACCOUNT CREATED. SETTING PASSWORD.");
 								User.dataSource.connector.execute(
 										"MATCH (p:peer {email: '" + user.email + "'}) SET p.password = '" + hashedPassword + "'",
 										(err, results) => {
 											if (!err) {
+												
+												// Update profile node and login
+												updateProfileAndLogin(user, profileObject);
+												console.log('Creating wallet');
+												createWallet();
+												
 												// Send welcome email to user
 												let message = { username: profileObject.first_name };
 												let renderer = loopback.template(path.resolve(__dirname, 'views/welcomeSignupStudent.ejs'));
@@ -392,15 +405,6 @@ app.post('/signup', function (req, res, next) {
 														.catch(function (err) {
 															console.log('Welcome to The Blockchain University - thanks for signing up! email error! - ' + err);
 														});
-												console.log('Creating profile ');
-												createProfileNode(user);
-												console.log('Creating wallet');
-												createWallet();
-												if (remoteIp && remoteIp.length > 0) {
-													saveUserCountry(remoteIp);
-												}
-												console.log('Logging in user');
-												loopbackLogin(user);
 											} else {
 												console.log('Error in setting password');
 												return res.json({
@@ -413,105 +417,15 @@ app.post('/signup', function (req, res, next) {
 							}
 						});
 						
-						let updateOnMailchimp = (data) => {
-							let hash = crypto.createHash('md5').update(user.email.toLowerCase()).digest('hex');
-							request.put({
-								url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
-								body: {
-									email_address: user.email,
-									status_if_new: 'subscribed',
-									ip_signup: remoteIp,
-									merge_fields: {
-										FNAME: profileObject.first_name,
-										LNAME: profileObject.last_name
-									},
-									location: {
-										latitude: data.latitude,
-										longitude: data.longitude,
-										country_code: data.country,
-										gmtoff: data.utc_offset,
-										timezone: data.timezone
-									}
-								},
-								json: true
-							}, function (err, response, data) {
-								if (err) {
-									console.error(err);
-								} else {
-									console.log('*** Updated email on mailchimp');
-								}
-							}).auth('blockchainu', '8be612fef7633e059cfc22e8dff8a442-us16', true);
-						};
-						
-						let saveUserCountry = (ip) => {
-							request.get({
-								url: 'https://ipapi.co/' + ip + '/json/?key=b14b9508ef9b791d4e5d4efd25871e6d2eb84750',
-								json: true
-							}, function (err, response, data) {
-								if (err) {
-									console.error(err);
-								} else {
-									
-								    if (data && !data.error) {
-									    console.log('saveUserCountry: ' + data['country']);
-									
-									    updateOnMailchimp(data);
-									
-									    // update peer model country
-									    User.dataSource.connector.execute(
-											    "MATCH (p:peer {email: '" + user.email + "'}) SET p.country = '" + data['country'] + "'",
-											    function (err, results) {
-												    console.log('Saved user country code in database');
-											    }
-									    );
-									
-									    // update profile model with localization parameters
-									    User.dataSource.connector.execute(
-											    "MATCH (p:peer {email:'" + user.email + "'})-[r:peer_has_profile]->(pro:profile) RETURN pro",
-											    (err, results) => {
-												    if (err) {
-													    console.log(err);
-												    } else {
-													    console.log('retrieved profile');
-													    console.log(results);
-													    if (results && results.length > 0) {
-														    const profileNodeId = results[0].pro.properties.id;
-														    const profileUpdateObject = {
-														    	id: profileNodeId,
-															    currency: data.currency,
-															    timezone: data.timezone,
-															    location_string: data.region,
-															    location_lat: data.latitude,
-															    location_lng: data.longitude
-														    };
-														    
-														    User.app.models.profile.upsert(profileUpdateObject, function(error, results) {
-															    if (error) {
-																    console.log('UpdateError');
-																    console.log(error);
-															    } else {
-																    console.log('UpdateSuccessful');
-																    console.log(results);
-															    }
-														    });
-													    }
-												    }
-												
-											    }
-									    );
-                                    }
-								}
-								
-							});
-						};
-						
 						let createWallet = () => {
 							// Create wallet on blockchain
 							request.post({
 								url: app.get('protocolUrl') + 'peers',
 								body: {
 									password: newUser.password,
-                                    userId: user.id
+									userId: user.id,
+									successCallback: app.get('apiUrl') + '/api/peers/save-wallet',
+									failureCallback: app.get('apiUrl') + '/api/peers/save-wallet'
 								},
 								json: true
 							}, function (err, response, data) {

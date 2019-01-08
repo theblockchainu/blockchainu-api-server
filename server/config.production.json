@@ -36,6 +36,7 @@
   "uniqueDeveloperCode": "dev",
   "protocolUrl": "https://one0x.com/v1/",
   "clientUrl": "https://theblockchainu.com",
+  "apiUrl": "https://theblockchainu.com:3002",
   "karmaRate": 400000,
   "ccavenueWorkingKey": "FC6F1EE8D88C71848598431291678EF4",
   "ccavenueAccessCode": "AVVD79FH99BY37DVYB",

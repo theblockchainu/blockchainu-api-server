@@ -110,7 +110,7 @@ module.exports = function (Collection) {
 																							} else if (data && data.error) {
 																								console.error(data.error);
 																							} else {
-																								console.log('Recorded student participation on blockchain ' + data);
+																								console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ' + data);
 																							}
 																						});
 
@@ -464,7 +464,7 @@ module.exports = function (Collection) {
 															console.error(data);
 															// next(data.error);
 														} else {
-															console.log('Recorded student participation on blockchain ' + data);
+															console.log('DROPPED STUDENT PARTICIPATION ON BLOCKCHAIN ' + data);
 														}
 													});
 
@@ -2093,7 +2093,7 @@ module.exports = function (Collection) {
 							nonAcademicRules: nonAcademicRules,
 							topics: topicArray
 						};
-						//console.log(body);
+						console.log(body);
 						// Add to blockchain
 						request
 							.post({
@@ -2166,7 +2166,7 @@ module.exports = function (Collection) {
 								cb(data.error);
 							}
 							else {
-								console.log('Recorded student participation on blockchain ');
+								console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS');
 								console.log(data);
 								cb(null, data);
 							}

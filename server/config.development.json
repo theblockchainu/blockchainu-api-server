@@ -36,6 +36,7 @@
   "uniqueDeveloperCode": "aakash",
   "protocolUrl": "http://localhost:5000/v1/",
   "clientUrl": "http://localhost:8080",
+  "apiUrl": "http://localhost:3000",
   "karmaRate": 400000,
   "ccavenueWorkingKey": "5E4DD2288BD2458F6EC225B206D362F7",
   "ccavenueAccessCode": "AVDX80FH10CK81XDKC",

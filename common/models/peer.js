@@ -26,7 +26,9 @@ let twilioToken = app.get('twilioToken');
 let twilioPhone = app.get('twilioPhone');
 let protocolUrl = app.get('protocolUrl');
 let request = require('request');
+let requestPromise = require('request-promise-native');
 let Promise = require('bluebird');
+let apiUrl = app.get('apiUrl');
 
 try {
 	// Try the native module first
@@ -693,6 +695,8 @@ module.exports = function (Peer) {
 					let stripeTransaction = app.models.transaction;
 					let stripeResponse = '';
 					let profileObject = user.profiles[0];
+					
+					// Create a customer on Stripe
 					stripeTransaction.createCustomer(user, (err, data) => {
 						stripeResponse = data;
 						console.log("NEW USER ACCOUNT CREATED");
@@ -713,12 +717,15 @@ module.exports = function (Peer) {
 								});
 					});
 					
-					// Create wallet on blockchain
+					// Create a Wallet on Ethereum
 					console.log('Creating wallet');
 					request.post({
 						url: app.get('protocolUrl') + 'peers',
 						body: {
-							password: options.newPassword
+							password: options.newPassword,
+							userId: options.userId,
+							successCallback: apiUrl + '/api/peers/save-wallet',
+							failureCallback: apiUrl + '/api/peers/save-wallet'
 						},
 						json: true
 					}, (err, response, data) => {
@@ -728,99 +735,12 @@ module.exports = function (Peer) {
 							console.error(response.body.error);
 						} else if (data && data.error) {
 							console.error(data.error);
-						}
-						else {
-							Peer.dataSource.connector.execute(
-									"MATCH (p:peer {email: '" + user.email + "'}) SET p.ethAddress = '" + data + "'",
-									(err, results) => {
-										console.log('Created ethereum wallet and saved address in DB');
-									}
-							);
-							// Send notification email to admin
-							let message = {
-								userName: profileObject.first_name + ' ' + profileObject.last_name,
-								userEmail: user.email,
-								dobMonth: profileObject.dobMonth,
-								dobDay: profileObject.dobDay,
-								dobYear: profileObject.dobYear,
-								stripeId: stripeResponse,
-								ethWalletId: data
-							};
-							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
-							let html_body = renderer(message);
-							loopback.Email.send({
-								to: 'aakash@theblockchainu.com',
-								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'New user signup!',
-								html: html_body
-							})
-									.then(function (response) {
-										console.log('email sent! - ' + response);
-									})
-									.catch(function (err) {
-										console.log('email error! - ' + err);
-									});
-							
-							// Add peer to scholarship
-							
-							Peer.app.models.scholarship.find(
-									{
-										'where': {
-											'type': 'public'
-										}
-									}
-							).then(function (scholarshipInstances) {
-								scholarshipInstances.forEach(function (scholarship) {
-									scholarship.__link__peers_joined(user.id, function (err, linkedPeerInstance) {
-										if (data && data > 0) {
-											request
-													.put({
-														url: app.get('protocolUrl') + 'scholarships/' + scholarship.id + '/peers/rel/' + data,
-														json: true
-													}, function (err, response, result) {
-														if (err) {
-															console.error(err);
-														} else if (result && result.error) {
-															console.error(result.error);
-														} else {
-															console.log('Added participant to scholarship on blockchain: ');
-															console.log(result);
-														}
-													});
-										}
-									});
-								});
-								return Promise.all(scholarshipInstances);
-							})
-									.then(function (scholarshipRelationInstances) {
-										if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
-											// Send token in email to user.
-											const message = {};
-											const renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
-											const html_body = renderer(message);
-											loopback.Email.send({
-												to: user.email,
-												from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-												subject: 'Your KARMA wallet is now ready!',
-												html: html_body
-											})
-													.then(function (response) {
-														console.log('email sent! - ' + response);
-													})
-													.catch(function (err) {
-														console.log('email error! - ' + err);
-													});
-										}
-									}).catch(function (err) {
-								console.log('Error in joining scholarship');
-								console.log(err);
-								
+						} else {
+							cb(null, {
+								'message': 'Password changed',
+								'success': true
 							});
 						}
-					});
-					cb(null, {
-						'message': 'Password changed',
-						'success': true
 					});
 				} else {
 					err = new Error(g.f('User not found'));
@@ -1332,7 +1252,9 @@ module.exports = function (Peer) {
 							url: protocolUrl + 'peers',
 							body: {
 								password: body.password,
-								userId: id
+								userId: id,
+								successCallback: apiUrl + '/api/peers/save-wallet',
+								failureCallback: apiUrl + '/api/peers/save-wallet'
 							},
 							json: true
 						}, function (err, response, data) {
@@ -1370,7 +1292,6 @@ module.exports = function (Peer) {
 	
 	Peer.saveWallet = function(body, cb) {
 		if (body && body.ethAddress && body.userId && !body.error) {
-			console.log(body);
 			Peer.findById(body.userId, {'include': ['profiles']})
 					.then((peerInstance) => {
 						const profileObject = peerInstance.profiles()[0];
@@ -1379,30 +1300,6 @@ module.exports = function (Peer) {
 							peerInstance.updateAttributes({
 								ethAddress: body.ethAddress
 							});
-							// Send welcome email to user
-							let message = {
-								userName: profileObject.first_name + ' ' + profileObject.last_name,
-								userEmail: peerInstance.email,
-								dobMonth: profileObject.dobMonth,
-								dobDay: profileObject.dobDay,
-								dobYear: profileObject.dobYear,
-								stripeId: '',
-								ethWalletId: body.ethAddress
-							};
-							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
-							let html_body = renderer(message);
-							loopback.Email.send({
-								to: 'aakash@theblockchainu.com',
-								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'New user signup!',
-								html: html_body
-							})
-									.then(function (response) {
-										console.log('New user signup! email sent! - ' + response);
-									})
-									.catch(function (err) {
-										console.log('New user signup! email error! - ' + err);
-									});
 							
 							// Add peer to all public scholarships
 							Peer.app.models.scholarship.find(
@@ -1435,9 +1332,9 @@ module.exports = function (Peer) {
 							}).then(function (scholarshipRelationInstances) {
 								if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
 									// Send email to user informing him about global scholarship
-									const message = {};
-									const renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
-									const html_body = renderer(message);
+									let message = {};
+									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
+									let html_body = renderer(message);
 									loopback.Email.send({
 										to: peerInstance.email,
 										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
@@ -1449,6 +1346,31 @@ module.exports = function (Peer) {
 											})
 											.catch(function (err) {
 												console.log('The Blockchain University Global Scholarship email error! - ' + err);
+											});
+									
+									// Send email to admin about new user wallet
+									message = {
+										userName: profileObject.first_name + ' ' + profileObject.last_name,
+										userEmail: peerInstance.email,
+										dobMonth: profileObject.dobMonth,
+										dobDay: profileObject.dobDay,
+										dobYear: profileObject.dobYear,
+										stripeId: '',
+										ethWalletId: body.ethAddress
+									};
+									renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
+									html_body = renderer(message);
+									loopback.Email.send({
+										to: 'aakash@theblockchainu.com',
+										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+										subject: 'New user signup!',
+										html: html_body
+									})
+											.then(function (response) {
+												console.log('New user signup! email sent! - ' + response);
+											})
+											.catch(function (err) {
+												console.log('New user signup! email error! - ' + err);
 											});
 									
 									cb(null, peerInstance);
@@ -1492,6 +1414,20 @@ module.exports = function (Peer) {
 					});
 		} else if (body && body.error) {
 			cb(body.error);
+			// Notify admin over email
+			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + body.error};
+			let renderer = loopback.template(path.resolve(__dirname, '.../../server/views/notificationEmail.ejs'));
+			let html_body = renderer(message);
+			loopback.Email.send({
+				to: 'aakash@theblockchainu.com',
+				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+				subject: 'Blockchain Error!',
+				html: html_body
+			}).then(function (response) {
+				console.log('Blockchain Error! Sent email to admin! - ' + response);
+			}).catch(function (err) {
+				console.log('Blockchain Error! Sent email to admin! - ' + err);
+			});
 		} else {
 			cb(new Error('Invalid arguments for request.'));
 		}
@@ -1753,41 +1689,102 @@ module.exports = function (Peer) {
 		return cb.promise;
 	};
 	
-	Peer.prototype.updateProfileNode = function (profileModel, profileObject, user, cb) {
-		Peer.findById(user.id, function (err, modelInstance) {
-			if (err) {
-				cb(err);
-			} else {
-				//console.log(modelInstance);
-				if (modelInstance) {
-					modelInstance.profiles((err, instances) => {
-						if (err) {
-							cb(err);
-						} else {
-							if (instances[0]) {
-								let objId = instances[0].id;
-								Peer.app.models.profile.upsertWithWhere({ "id": objId }, profileObject, function (err, updatedInstance) {
-									if (err) {
-										cb(err);
-									}
-									else {
-										cb(null, user, updatedInstance);
-									}
-								});
-							} else {
-								console.log("not Added");
-								cb();
-							}
+	Peer.prototype.updateProfileNode = function (profileModel, profileObject, user, remoteIp, cb) {
+		
+		let updateProfile = (ip, userInstance, profileObjectToUpdate) => {
+			console.log('Remote IP is: ' + ip);
+			return requestPromise
+					.get({
+						url: 'https://ipapi.co/' + ip + '/json/?key=b14b9508ef9b791d4e5d4efd25871e6d2eb84750',
+						json: true
+					})
+					.then((ipData) => {
+						if (ipData && !ipData.error) {
+							console.log('Loacalizing profile for country: ' + ipData['country']);
+							// update peer model country
+							return userInstance.updateAttributes({'country': ipData['country'], 'currency': ipData['currency'], 'timezone': ipData['timezone']})
+									.then((updatedUserInstance) => {
+										console.log('Updated User Instance');
+										const profileUpdateObject = profileObjectToUpdate;
+										profileUpdateObject.id = userInstance.profiles()[0].id;
+										profileUpdateObject.currency = ipData.currency;
+										profileUpdateObject.timezone = ipData.timezone;
+										profileUpdateObject.location_string = ipData.region;
+										profileUpdateObject.location_lat = ipData.latitude;
+										profileUpdateObject.location_lng = ipData.longitude;
+										console.log(profileUpdateObject);
+										return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
+									})
+									.then((updatedProfileInstance) => {
+										console.log('Profile updated with localization parameters');
+										console.log(updatedProfileInstance);
+										return updateOnMailchimp(ipData, userInstance, ip, updatedProfileInstance);
+									})
+									.then((updatedProfileNode) => {
+										console.log('User account updated on Mailchimp');
+										return Promise.resolve(updatedProfileNode);
+									})
+									.catch((error) => {
+										console.log('updateProfile (validCountry) error: ' + error);
+										return Promise.reject(error);
+									});
 						}
+						else if (ipData && ipData.error) {
+							console.log('updateProfile (invalidCountry) error: ' + ipData.error);
+							return Promise.reject(new Error(ipData.reason));
+						} else {
+							return Promise.reject(new Error('Invalid IP data'));
+						}
+					})
+					.catch((err) => {
+						return Promise.reject(err);
 					});
-				} else {
-					console.log("Not Found");
-					cb();
-				}
-				
-			}
+		};
+		
+		let updateOnMailchimp = (ipData, userInstance, remoteIp, profileObject) => {
 			
-		});
+			let hash = crypto.createHash('md5').update(userInstance.email.toLowerCase()).digest('hex');
+			return request.put({
+				url: 'https://us16.api.mailchimp.com/3.0/lists/082e49e7ff/members/' + hash,
+				body: {
+					email_address: userInstance.email,
+					status_if_new: 'subscribed',
+					ip_signup: remoteIp,
+					merge_fields: {
+						FNAME: profileObject.first_name,
+						LNAME: profileObject.last_name
+					},
+					location: {
+						latitude: ipData.latitude,
+						longitude: ipData.longitude,
+						country_code: ipData.country,
+						gmtoff: ipData.utc_offset,
+						timezone: ipData.timezone
+					}
+				},
+				json: true
+			}, function (err, response, data) {
+				if (err) {
+					console.error(err);
+					return Promise.reject(err);
+				} else {
+					return Promise.resolve(profileObject);
+				}
+			}).auth('blockchainu', '8be612fef7633e059cfc22e8dff8a442-us16', true);
+		};
+		
+		Peer.findById(user.id, {include: 'profiles'})
+				.then((peerInstance) => {
+					updateProfile(remoteIp, peerInstance, profileObject)
+							.then((updatedProfileNode) => {
+								console.log(updatedProfileNode);
+								cb(null, peerInstance, updatedProfileNode);
+							})
+							.catch((err) => {
+								console.log('Profile update error: ' + err);
+								cb(err);
+							});
+				});
 	};
 	
 	Peer.prototype.hasPassword = function (plain, hash, fn) {
@@ -2264,9 +2261,9 @@ module.exports = function (Peer) {
 	 */
 	
 	Peer.setup();
-	
-	// Access token to normalize email credentials
-	//noinspection JSCheckFunctionSignatures
+
+// Access token to normalize email credentials
+//noinspection JSCheckFunctionSignatures
 	Peer.observe('access', function normalizeEmailCase(ctx, next) {
 		if (!ctx.Model.settings.caseSensitiveEmail && ctx.query.where &&
 				ctx.query.where.email && typeof (ctx.query.where.email) === 'string') {
@@ -2274,9 +2271,9 @@ module.exports = function (Peer) {
 		}
 		next();
 	});
-	
-	
-	//noinspection JSCheckFunctionSignatures
+
+
+//noinspection JSCheckFunctionSignatures
 	Peer.observe('before save', function prepareForTokenInvalidation(ctx, next) {
 		if (ctx.isNewInstance) return next();
 		if (!ctx.where && !ctx.instance) return next();
@@ -2315,8 +2312,8 @@ module.exports = function (Peer) {
 			next();
 		});
 	});
-	
-	//noinspection JSCheckFunctionSignatures
+
+//noinspection JSCheckFunctionSignatures
 	Peer.observe('after save', function invalidateOtherTokens(ctx, next) {
 		if (!ctx.instance && !ctx.data) return next();
 		if (!ctx.hookState.originalUserData) return next();
@@ -2351,7 +2348,7 @@ module.exports = function (Peer) {
 	Peer.getSetUserName = async (peerInstance, input_string) => {
 		if (!peerInstance.userName || peerInstance.userName.length < 1) {
 			console.log('setting userName');
-			const userNameString = input_string.replace(/ /g, '-');
+			let userNameString = input_string.replace(/ /g, '-');
 			if (userNameString.length > 10) {
 				userNameString = userNameString.slice(0, 10);
 			}
