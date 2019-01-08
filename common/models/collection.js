@@ -2030,7 +2030,11 @@ module.exports = function (Collection) {
 					cb(data.error);
 				} else {
 					console.log('Got details of collection: ' + data);
-					cb(null, JSON.parse(data));
+					try {
+						cb(null, JSON.parse(data));
+					} catch (e) {
+						cb(new Error('Failed'));
+					}
 				}
 			});
 	};
