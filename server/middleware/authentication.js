@@ -8,7 +8,10 @@ module.exports = function(options) {
 		'api/peers/resetPassword',
 		'api/transactions/ccavenueResponse',
 		'api/assessment_results/sign-certificate',
-		'api/peers/save-wallet'
+		'api/peers/save-wallet',
+		'api/assessment_results/join-collection-success',
+		'api/assessment_results/join-collection-failure',
+		'api/assessment_results/save-wallet',
 	];
 	
 	const exemptModels = [
