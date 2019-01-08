@@ -496,7 +496,7 @@ module.exports = function (Assessmentresult) {
 				.then((participantUserInstance) => {
 					if (participantUserInstance) {
 						// Record student participation in an experience on blockchain
-						let scholarshipId = participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined.length > 0 && participantUserInstance.scholarships_joined[0] ? participantUserInstance.scholarships_joined[0].id : '';
+						let scholarshipId = participantUserInstance.scholarships_joined && participantUserInstance.scholarships_joined().length > 0 && participantUserInstance.scholarships_joined()[0] ? participantUserInstance.scholarships_joined()[0].id : '';
 						console.log('AWAITING BLOCKCHAIN RESPONSE FOR JOINING COLLECTION WITH SCHOLARSHIP: ' + scholarshipId);
 						return requestPromise.put({
 							url: protocolUrl + 'collections/' + collectionId + '/peers/rel/' + participantUserInstance.ethAddress,

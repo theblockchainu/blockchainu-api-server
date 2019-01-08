@@ -1081,11 +1081,11 @@ module.exports = function setupCron(server) {
 					return server.models.corestack_student.find(corestack_student_query);
 				})
 				.then(corestack_students => {
-					console.log('corestack_students');
-					console.log(corestack_students);
+					/*console.log('corestack_students');
+					console.log(corestack_students);*/
 					corestack_students.forEach(corestack_student => {
-						console.log('corestack_student');
-						console.log(corestack_student);
+						/*console.log('corestack_student');
+						console.log(corestack_student);*/
 						const promise = requestPromise.get({
 							url: app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/'
 								+ corestack_student.student_id + '/' + corestack_student.course_id,
@@ -1095,16 +1095,16 @@ module.exports = function setupCron(server) {
 								'X-Auth-User': app.get('corestackUserName')
 							},
 						}).then(student_detail => {
-							console.log('student details for ' + corestack_student.student_email);
-							console.log(student_detail);
+							/*console.log('student details for ' + corestack_student.student_email);
+							console.log(student_detail);*/
 							if (student_detail.data.student_course_status === 'active') {
-								console.log('saving data');
+								//console.log('saving data');
 								const updatedData = { student_course_status: 'active' };
 								const corestack_student_json = corestack_student.toJSON();
 								app.models.corestack_student.upsertWithWhere({ id: corestack_student.id }, updatedData)
 									.then(savedinstance => {
-										console.log('Updated ' + corestack_student.student_email);
-										console.log(savedinstance);
+										/*console.log('Updated ' + corestack_student.student_email);
+										console.log(savedinstance);*/
 										let message = {
 											guideUrl: 'https://theblockchainu.com/guide/' + corestack_student_json.collections[0].customUrl,
 											guideTitle: corestack_student_json.collections[0].title.toUpperCase()
