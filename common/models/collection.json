@@ -171,6 +171,9 @@
     },
     "githubUrl": {
       "type": "string"
+    },
+    "corestackScriptPath": {
+      "type": "string"
     }
   },
   "validations": [],
