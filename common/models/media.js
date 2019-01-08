@@ -12,7 +12,25 @@ const s3 = new AWS.S3({
 
 });
 
+const container = 'peerbuds-dev1290';
+
 module.exports = function (Media) {
+
+    Media.uploadBuffer = function (fileName, file, cb) {
+        if (file, fileName) {
+            const publicContainer = 'bu-codelabs';
+            var params = { Bucket: publicContainer, Key: fileName, Body: file };
+            s3.upload(params, (err, data) => {
+                if (err) {
+                    cb(err);
+                } else {
+                    cb(null, data);
+                }
+            });
+        } else {
+            cb('uploadFile: a parameter undefined');
+        }
+    };
 
     Media.afterRemote('create', function (ctx, newInstance, next) {
         //newInstance is the instance of the created relations Model
@@ -116,7 +134,6 @@ module.exports = function (Media) {
         console.log('getUploadUrl');
         console.log(data);
         if (!options) options = {};
-        const container = 'peerbuds-dev1290';
         var loggedinPeer = Media.getCookieUserId(ctx.req);
         const generatedName = uuid() + '.' + data.ext;
         if (loggedinPeer) {
@@ -144,7 +161,6 @@ module.exports = function (Media) {
 
     Media.getDownloadUrl = function (fileName, ctx, cb) {
         // /:fileName
-        const container = 'peerbuds-dev1290';
         var loggedinPeer = Media.getCookieUserId(ctx.req);
         if (loggedinPeer) {
             var params = { Bucket: container, Key: fileName };

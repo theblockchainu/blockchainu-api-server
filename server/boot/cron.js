@@ -477,20 +477,18 @@ module.exports = function setupCron(server) {
 
 	const saveCollectionCache = (type) => {
 		const today = moment();
-		// const trendingLearningPathIds = [
-		// 	'e022bacb-15a8-422a-82d5-b02ceaa2c0b5',
-		// 	'643c9bdd-744b-4c39-8996-1f06143b90de',
-		// 	'c5011060-8cec-4d28-a883-2e635de8536b',
-		// 	'5885afc8-15e2-42fa-b75f-3260f69d6f99',
-		// ];
-
-		// // prod paths
 		const trendingLearningPathIds = [
-			'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
-			'4166c51a-4cb5-447d-bbaf-7d3539773182',
-			'2224b149-fb86-4946-b93b-8d7f03dcc556',
-			'e89ee13b-5eea-4313-beaa-dc9cda1ada77',
+			'e022bacb-15a8-422a-82d5-b02ceaa2c0b5',
+			'643c9bdd-744b-4c39-8996-1f06143b90de',
+			'c5011060-8cec-4d28-a883-2e635de8536b'
 		];
+
+		// prod paths
+		// const trendingLearningPathIds = [
+		// 	'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
+		// 	'4166c51a-4cb5-447d-bbaf-7d3539773182',
+		// 	'2224b149-fb86-4946-b93b-8d7f03dcc556',
+		// ];
 
 		let query;
 

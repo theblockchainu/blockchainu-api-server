@@ -8,6 +8,7 @@ let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 const Promise = require('bluebird');
 let _ = require('lodash');
+const fs = require('fs');
 
 module.exports = function (Collection) {
 
@@ -47,6 +48,100 @@ module.exports = function (Collection) {
 								console.log(err);
 							}
 						});
+
+						const checkAndAddtoCorestack = function (params) {
+							// if collection is a guide join participant to corestack
+							if (collectionInstance.type === 'guide') {
+								const addToCoreStack = function () {
+									collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+										const participantJSON = participantUserInstance.toJSON();
+										let username;
+										if (participantJSON.username) {
+											username = participantJSON.username;
+											if (username.length > 10) {
+												username = username.slice(0, 9);
+											}
+										} else {
+											username = participantJSON.email.replace(/\W/g, '');
+											if (username.length > 10) {
+												username = username.slice(0, 9);
+											}
+										}
+										console.log('corestack_username');
+										console.log(username);
+										const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
+										const student_id = participantJSON.id;
+										const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+										const student_email = participantJSON.email;
+										const course_id = 'ETHEREUM';
+										const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+										const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
+										console.log('EndDate' + course_end_date);
+										const corestackScriptPath = collectionInstance.corestackScriptPath;
+										Collection.app.models.corestack_student.registerStudent(
+											student_id,
+											student_name, student_email, course_id, course_start_date, username,
+											course_end_date, corestackScriptPath
+										).then(corestackStudentInstance => {
+											console.log('connecting Corestack student');
+											collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+												if (corestackStudentRelationerr) {
+													console.log('corestackStudentRelationerr');
+													console.log(corestackStudentRelationerr);
+												} else {
+													console.log('corestackStudentRelation');
+													console.log(corestackStudentRelation);
+												}
+												participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
+													if (peerCorestackRelationInstanceerr) {
+														console.log('peerCorestackRelationInstanceerr');
+														console.log(peerCorestackRelationInstanceerr);
+													} else {
+														console.log('peerCorestackRelationInstance');
+														console.log(peerCorestackRelationInstance);
+													}
+												});
+											});
+											next();
+										}).catch(err => {
+											console.log('registerStudentError');
+											console.log(err);
+											next(new Error('Error in registering student to Corestack!, please contact suppport!'));
+										});
+									});
+								};
+
+								const query = {
+									where: {
+										student_id: participantUserInstance.id
+									},
+									include: [
+										'peer'
+									]
+								};
+
+								Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
+									console.log('corestackStudents');
+									console.log(corestackStudents);
+									if (errorcorestackStudents) {
+										// addToCoreStack();
+										console.log('Error in fetching students in DB');
+									} else {
+										const studentPresent = corestackStudents.some(student => (student.student_id === participantUserInstance.id));
+										if (studentPresent) {
+											console.log('already added to the collection');
+											next();
+										} else {
+											addToCoreStack();
+										}
+									}
+								});
+
+							} else {
+								next();
+							}
+						};
+
 						// Get owner instance
 						collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
 							if (err) {
@@ -147,7 +242,7 @@ module.exports = function (Collection) {
 																						.catch(function (err) {
 																							console.log('email error! - ' + err);
 																						});
-																					next();
+																					checkAndAddtoCorestack();
 																				}
 																				else {
 																					next(new Error('Could not create system message'));
@@ -160,7 +255,7 @@ module.exports = function (Collection) {
 																	});
 																}
 																else {
-																	next();
+																	checkAndAddtoCorestack();
 																}
 															}
 															else {
@@ -176,92 +271,6 @@ module.exports = function (Collection) {
 							}
 						});
 
-						// if collection is a guide join participant to corestack
-						if (collectionInstance.type === 'guide') {
-							const addToCoreStack = function () {
-								collectionInstance.__get__calendars({}, (error, calendarInstances) => {
-									const participantJSON = participantUserInstance.toJSON();
-									let username;
-									if (participantJSON.username) {
-										username = participantJSON.username;
-										if (username.length > 10) {
-											username = username.slice(0, 9);
-										}
-									} else {
-										username = participantJSON.email.replace(/\W/g, '');
-										if (username.length > 10) {
-											username = username.slice(0, 9);
-										}
-									}
-									console.log('corestack_username');
-									console.log(username);
-									const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
-									const student_id = participantJSON.id;
-									const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
-									const student_email = participantJSON.email;
-									const course_id = 'ETHEREUM';
-									const course_start_date = moment(calendar.startDate).add('330', 'm').format('YYYY-MM-DD');
-									const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
-									console.log('EndDate' + course_end_date);
-									// const githubUrl = collectionInstance.githubUrl;
-									const user_script_path = 'https://ethereumlabstorage.blob.core.windows.net/ethereum-userdata/ethereum_userdata_script_dec6.sh';
-									Collection.app.models.corestack_student.registerStudent(
-										student_id,
-										student_name, student_email, course_id, course_start_date, username,
-										course_end_date, user_script_path
-									).then(corestackStudentInstance => {
-										console.log('connecting Corestack student');
-										collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
-											if (corestackStudentRelationerr) {
-												console.log('corestackStudentRelationerr');
-												console.log(corestackStudentRelationerr);
-											} else {
-												console.log('corestackStudentRelation');
-												console.log(corestackStudentRelation);
-											}
-											participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
-												if (peerCorestackRelationInstanceerr) {
-													console.log('peerCorestackRelationInstanceerr');
-													console.log(peerCorestackRelationInstanceerr);
-												} else {
-													console.log('peerCorestackRelationInstance');
-													console.log(peerCorestackRelationInstance);
-												}
-											});
-										});
-									}).catch(err => {
-										console.log('registerStudentError');
-										console.log(err);
-									});
-								});
-							};
-
-							const query = {
-								where: {
-									student_id: participantUserInstance.id
-								},
-								include: [
-									'peer'
-								]
-							};
-							
-							Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
-								console.log('corestackStudents');
-								console.log(corestackStudents);
-								if (errorcorestackStudents) {
-									// addToCoreStack();
-									console.log('Error in fetching students in DB');
-								} else {
-									const studentPresent = corestackStudents.some(student => (student.student_id === participantUserInstance.id));
-									if (studentPresent) {
-										console.log('already added to the collection');
-									} else {
-										addToCoreStack();
-									}
-								}
-							});
-
-						}
 					} else {
 						next(err);
 					}
@@ -616,6 +625,10 @@ module.exports = function (Collection) {
 					Collection.checkSetUniqueUrl(collectionInstance)
 						.then(res => {
 							console.log('collectionInstance updated');
+							if (collectionInstance.type === 'guide' && collectionInstance.githubUrl !== undefined) {
+								console.log('Setting corestack script');
+								setCorestackScriptPath(collectionInstance);
+							}
 						}).catch(err => {
 							console.log(err);
 							err = new Error(g.f('Error updating collection.'));
@@ -626,7 +639,6 @@ module.exports = function (Collection) {
 				} else {
 					collectionInstance.save();
 				}
-
 				let message = '', subject = '';
 				message = { type: collectionInstance.type };
 				switch (collectionInstance.type) {
@@ -652,19 +664,16 @@ module.exports = function (Collection) {
 				// Create payout rule for this collection
 				Collection.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] },
 					function (err, peerInstance) {
-
 						loopback.Email.send({
 							to: peerInstance.toJSON().email,
 							from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 							subject: subject,
 							html: html_body
-						})
-							.then(function (response) {
-								console.log('email sent! - ');
-							})
-							.catch(function (err) {
-								console.log('email error! - ' + err);
-							});
+						}).then(function (response) {
+							console.log('email sent! - ');
+						}).catch(function (err) {
+							console.log('email error! - ' + err);
+						});
 
 						let peerPayoutAccs = peerInstance.toJSON().payoutaccs;
 						if (peerPayoutAccs && peerPayoutAccs.length) {
@@ -696,6 +705,57 @@ module.exports = function (Collection) {
 				cb(err);
 			}
 		});
+	};
+
+	const getCorestackScriptPath = (collectionId, githubUrl, cb) => {
+		const templateShellFilePath = path.resolve(__dirname, '../../server/scripts/corestack_seed_script.sh');
+		fs.readFile(templateShellFilePath, (err, data) => {
+			if (err) {
+				console.log(err);
+				cb(err);
+			} else {
+				const script_string = data.toString();
+				const replaced_script_string = script_string.replace('{{GIT_CLONE_URL}}', githubUrl);
+				const new_script_buffer = Buffer.from(replaced_script_string);
+				const fileName = collectionId + '.sh';
+				Collection.app.models.media.uploadBuffer(fileName, new_script_buffer, (awsError, awsData) => {
+					if (awsError) {
+						cb(awsError);
+					} else {
+						console.log(awsData);
+						cb(null, awsData.Location);
+					}
+				});
+			}
+		});
+	};
+
+	const setCorestackScriptPath = (collectionInstance) => {
+		if (!collectionInstance.corestackScriptPath || collectionInstance.corestackScriptPath.length === 0) {
+			getCorestackScriptPath(
+				collectionInstance.id,
+				collectionInstance.githubUrl,
+				(getCorestackScriptPathErr, newPath) => {
+					if (getCorestackScriptPathErr) {
+						console.log('getCorestackScriptPath');
+						console.log(getCorestackScriptPath);
+					} else {
+						console.log(newPath);
+						const obj = { corestackScriptPath: newPath };
+						Collection.upsertWithWhere({ id: collectionInstance.id }, obj, (saveErr, savedInstance) => {
+							if (saveErr) {
+								console.log(saveErr);
+							} else {
+								console.log('Corestack Script saved');
+								console.log(savedInstance);
+							}
+						});
+					}
+				});
+		} else {
+			console.log('Corestack Script alredy present');
+			console.log(collectionInstance.corestackScriptPath);
+		}
 	};
 
 	Collection.approve = function (id, req, cb) {
@@ -1086,7 +1146,7 @@ module.exports = function (Collection) {
 				}
 			});
 		} else {
-			
+
 			ctx.args.data.status = 'draft';
 			next();
 
@@ -1309,7 +1369,7 @@ module.exports = function (Collection) {
 
 			ctx.args.data.status = 'draft';
 			next();
-			
+
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -1582,7 +1642,7 @@ module.exports = function (Collection) {
 
 			ctx.args.data.status = 'draft';
 			next();
-			
+
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -2011,7 +2071,7 @@ module.exports = function (Collection) {
 			// 	// Collection status is neither draft or active.
 			// 	next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
 			// }
-			
+
 			collectionInstance.status = 'draft';
 			collectionInstance.isApproved = false;
 			collectionInstance.save((err, data) => {
@@ -2295,24 +2355,24 @@ module.exports = function (Collection) {
 				}
 			});
 	};
-	
+
 	Collection.getBlockchainParticipants = function (id, req, cb) {
 		// Get participants from blockchain
 		request
-				.get({
-					url: protocolUrl + 'collections/' + id + '/peers',
-				}, function (err, response, data) {
-					if (err) {
-						console.error(err);
-						cb(null, { result: false, participants: [] });
-					} else if (data && data.error) {
-						cb(null, { result: false, participants: [] });
-					} else {
-						console.log('Got list of participants for this collection: ' + data);
-						const peers = JSON.parse(data);
-						cb(null, { result: true, participants: peers });
-					}
-				});
+			.get({
+				url: protocolUrl + 'collections/' + id + '/peers',
+			}, function (err, response, data) {
+				if (err) {
+					console.error(err);
+					cb(null, { result: false, participants: [] });
+				} else if (data && data.error) {
+					cb(null, { result: false, participants: [] });
+				} else {
+					console.log('Got list of participants for this collection: ' + data);
+					const peers = JSON.parse(data);
+					cb(null, { result: true, participants: peers });
+				}
+			});
 	};
 
 	Collection.setCustomUrl = async (collectionInstance) => {
@@ -2743,17 +2803,17 @@ module.exports = function (Collection) {
 			returns: { arg: 'result', type: 'object', root: true },
 			http: { path: '/:id/peers/:fk/ether', verb: 'get' }
 		});
-	
+
 	Collection.remoteMethod(
-			'getBlockchainParticipants',
-			{
-				accepts: [
-					{ arg: 'id', type: 'string', required: true },
-					{ arg: 'req', type: 'object', http: { source: 'req' } }
-				],
-				returns: { arg: 'result', type: 'object', root: true },
-				http: { path: '/:id/peers/ether', verb: 'get' }
-			});
+		'getBlockchainParticipants',
+		{
+			accepts: [
+				{ arg: 'id', type: 'string', required: true },
+				{ arg: 'req', type: 'object', http: { source: 'req' } }
+			],
+			returns: { arg: 'result', type: 'object', root: true },
+			http: { path: '/:id/peers/ether', verb: 'get' }
+		});
 
 	Collection.remoteMethod(
 		'addParticipantToEthereum',
