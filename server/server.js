@@ -12,7 +12,6 @@ let bcrypt;
 let MAX_PASSWORD_LENGTH = 72;
 let unirest = require('unirest');
 let request = require('request');
-var crypto = require('crypto');
 let https = require('https');
 let http = require('http');
 let sslConfig = require('./ssl-config');
@@ -89,6 +88,28 @@ let corsOptions = {
 	},
 	credentials: true
 };
+
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: 'https://7b8d8cd0a4234f76bdaddcbebe89330e@sentry.io/1367262' });
+
+// The request handler must be the first middleware on the app
+app.use(Sentry.Handlers.requestHandler());
+
+app.get('/', function mainHandler(req, res) {
+	throw new Error('Broke!');
+});
+
+// The error handler must be before any other error middleware
+app.use(Sentry.Handlers.errorHandler());
+
+// Optional fallthrough error handler
+app.use(function onError(err, req, res, next) {
+	// The error id is attached to `res.sentry` to be returned
+	// and optionally displayed to the user for support.
+	res.statusCode = 500;
+	res.end(res.sentry + '\n');
+});
 
 app.use(cors(corsOptions));
 let cookieDomain = app.get('cookieDomain');
