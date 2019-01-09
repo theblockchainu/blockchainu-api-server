@@ -773,7 +773,7 @@ module.exports = function (Assessmentresult) {
 			if (body.error) {
 				// Notify admin over email
 				let message = {heading: 'JOIN COLLECTION ERROR for participant: ' + body.participantEthAddress + ' in Collection: ' + body.collectionId};
-				let renderer = loopback.template(path.resolve(__dirname, '.../../server/views/notificationEmail.ejs'));
+				let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
 				let html_body = renderer(message);
 				loopback.Email.send({
 					to: 'aakash@theblockchainu.com',
@@ -910,7 +910,7 @@ module.exports = function (Assessmentresult) {
 								stripeId: '',
 								ethWalletId: body.ethAddress
 							};
-							let renderer = loopback.template(path.resolve(__dirname, '.../../server/views/newSignupAdmin.ejs'));
+							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newSignupAdmin.ejs'));
 							let html_body = renderer(message);
 							loopback.Email.send({
 								to: 'aakash@theblockchainu.com',
@@ -932,7 +932,7 @@ module.exports = function (Assessmentresult) {
 			cb(body.error);
 			// Notify admin over email
 			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + body.error};
-			let renderer = loopback.template(path.resolve(__dirname, '.../../server/views/notificationEmail.ejs'));
+			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
 			let html_body = renderer(message);
 			loopback.Email.send({
 				to: 'aakash@theblockchainu.com',
