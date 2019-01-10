@@ -1708,17 +1708,25 @@ module.exports = function (Peer) {
 										const profileUpdateObject = profileObjectToUpdate;
 										if (userInstance.profiles() && userInstance.profiles().length > 0) {
 											profileUpdateObject.id = userInstance.profiles()[0].id;
-										}
-										profileUpdateObject.currency = ipData.currency;
-										profileUpdateObject.timezone = ipData.timezone;
-										profileUpdateObject.location_string = ipData.region;
-										profileUpdateObject.location_lat = ipData.latitude;
-										profileUpdateObject.location_lng = ipData.longitude;
-										console.log(profileUpdateObject);
-										if (userInstance.profiles() && userInstance.profiles().length > 0) {
+											profileUpdateObject.currency = ipData.currency;
+											profileUpdateObject.timezone = ipData.timezone;
+											profileUpdateObject.location_string = ipData.region;
+											profileUpdateObject.location_lat = ipData.latitude;
+											profileUpdateObject.location_lng = ipData.longitude;
+											console.log(profileUpdateObject);
 											return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
 										} else {
-											return Promise.resolve({});
+											Peer.findById(userInstance.id, {include: 'profiles'})
+													.then((latestUserInstance) => {
+														profileUpdateObject.id = latestUserInstance.profiles()[0].id;
+														profileUpdateObject.currency = ipData.currency;
+														profileUpdateObject.timezone = ipData.timezone;
+														profileUpdateObject.location_string = ipData.region;
+														profileUpdateObject.location_lat = ipData.latitude;
+														profileUpdateObject.location_lng = ipData.longitude;
+														console.log(profileUpdateObject);
+														return latestUserInstance.profiles()[0].updateAttributes(profileUpdateObject);
+													});
 										}
 									})
 									.then((updatedProfileInstance) => {
@@ -1790,6 +1798,9 @@ module.exports = function (Peer) {
 								console.log('Profile update error: ' + err);
 								cb(err);
 							});
+				})
+				.catch((err) => {
+					cb(err);
 				});
 	};
 	
