@@ -1718,7 +1718,7 @@ module.exports = function (Peer) {
 										if (userInstance.profiles() && userInstance.profiles().length > 0) {
 											return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
 										} else {
-											return Peer.app.models.profile.updateAttributes(profileUpdateObject);
+											return Promise.resolve({});
 										}
 									})
 									.then((updatedProfileInstance) => {
