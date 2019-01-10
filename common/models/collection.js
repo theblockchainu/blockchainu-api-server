@@ -116,7 +116,8 @@ module.exports = function (Collection) {
 										student_id: participantUserInstance.id
 									},
 									include: [
-										'peer'
+										'peer',
+										'collections'
 									]
 								};
 
@@ -127,10 +128,29 @@ module.exports = function (Collection) {
 										// addToCoreStack();
 										console.log('Error in fetching students in DB');
 									} else {
-										const studentPresent = corestackStudents.some(student => (student.student_id === participantUserInstance.id));
-										if (studentPresent) {
-											console.log('already added to the collection');
-											next();
+										const studentPresent = corestackStudents.find(student => {
+											const studentJSON = student.toJSON();
+											return studentJSON.peer[0].id === participantUserInstance.id;
+										});
+										const presentStudent = studentPresent.toJSON();
+										if (presentStudent) {
+											const sameCollection = presentStudent.collections.some(collection => collection.id === collectionInstance.id);
+											if (sameCollection) {
+												console.log('already added to the collection');
+												next();
+											} else {
+												console.log('link the new collection');
+												collectionInstance.__link__corestackStudents(presentStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+													if (corestackStudentRelationerr) {
+														console.log('corestackStudentRelationerr');
+														console.log(corestackStudentRelationerr);
+													} else {
+														console.log('corestackStudentRelation');
+														console.log(corestackStudentRelation);
+													}
+												});
+												next();
+											}
 										} else {
 											addToCoreStack();
 										}
