@@ -1706,14 +1706,20 @@ module.exports = function (Peer) {
 									.then((updatedUserInstance) => {
 										console.log('Updated User Instance');
 										const profileUpdateObject = profileObjectToUpdate;
-										profileUpdateObject.id = userInstance.profiles()[0].id;
+										if (userInstance.profiles() && userInstance.profiles().length > 0) {
+											profileUpdateObject.id = userInstance.profiles()[0].id;
+										}
 										profileUpdateObject.currency = ipData.currency;
 										profileUpdateObject.timezone = ipData.timezone;
 										profileUpdateObject.location_string = ipData.region;
 										profileUpdateObject.location_lat = ipData.latitude;
 										profileUpdateObject.location_lng = ipData.longitude;
 										console.log(profileUpdateObject);
-										return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
+										if (userInstance.profiles() && userInstance.profiles().length > 0) {
+											return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
+										} else {
+											return Peer.app.models.profile.updateAttributes(profileUpdateObject);
+										}
 									})
 									.then((updatedProfileInstance) => {
 										console.log('Profile updated with localization parameters');

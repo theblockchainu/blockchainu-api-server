@@ -21,12 +21,11 @@ module.exports = function (Model, options) {
                                         console.log(err);
                                         next(err);
                                     } else {
-                                        //console.log(createdInstance);
+                                        console.log('Auto create ' + modelName + 'node');
                                         next();
                                     }
                                 });
                             } else {
-                                console.log("Profile Already Exists");
                                 next();
                             }
                         }
@@ -55,7 +54,6 @@ module.exports = function (Model, options) {
                                         }
                                     });
                                 } else {
-                                    console.log("Profile Already Exists");
                                     cb();
                                 }
                             }
