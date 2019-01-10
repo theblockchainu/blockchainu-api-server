@@ -1716,7 +1716,7 @@ module.exports = function (Peer) {
 											console.log(profileUpdateObject);
 											return userInstance.profiles()[0].updateAttributes(profileUpdateObject);
 										} else {
-											Peer.findById(userInstance.id, {include: 'profiles'})
+											return Peer.findById(userInstance.id, {include: 'profiles'})
 													.then((latestUserInstance) => {
 														profileUpdateObject.id = latestUserInstance.profiles()[0].id;
 														profileUpdateObject.currency = ipData.currency;
