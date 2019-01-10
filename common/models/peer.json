@@ -82,6 +82,12 @@
     "country": {
       "type": "string"
     },
+    "currency": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
     "phoneVerified": {
       "type": "boolean",
       "default": false
