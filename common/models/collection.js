@@ -132,7 +132,7 @@ module.exports = function (Collection) {
 											const studentJSON = student.toJSON();
 											return studentJSON.peer[0].id === participantUserInstance.id;
 										});
-										const presentStudent = studentPresent.toJSON();
+										const presentStudent = studentPresent ? studentPresent.toJSON() : false;
 										if (presentStudent) {
 											const sameCollection = presentStudent.collections.some(collection => collection.id === collectionInstance.id);
 											if (sameCollection) {
