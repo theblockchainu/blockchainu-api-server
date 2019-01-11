@@ -95,7 +95,7 @@ module.exports = function (Assessmentresult) {
 								// Create a blank certificate node for this user
 								const certBody = {
 									collectionId: assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id,
-									status: 'new'
+									status: 'pendingLocal'
 								};
 								instancePeer.certificates.create(certBody, (err, certificateInstanceObj) => {
 									if (err) {
@@ -180,7 +180,7 @@ module.exports = function (Assessmentresult) {
 										
 										// Save Certificate JSON without blockchain signature
 										certificateInstanceObj.stringifiedJSONWithoutSignature = JSON.stringify(certificate);
-										certificateInstanceObj.status = 'successDB';
+										certificateInstanceObj.status = 'successLocal';
 										certificateInstanceObj.save((error, updatedTempInstance) => {
 											if (error) {
 												console.log(error);
@@ -234,7 +234,16 @@ module.exports = function (Assessmentresult) {
 																					console.log('Certificate status updated to pendingBlockchain');
 																				}
 																			});
-																			next(null, certificate);
+																			certificateInstance.updateAttributes({
+																				status: 'pendingBlockchain'
+																			}, (error, updatedInstance) => {
+																				if (error) {
+																					console.log(error);
+																					next(error);
+																				} else {
+																					next(null, certificate);
+																				}
+																			});
 																		} else {
 																			console.log('transaction Id not found');
 																			console.log(data);
@@ -247,7 +256,16 @@ module.exports = function (Assessmentresult) {
 																	Assessmentresult.joinCollection(assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id, instancePeer.id, assessment.id, certificateInstance.id, hash, successCallback, failureCallback)
 																			.then((joiningResult) => {
 																				console.log('JOIN COLLECTION IN PROGRESS ON BLOCKCHAIN');
-																				next(null, certificate);
+																				certificateInstance.updateAttributes({
+																					status: 'pendingBlockchain'
+																				}, (error, updatedInstance) => {
+																					if (error) {
+																						console.log('COLLECTION JOINING REQUEST FAILED: ' + error);
+																						next(error);
+																					} else {
+																						next(null, certificate);
+																					}
+																				});
 																			})
 																			.catch((error) => {
 																				console.log('COLLECTION JOINING REQUEST FAILED');
@@ -327,7 +345,7 @@ module.exports = function (Assessmentresult) {
 											certificateInstance.stringifiedJSON = JSON.stringify(certificate);
 											certificateInstance.updateAttributes({
 												stringifiedJSON: JSON.stringify(certificate),
-												status: 'issuedToStudent'
+												status: 'successBlockchain'
 											}, (error, updatedInstance) => {
 												if (error) {
 													console.log(error);
@@ -429,7 +447,17 @@ module.exports = function (Assessmentresult) {
 													} else if (data) {
 														console.log(data);
 														console.log('BLOCKCHAIN TRANSACTION IN PROGRESS...');
-														cb(null, certificate);
+														
+														certificateInstance.updateAttributes({
+															status: 'pendingBlockchain'
+														}, (error, updatedInstance) => {
+															if (error) {
+																console.log(error);
+																cb(error);
+															} else {
+																cb(null, certificate);
+															}
+														});
 													} else {
 														console.log('Failed to send transaction to blockchain');
 														console.log(data);
@@ -446,7 +474,16 @@ module.exports = function (Assessmentresult) {
 											.then(joinResult => {
 												console.log(joinResult);
 												console.log('JOIN COLLECTION IN PROGRESS ON BLOCKCHAIN');
-												cb(null, certificate);
+												certificateInstance.updateAttributes({
+													status: 'pendingBlockchain'
+												}, (error, updatedInstance) => {
+													if (error) {
+														console.log(error);
+														cb(error);
+													} else {
+														cb(null, certificate);
+													}
+												});
 											})
 											.catch(error => {
 												console.log('COLLECTION JOINING REQUEST FAILED');
@@ -564,7 +601,16 @@ module.exports = function (Assessmentresult) {
 			}
 			else {
 				console.log('NEW ETHEREUM WALLET CREATION IN PROGRESS ON BLOCKCHAIN: ' + data);
-				cb(null, certificateInstance);
+				certificateInstance.updateAttributes({
+					status: 'pendingBlockchain'
+				}, (error, updatedInstance) => {
+					if (error) {
+						console.log(error);
+						cb(error);
+					} else {
+						cb(null, certificateInstance);
+					}
+				});
 			}
 		});
 	};
@@ -612,7 +658,7 @@ module.exports = function (Assessmentresult) {
 							certificateInstance.status = 'issuedToStudent';
 							certificateInstance.updateAttributes({
 								stringifiedJSON: JSON.stringify(certificate),
-								status: 'issuedToStudent'
+								status: 'successBlockchain'
 							}, (error, updatedInstance) => {
 								if (error) {
 									console.log(error);

@@ -450,7 +450,8 @@ module.exports = function (Peer) {
 			body: message,
 			to: formattedPhone,  // Text this number
 			from: twilioPhone // From a valid Twilio number
-		}
+		};
+		console.log(twiliopayload);
 		client.messages.create(twiliopayload, function (err, message) {
 			if (err) {
 				console.error(err);
