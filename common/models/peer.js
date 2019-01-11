@@ -446,12 +446,12 @@ module.exports = function (Peer) {
 		let client = new twilio(twilioSid, twilioToken);
 		
 		let message = "Verify your mobile number with The Blockchain University using code: " + phoneToken;
-		
-		client.messages.create({
+		const twiliopayload = {
 			body: message,
 			to: formattedPhone,  // Text this number
 			from: twilioPhone // From a valid Twilio number
-		}, function (err, message) {
+		}
+		client.messages.create(twiliopayload, function (err, message) {
 			if (err) {
 				console.error(err);
 				fn(err);
