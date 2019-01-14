@@ -199,7 +199,7 @@ module.exports = function (Assessmentresult) {
 														collectionId: assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id
 													};
 													const collectionId = assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id;
-													Assessmentresult.createWallet(instancePeer, collectionId, assessment.id, certificateInstance, hash, next);
+													Assessmentresult.createWallet(instancePeer, collectionId, assessment.id, certificateInstanceObj, hash, next);
 												} else {
 													console.log('STUDENT WALLET FOUND. CHECKING PARTICIPATION ON BLOCKCHAIN');
 													
@@ -234,7 +234,7 @@ module.exports = function (Assessmentresult) {
 																					console.log('Certificate status updated to pendingBlockchain');
 																				}
 																			});
-																			certificateInstance.updateAttributes({
+																			certificateInstanceObj.updateAttributes({
 																				status: 'pendingBlockchain'
 																			}, (error, updatedInstance) => {
 																				if (error) {
@@ -256,7 +256,7 @@ module.exports = function (Assessmentresult) {
 																	Assessmentresult.joinCollection(assessmentResultInstanceJSON.assessment_rules[0].assessment_models[0].collections[0].id, instancePeer.id, assessment.id, certificateInstance.id, hash, successCallback, failureCallback)
 																			.then((joiningResult) => {
 																				console.log('JOIN COLLECTION IN PROGRESS ON BLOCKCHAIN');
-																				certificateInstance.updateAttributes({
+																				certificateInstanceObj.updateAttributes({
 																					status: 'pendingBlockchain'
 																				}, (error, updatedInstance) => {
 																					if (error) {

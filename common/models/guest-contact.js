@@ -41,7 +41,7 @@ module.exports = function (Guestcontact) {
         let rendererAdmin = loopback.template(path.resolve(__dirname, '../../server/views/newQueryAdmin.ejs'));
         let html_admin_body = rendererAdmin(messageAdmin);
         loopback.Email.send({
-            to: 'aakash@theblockchainu.com',
+            to: 'learn@theblockchainu.com',
             from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
             subject: 'New User Query from ' + ctx.instance.email,
             html: html_admin_body
