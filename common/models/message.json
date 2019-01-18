@@ -32,6 +32,10 @@
     },
     "mediaUrl": {
       "type": "string"
+    },
+    "notifiedUsers": {
+      "type": "string",
+      "default": "false"
     }
   },
   "validations": [],

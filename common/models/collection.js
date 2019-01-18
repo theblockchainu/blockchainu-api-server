@@ -869,7 +869,8 @@ module.exports = function (Collection) {
 															// TODO: check if there is an existing room before creating a new one.
 															// Create a new chat room for this collection
 															let roomValue = {
-																name: collectionInstance.title
+																name: collectionInstance.title,
+																type: 'group'
 															};
 															collectionInstance.rooms.create(roomValue, function (err, newRoomInstance) {
 																if (!err) {

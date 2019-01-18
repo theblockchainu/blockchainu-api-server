@@ -6,18 +6,18 @@ module.exports = function (Corestacktoken) {
 
     Corestacktoken.getTokenObject = function () {
         const now = moment();
-        console.log('Finding Token');
+        console.log('Finding Corestack Token');
         return Corestacktoken
             .find()
             .then(tokenInstances => {
                 if (tokenInstances.length > 0) {
                     const tokenObject = JSON.parse(tokenInstances[0].stringifiedObject);
                     const endMoment = moment.utc(tokenObject.data.token.expires_at);
-                    console.log(tokenObject);
-                    console.log(moment(now).toDate());
-                    console.log('moment ' + endMoment.isAfter(now.add(10, 'minutes')));
+                    //console.log(tokenObject);
+                    //console.log(moment(now).toDate());
+                    //console.log('moment ' + endMoment.isAfter(now.add(10, 'minutes')));
                     if (tokenObject.status === 'success' && tokenObject.data.token !== null && endMoment.isAfter(now.add(5, 'minutes'))) {
-                        console.log('returning token in DB');
+                        console.log('found valid corestack token in local DB');
                         return Promise.resolve(tokenObject);
                     } else {
                         return this.generateToken();
@@ -32,7 +32,7 @@ module.exports = function (Corestacktoken) {
     };
 
     Corestacktoken.generateToken = function () {
-        console.log('Generating Token');
+        console.log('Generating New Corestack Token');
         return Corestacktoken.destroyAll()
             .then(res => {
                 return request
@@ -56,8 +56,8 @@ module.exports = function (Corestacktoken) {
                 }
             })
             .then(tokenInstance => {
-                console.log('tokenSavedtoDB');
-                console.log(tokenInstance);
+                console.log('corestack tokenSavedtoDB');
+                // console.log(tokenInstance);
                 const tokenObject = JSON.parse(tokenInstance.stringifiedObject);
                 return Promise.resolve(tokenObject);
             });
