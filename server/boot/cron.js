@@ -672,7 +672,7 @@ module.exports = function setupCron(server) {
 	
 	// Runs once every 10 minutes
 	const tenMinuteCron = new CronJob('00 */10 * * * *',
-	//const tenMinuteCron = new CronJob('*/5 * * * * *',
+			//const tenMinuteCron = new CronJob('*/5 * * * * *',
 			function () {
 				
 				// Send email to users about unread messages
@@ -691,8 +691,8 @@ module.exports = function setupCron(server) {
 								unreadRecipients.forEach(unreadRecipient => {
 									console.log('To: ' + unreadRecipient.email + '. You have a new message from ' + messageInstance.peer()[0].profiles()[0].first_name + '(' + messageInstance.peer()[0].email + ') : ' + messageInstance.text);
 									let message = {
-										receiverName: unreadRecipient.profiles()[0].first_name + ' ' + unreadRecipient.profiles()[0].last_name,
-										senderName: messageInstance.peer()[0].profiles()[0].first_name + ' ' + messageInstance.peer()[0].profiles()[0].last_name,
+										receiverName: _.upperFirst(unreadRecipient.profiles()[0].first_name + ' ' + unreadRecipient.profiles()[0].last_name),
+										senderName: _.upperFirst(messageInstance.peer()[0].profiles()[0].first_name + ' ' + messageInstance.peer()[0].profiles()[0].last_name),
 										senderImage: messageInstance.peer()[0].profiles()[0].picture_url ? messageInstance.peer()[0].profiles()[0].picture_url : '/assets/images/user-placeholder.jpg',
 										senderHeadline: messageInstance.peer()[0].profiles()[0].headline,
 										message: messageInstance.text,
@@ -704,7 +704,7 @@ module.exports = function setupCron(server) {
 									return loopback.Email.send({
 										to: unreadRecipient.email,
 										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-										subject: 'New message from ' + messageInstance.peer()[0].profiles()[0].first_name,
+										subject: 'New message from ' + _.upperFirst(messageInstance.peer()[0].profiles()[0].first_name),
 										html: html_body
 									});
 								});
@@ -1177,12 +1177,15 @@ module.exports = function setupCron(server) {
 	
 	// Runs once every 7 days
 	const weeklyCron = new CronJob('0 0 0 * * Sun',
-			/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
+	//const weeklyCron = new CronJob('*/20 * * * * *',
 			function () {
 				console.info('Running Weekly Cron');
 				const query = {
 					'where': {
-						'status': 'active'
+						'and': [
+							{'status': 'active'},
+							{'type': {'in': ['class', 'experience', 'bounty', 'guide']}}
+						]
 					},
 					'include': [
 						'views',
