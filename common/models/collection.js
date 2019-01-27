@@ -61,7 +61,7 @@ module.exports = function (Collection) {
 	 */
 	Collection.addParticipant = function(collectionInstance, participantId, calendarId, scholarshipId) {
 		// New participant added to collection. Notify collection owner.
-		let participantUserInstance, notificationInstance, roomInstances, ownerInstance;
+		let participantUserInstance, notificationInstance, roomInstance, ownerInstance;
 		
 		const checkAndAddtoCorestack = function (params) {
 			// if collection is a guide join participant to corestack
@@ -201,8 +201,12 @@ module.exports = function (Collection) {
 					return collectionInstance.owners.getAsync({ "include": "profiles" });
 				})
 				.then((ownerInstances) => {
-					ownerInstance = ownerInstances[0];
 					console.log(ownerInstances);
+					const inst = ownerInstances[0];
+					return collectionInstance.owners.findById(inst.id, {'include': 'profiles'});
+				})
+				.then((collectionOwnerInstance) => {
+					ownerInstance = collectionOwnerInstance;
 					return ownerInstance.notifications.create({
 						type: "action",
 						title: "New Participant!",
@@ -222,12 +226,11 @@ module.exports = function (Collection) {
 					return collectionInstance.rooms.getAsync();
 				})
 				.then((roomInsts) => {
-					roomInstances = roomInsts;
-					if (roomInstances.length > 0) {
-						return roomInstances[0].participants.add(participantUserInstance.id);
-					} else {
-						return Promise.resolve({'result': 'success'});
-					}
+					return collectionInstance.rooms.findById(roomInsts[0].id);
+				})
+				.then((roomInst) => {
+					roomInstance = roomInst;
+					return roomInstance.participants.add(participantUserInstance.id);
 				})
 				.then((linkedChatParticipantInstance) => {
 					console.log('Added participant to chat room');
@@ -236,10 +239,10 @@ module.exports = function (Collection) {
 						text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
 						type: 'system'
 					};
-					return roomInstances[0].messages.create(messageObject);
+					return roomInstance.messages.create(messageObject);
 				})
 				.then((newMessageInstance) => {
-					Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+					Collection.app.io.in(roomInstance.id).emit('message', newMessageInstance.toJSON());
 					
 					// Record student participation in an experience on blockchain
 					return requestPromise.put({
@@ -2521,7 +2524,7 @@ module.exports = function (Collection) {
 				collectionInstance.save();
 				return collectionInstance.customUrl;
 			} else {
-				for (let i = 0; i < 100; i++) {
+				for (let i = 1; i < 100; i++) {
 					const testUrl = titleUrl + '-' + i.toString();
 					const query = {
 						'where': {
