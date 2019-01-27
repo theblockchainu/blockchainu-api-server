@@ -1360,9 +1360,10 @@ module.exports = function (Peer) {
 										}
 									}
 							).then(function (scholarshipInstances) {
+								const scholarshipPromises = [];
 								scholarshipInstances.forEach(function (scholarship) {
 									let scholarshipRelationInstance = {};
-									return scholarship.__link__peers_joined(peerInstance.id)
+									const promise = scholarship.__link__peers_joined(peerInstance.id)
 											.then((scholarshipRelInstance) => {
 												if (body.ethAddress && body.ethAddress > 0) {
 													scholarshipRelationInstance = scholarshipRelInstance;
@@ -1383,8 +1384,9 @@ module.exports = function (Peer) {
 												console.error(err);
 												Promise.reject(err);
 											});
+									scholarshipPromises.push(promise);
 								});
-								return Promise.all(scholarshipInstances);
+								return Promise.all(scholarshipPromises);
 							}).then(function (scholarshipInstances) {
 								if (scholarshipInstances && scholarshipInstances.length > 0) {
 									// Send email to user informing him about global scholarship
