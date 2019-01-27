@@ -7,6 +7,7 @@ let moment = require('moment');
 let protocolUrl = app.get('protocolUrl');
 let request = require('request');
 const Promise = require('bluebird');
+const requestPromise = require('request-promise-native');
 let _ = require('lodash');
 const fs = require('fs');
 
@@ -19,285 +20,287 @@ module.exports = function (Collection) {
 		in:
 			['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab', 'bug', 'competitive', 'hackathon', 'hiring', 'token']
 	});
-
+	
 	Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
-		// New participant added to collection. Notify collection owner.
-		let collectionInstance = ctx.instance;
-		Collection.app.models.peer.findById(participantInstance.sourceId, { "include": ["profiles", "scholarships_joined"] },
-			function (err, participantUserInstance) {
-				if (err) {
+		const participantId = participantInstance.sourceId;
+		const calendarId = participantInstance.calendarId;
+		const collectionInstance = ctx.instance;
+		let scholarshipId;
+		if (ctx.req.body.scholarshipId && ctx.req.body.scholarshipId.length > 0) {
+			scholarshipId = ctx.req.body.scholarshipId;
+		} else {
+			scholarshipId = '';
+		}
+		Collection.addParticipant(collectionInstance, participantId, calendarId, scholarshipId)
+				.then((result) => {
+					console.log(result);
+					next();
+				})
+				.catch(err => {
+					console.log(err);
 					next(err);
-				}
-				else {
-					if (participantUserInstance) {
-						// Link all topics of this collection to the participant as topics learning
-						collectionInstance.__get__topics({}, function (err, topicInstances) {
-							if (!err) {
-								topicInstances.forEach(topicInstance => {
-									participantUserInstance.__link__topicsLearning(topicInstance.id, function (err1, linkedTopicInstance) {
-										if (!err1) {
-											//console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
-										}
-										else {
-											console.log(err1);
-										}
-									});
-								});
-							}
-							else {
-								console.log(err);
-							}
-						});
-
-						const checkAndAddtoCorestack = function (params) {
-							// if collection is a guide join participant to corestack
-							if (collectionInstance.type === 'guide') {
-								const addToCoreStack = function () {
-									collectionInstance.__get__calendars({}, (error, calendarInstances) => {
-										const participantJSON = participantUserInstance.toJSON();
-										let username;
-										if (participantJSON.username) {
-											username = participantJSON.username;
-											if (username.length > 10) {
-												username = username.slice(0, 9);
-											}
-										} else {
-											username = participantJSON.email.replace(/\W/g, '');
-											if (username.length > 10) {
-												username = username.slice(0, 9);
-											}
-										}
-										console.log('corestack_username');
-										console.log(username);
-										const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
-										const student_id = participantJSON.id;
-										const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
-										const student_email = participantJSON.email;
-										const course_id = 'ETHEREUM';
-										const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
-										const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
-										console.log('EndDate' + course_end_date);
-										const corestackScriptPath = collectionInstance.corestackScriptPath;
-										Collection.app.models.corestack_student.registerStudent(
-											student_id,
-											student_name, student_email, course_id, course_start_date, username,
-											course_end_date, corestackScriptPath
-										).then(corestackStudentInstance => {
-											console.log('connecting Corestack student');
-											collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
-												if (corestackStudentRelationerr) {
-													console.log('corestackStudentRelationerr');
-													console.log(corestackStudentRelationerr);
-												} else {
-													console.log('corestackStudentRelation');
-													console.log(corestackStudentRelation);
-												}
-												participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
-													if (peerCorestackRelationInstanceerr) {
-														console.log('peerCorestackRelationInstanceerr');
-														console.log(peerCorestackRelationInstanceerr);
-													} else {
-														console.log('peerCorestackRelationInstance');
-														console.log(peerCorestackRelationInstance);
-													}
-												});
-											});
-											next();
-										}).catch(err => {
-											console.log('registerStudentError');
-											console.log(err);
-											next(new Error('Error in registering student to Corestack!, please contact suppport!'));
-										});
-									});
-								};
-
-								const query = {
-									where: {
-										student_id: participantUserInstance.id
-									},
-									include: [
-										'peer',
-										'collections'
-									]
-								};
-
-								Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
-									console.log('corestackStudents');
-									console.log(corestackStudents);
-									if (errorcorestackStudents) {
-										// addToCoreStack();
-										console.log('Error in fetching students in DB');
-									} else {
-										const studentPresent = corestackStudents.find(student => {
-											const studentJSON = student.toJSON();
-											return studentJSON.peer[0].id === participantUserInstance.id;
-										});
-										const presentStudent = studentPresent ? studentPresent.toJSON() : false;
-										if (presentStudent) {
-											const sameCollection = presentStudent.collections.some(collection => collection.id === collectionInstance.id);
-											if (sameCollection) {
-												console.log('already added to the collection');
-												next();
-											} else {
-												console.log('link the new collection');
-												collectionInstance.__link__corestackStudents(presentStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
-													if (corestackStudentRelationerr) {
-														console.log('corestackStudentRelationerr');
-														console.log(corestackStudentRelationerr);
-													} else {
-														console.log('corestackStudentRelation');
-														console.log(corestackStudentRelation);
-													}
-												});
-												next();
-											}
-										} else {
-											addToCoreStack();
-										}
-									}
-								});
-
-							} else {
-								next();
-							}
-						};
-
-						// Get owner instance
-						collectionInstance.__get__owners({ "include": "profiles" }, function (err, ownerInstances) {
-							if (err) {
-								next(err);
-							}
-							else {
-								let ownerInstance = ownerInstances[0];
-								ownerInstance.__create__notifications({
-									type: "action",
-									title: "New Participant!",
-									description: "%username% joined %collectionTitle%",
-									actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", participantInstance.calendarId]
-								}, function (err, notificationInstance) {
-									if (err) {
-										next(err);
-									}
-									else {
-										notificationInstance.actor.add(participantInstance.sourceId, function (err, actorInstance) {
-											if (err) {
-												next(err);
-											}
-											else {
-												notificationInstance.collection.add(collectionInstance.id, function (err, linkedCollectionInst) {
-													if (err) {
-														next(err);
-													}
-													else {
-														// Add this participant to the collection's chat room
-														collectionInstance.__get__rooms({}, function (err, roomInstances) {
-															if (!err) {
-																if (roomInstances.length > 0) {
-																	roomInstances[0].__link__participants(participantUserInstance.id, function (err, linkedParticipantInstance) {
-																		if (!err) {
-																			console.log('Added participant to chat room');
-																			// Add a new system message about new participant
-																			let messageObject = {
-																				text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
-																				type: 'system'
-																			};
-																			roomInstances[0].__create__messages(messageObject, function (err, newMessageInstance) {
-																				if (!err) {
-																					Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
-
-																					// Record student participation in an experience on blockchain
-																					let scholarshipId;
-																					if (ctx.req.body.scholarshipId && ctx.req.body.scholarshipId.length > 0) {
-																						scholarshipId = ctx.req.body.scholarshipId;
-																					} else {
-																						scholarshipId = '';
-																					}
-																					request
-																						.put({
-																							url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
-																							body: {
-																								scholarshipId: scholarshipId
-																							},
-																							json: true
-																						}, function (err, response, data) {
-																							if (err) {
-																								console.error(err);
-																							} else if (data && data.error) {
-																								console.error(data.error);
-																							} else {
-																								console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ' + data);
-																							}
-																						});
-
-																					// Send email to the student welcoming him to course
-																					let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
-																					let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
-																					let html_body = renderer(message);
-																					loopback.Email.send({
-																						to: participantUserInstance.email,
-																						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-																						subject: '[Welcome] ' + collectionInstance.title,
-																						html: html_body
-																					})
-																						.then(function (response) {
-																							console.log('email sent! - ');
-																						})
-																						.catch(function (err) {
-																							console.log('email error! - ' + err);
-																						});
-
-																					// Send email to the teacher informing about new student
-																					message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: participantInstance.calendarId };
-																					renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
-																					html_body = renderer(message);
-																					loopback.Email.send({
-																						to: ownerInstance.email,
-																						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-																						subject: 'New Participant for ' + collectionInstance.title,
-																						html: html_body
-																					})
-																						.then(function (response) {
-																							console.log('email sent! - ');
-																						})
-																						.catch(function (err) {
-																							console.log('email error! - ' + err);
-																						});
-																					checkAndAddtoCorestack();
-																				}
-																				else {
-																					next(new Error('Could not create system message'));
-																				}
-																			});
-																		}
-																		else {
-																			next(err);
-																		}
-																	});
-																}
-																else {
-																	checkAndAddtoCorestack();
-																}
-															}
-															else {
-																next(err);
-															}
-														});
-													}
-												});
-											}
-										});
-									}
-								});
-							}
-						});
-
-					} else {
-						next(err);
-					}
-				}
-			});
+				});
 	});
-
+	
+	
+	/**
+	 *  1. Link all collection topics to peer
+	    2. Create a notification for the owner
+	    3. Add user to the collection's chat room
+	    4. Create a User Joined system message in chat room
+	    5. Add user participation on Blockchain
+	    6. Send email to user and owner
+	    7. If Guide - check if user has an existing corestack course subscription
+	    8. If Guide - register user on Corestack for this course
+	    9. Send response back to client
+	 * @param collectionInstance
+	 * @param participantId
+	 * @param calendarId
+	 * @param scholarshipId
+	 * @returns {Promise<T>}
+	 */
+	Collection.addParticipant = function(collectionInstance, participantId, calendarId, scholarshipId) {
+		// New participant added to collection. Notify collection owner.
+		let participantUserInstance, notificationInstance, roomInstances, ownerInstance;
+		
+		const checkAndAddtoCorestack = function (params) {
+			// if collection is a guide join participant to corestack
+			if (collectionInstance.type === 'guide') {
+				
+				const addToCoreStack = function () {
+					collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+						const participantJSON = participantUserInstance.toJSON();
+						let username;
+						if (participantJSON.username) {
+							username = participantJSON.username;
+							if (username.length > 10) {
+								username = username.slice(0, 9);
+							}
+						} else {
+							username = participantJSON.email.replace(/\W/g, '');
+							if (username.length > 10) {
+								username = username.slice(0, 9);
+							}
+						}
+						console.log('corestack_username');
+						console.log(username);
+						const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
+						const student_id = participantJSON.id;
+						const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+						const student_email = participantJSON.email;
+						const course_id = 'ETHEREUM';
+						const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+						const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
+						console.log('EndDate' + course_end_date);
+						const corestackScriptPath = collectionInstance.corestackScriptPath;
+						Collection.app.models.corestack_student.registerStudent(
+								student_id,
+								student_name, student_email, course_id, course_start_date, username,
+								course_end_date, corestackScriptPath
+						).then(corestackStudentInstance => {
+							console.log('connecting Corestack student');
+							collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+								if (corestackStudentRelationerr) {
+									console.log('corestackStudentRelationerr');
+									console.log(corestackStudentRelationerr);
+								} else {
+									console.log('corestackStudentRelation');
+									console.log(corestackStudentRelation);
+								}
+								participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
+									if (peerCorestackRelationInstanceerr) {
+										console.log('peerCorestackRelationInstanceerr');
+										console.log(peerCorestackRelationInstanceerr);
+									} else {
+										console.log('peerCorestackRelationInstance');
+										console.log(peerCorestackRelationInstance);
+									}
+								});
+							});
+							Promise.resolve({'result': 'success'});
+						}).catch(err => {
+							console.log('registerStudentError');
+							console.log(err);
+							Promise.reject(err);
+						});
+					});
+				};
+				
+				const query = {
+					where: {
+						student_id: participantUserInstance.id
+					},
+					include: [
+						'peer',
+						'collections'
+					]
+				};
+				
+				Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
+					console.log('corestackStudents');
+					console.log(corestackStudents);
+					if (errorcorestackStudents) {
+						console.log('Error in fetching students in DB');
+						Promise.reject(errorcorestackStudents);
+					} else {
+						const studentPresent = corestackStudents.find(student => {
+							const studentJSON = student.toJSON();
+							return studentJSON.peer[0].id === participantUserInstance.id;
+						});
+						const presentStudent = studentPresent ? studentPresent.toJSON() : false;
+						if (presentStudent) {
+							const sameCollection = presentStudent.collections.some(collection => collection.id === collectionInstance.id);
+							if (sameCollection) {
+								console.log('already added to the collection');
+								Promise.resolve({'result': 'success'});
+							} else {
+								console.log('link the new collection');
+								collectionInstance.__link__corestackStudents(presentStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+									if (corestackStudentRelationerr) {
+										console.log('corestackStudentRelationerr');
+										console.log(corestackStudentRelationerr);
+									} else {
+										console.log('corestackStudentRelation');
+										console.log(corestackStudentRelation);
+									}
+								});
+								Promise.resolve({'result': 'success'});
+							}
+						} else {
+							addToCoreStack();
+						}
+					}
+				});
+				
+			} else {
+				Promise.resolve({'result': 'success'});
+			}
+		};
+		
+		return Collection.app.models.peer.findById(participantId, { "include": ["profiles", "scholarships_joined"] })
+				.then((participantUserInst) => {
+					participantUserInstance = participantUserInst;
+					// Link all topics of this collection to the participant as topics learning
+					return collectionInstance.topics.getAsync();
+				})
+				.then((topicInstances) => {
+					topicInstances.forEach(topicInstance => {
+						participantUserInstance.__link__topicsLearning(topicInstance.id, function (err1, linkedTopicInstance) {
+							if (!err1) {
+								//console.log('Linked topic ' + topicInstance.name + ' to ' + participantUserInstance.toJSON().profiles[0].first_name);
+							}
+							else {
+								console.log(err1);
+							}
+						});
+					});
+					return Promise.all(topicInstances);
+				})
+				.then((topicInstances) => {
+					// Get owner instance
+					return collectionInstance.owners.getAsync({ "include": "profiles" });
+				})
+				.then((ownerInstances) => {
+					ownerInstance = ownerInstances[0];
+					console.log(ownerInstances);
+					return ownerInstance.notifications.create({
+						type: "action",
+						title: "New Participant!",
+						description: "%username% joined %collectionTitle%",
+						actionUrl: [collectionInstance.type, collectionInstance.id, "calendar", calendarId]
+					});
+				})
+				.then((notificationInst) => {
+					notificationInstance = notificationInst;
+					return notificationInstance.actor.add(participantId);
+				})
+				.then((actorInstance) => {
+					return notificationInstance.collection.add(collectionInstance.id);
+				})
+				.then((linkedCollectionInstance) => {
+					// Add this participant to the collection's chat room
+					return collectionInstance.rooms.getAsync();
+				})
+				.then((roomInsts) => {
+					roomInstances = roomInsts;
+					if (roomInstances.length > 0) {
+						return roomInstances[0].participants.add(participantUserInstance.id);
+					} else {
+						return Promise.resolve({'result': 'success'});
+					}
+				})
+				.then((linkedChatParticipantInstance) => {
+					console.log('Added participant to chat room');
+					// Add a new system message about new participant
+					let messageObject = {
+						text: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " joined ",
+						type: 'system'
+					};
+					return roomInstances[0].messages.create(messageObject);
+				})
+				.then((newMessageInstance) => {
+					Collection.app.io.in(roomInstances[0].id).emit('message', newMessageInstance.toJSON());
+					
+					// Record student participation in an experience on blockchain
+					return requestPromise.put({
+								url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+								body: {
+									scholarshipId: scholarshipId
+								},
+								json: true
+							});
+				})
+				.then((blockchainResponse) => {
+					console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ' + blockchainResponse);
+					
+					// Send email to the student welcoming him to course
+					let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: calendarId };
+					let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
+					let html_body = renderer(message);
+					loopback.Email.send({
+						to: participantUserInstance.email,
+						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+						subject: '[Welcome] ' + collectionInstance.title,
+						html: html_body
+					})
+							.then(function (response) {
+								console.log('email sent! - ');
+							})
+							.catch(function (err) {
+								console.log('email error! - ' + err);
+							});
+					
+					// Send email to the teacher informing about new student
+					message = { type: collectionInstance.type, title: collectionInstance.title, student: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: calendarId };
+					renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionTeacher.ejs'));
+					html_body = renderer(message);
+					loopback.Email.send({
+						to: ownerInstance.email,
+						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+						subject: 'New Participant for ' + collectionInstance.title,
+						html: html_body
+					})
+							.then(function (response) {
+								console.log('email sent! - ');
+							})
+							.catch(function (err) {
+								console.log('email error! - ' + err);
+							});
+					
+					// Add student to CodeLabs and resolve the promise based on that.
+					checkAndAddtoCorestack();
+					
+				})
+				.catch((err) => {
+					console.log(err);
+					Promise.reject(err);
+				});
+	};
+	
+	/**
+	 * Remote Hook : Add a new comment to a collection
+	 * If comment is an announcement, send email to all students
+	 */
 	Collection.afterRemote('prototype.__create__comments', function (ctx, newCommentInstance, next) {
 		// Send email to all students if an announcement is made by the teacher
 		if (newCommentInstance.toJSON().isAnnouncement) {
@@ -345,7 +348,11 @@ module.exports = function (Collection) {
 			next();
 		}
 	});
-
+	
+	/**
+	 * Remote Hook: Add a new cohort to a collection
+	 * Send an email to all users following a course about new cohorts added
+	 */
 	Collection.afterRemote('prototype.__create__calendars', function (ctx, newCalendarInstances, next) {
 		console.log(newCalendarInstances);
 		if (newCalendarInstances && newCalendarInstances.length > 0) {
@@ -407,7 +414,7 @@ module.exports = function (Collection) {
 									loopback.Email.send({
 										to: peer.email,
 										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-										subject: 'New Cohorts Added to ',
+										subject: 'Announcing new batches for course ' + calendarInstance.collection[0].title + '!',
 										html: html_body
 									},
 										(err, mail) => {
@@ -427,7 +434,12 @@ module.exports = function (Collection) {
 		}
 		next();
 	});
-
+	
+	/**
+	 * Cookie fetch utility function
+	 * @param req
+	 * @returns {string}
+	 */
 	Collection.getCookieUserId = function (req) {
 
 		let cookieArray = req.headers.cookie.split(';');
@@ -440,7 +452,15 @@ module.exports = function (Collection) {
 		console.log('User ID from cookie is: ' + cookie.split(/[ \:.]+/)[0]);
 		return cookie.split(/[ \:.]+/)[0];
 	};
-
+	
+	/**
+	 * Remote Hook: Remove a participant from a collection
+	 * 1. Create a notification for owner
+	 * 2. Drop student participation on Blockchain
+	 * 3. Send email to student and owner
+	 * 4. Remove user from chat room
+	 * 5. Add a 'Dropped User' system message in chat room
+	 */
 	Collection.afterRemote('prototype.__unlink__participants', function (ctx, participantLinkInstance, next) {
 		// Participant canceled collection. Notify collection owner.
 		let collectionInstance = ctx.instance;
@@ -488,23 +508,21 @@ module.exports = function (Collection) {
 													}, function (err, response, data) {
 														if (err) {
 															console.error(err);
-															// next(err);
 														} else if (data && data.error) {
 															console.error(data);
-															// next(data.error);
 														} else {
 															console.log('DROPPED STUDENT PARTICIPATION ON BLOCKCHAIN ' + data);
 														}
 													});
 
-												// Send email to the confirming cancellation
+												// Send email to the user confirming cancellation
 												let message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days." };
 												let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
 												let html_body = renderer(message);
 												loopback.Email.send({
 													to: participantUserInstance.email,
 													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-													subject: 'Participation cancelled : ' + collectionInstance.title,
+													subject: 'Participation cancelled for ' + collectionInstance.title,
 													html: html_body
 												})
 													.then(function (response) {
@@ -520,7 +538,7 @@ module.exports = function (Collection) {
 												loopback.Email.send({
 													to: ownerInstance.email,
 													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-													subject: 'Dropped student @ ' + collectionInstance.title,
+													subject: 'A student un-enrolled from course ' + collectionInstance.title,
 													html: html_body
 												})
 													.then(function (response) {
@@ -530,7 +548,7 @@ module.exports = function (Collection) {
 														console.log('email error! - ' + err);
 													});
 
-												// Add this participant to the collection's chat room
+												// Remove the user from chat room
 												collectionInstance.__get__rooms({}, function (err, roomInstances) {
 													if (!err) {
 														if (roomInstances.length > 0) {
@@ -560,7 +578,6 @@ module.exports = function (Collection) {
 														else {
 															ctx.res.json(participantUserInstance);
 														}
-
 													}
 													else {
 														next(err);
@@ -628,10 +645,14 @@ module.exports = function (Collection) {
 
 			}
 		});
-
-
 	});
-
+	
+	/**
+	 * Submit a collection for review
+	 * @param id : ID of the course
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.submitForReview = (id, req, cb) => {
 		// Find the collection by given ID
 		Collection.findById(id, (err, collectionInstance) => {
@@ -726,7 +747,13 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
+	/**
+	 * Create a new shell script from Corestack template script using custom Github URL
+	 * @param collectionId : ID of the collection
+	 * @param githubUrl : Github repo URL
+	 * @param cb: Callback function
+	 */
 	const getCorestackScriptPath = (collectionId, githubUrl, cb) => {
 		const templateShellFilePath = path.resolve(__dirname, '../../server/scripts/corestack_seed_script.sh');
 		fs.readFile(templateShellFilePath, (err, data) => {
@@ -749,7 +776,11 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
+	/**
+	 * Update a collection with the new custom shell script URL from AWS S3
+	 * @param collectionInstance Collection Instance
+	 */
 	const setCorestackScriptPath = (collectionInstance) => {
 		if (!collectionInstance.corestackScriptPath || collectionInstance.corestackScriptPath.length === 0) {
 			getCorestackScriptPath(
@@ -777,7 +808,19 @@ module.exports = function (Collection) {
 			console.log(collectionInstance.corestackScriptPath);
 		}
 	};
-
+	
+	/**
+	 * Approve a collection submitted for review
+	 * 1. Send email to owner
+	 * 2. Create a notification for the owner
+	 * 3. Create a new chat room
+	 * 4. Add owner to the chat room
+	 * 5. Create a new 'User Joined' system message in chat room
+	 * 6. Add colleciton to Blockchain
+	 * @param id : ID of the collection
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.approve = function (id, req, cb) {
 		// Find the collection by given ID
 		Collection.findById(id, { "include": [{ "owners": "profiles" }, { "assessment_models": ["assessment_rules", "assessment_na_rules"] }, "topics", { "contents": "schedules" }] }, function (err, collectionInstance) {
@@ -1008,7 +1051,13 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
+	/**
+	 * Reject a collection submitted for review
+	 * @param id : ID of the collection
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.reject = function (id, req, cb) {
 		// Find the collection by given ID
 		Collection.findById(id, { "include": { "owners": "profiles" } }, function (err, collectionInstance) {
@@ -1122,8 +1171,13 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
-
+	
+	
+	/**
+	 * Remote Hook : Update values of a collection
+	 * If collection is cancelled, send email to all participants
+	 * TODO: Initiate refund flow
+	 */
 	Collection.beforeRemote('prototype.patchAttributes', function (ctx, newInstance, next) {
 		let collectionInstance = ctx.instance;
 		if (collectionInstance.type === 'learning-path') {
@@ -1373,8 +1427,11 @@ module.exports = function (Collection) {
 			// }
 		}
 	});
-
-
+	
+	/**
+	 * Remote Hook : Update values of a Content linked to a collection
+	 * PASS THROUGH
+	 */
 	Collection.beforeRemote('prototype.__updateById__contents', function (ctx, newInstance, next) {
 		let collectionInstance = ctx.instance;
 		/*console.log('received instance is: ' + JSON.stringify(collectionInstance));
@@ -1649,7 +1706,11 @@ module.exports = function (Collection) {
 			// }
 		}
 	});
-
+	
+	/**
+	 * Remote Hook : Add a new Content to a Collection
+	 * PASS THROUGH
+	 */
 	Collection.beforeRemote('prototype.__create__contents', function (ctx, newInstance, next) {
 		console.log('***** ADDING NEW CONTENT TO COLLECTION');
 		let collectionInstance = ctx.instance;
@@ -1885,7 +1946,11 @@ module.exports = function (Collection) {
 			// }
 		}
 	});
-
+	
+	/**
+	 * Remote Hook : Delete a Content linked to a Collection
+	 * PASS THROUGH
+	 */
 	Collection.beforeRemote('prototype.__destroyById__contents', function (ctx, newInstance, next) {
 		console.log('***** DELETING CONTENT OF COLLECTION');
 		let collectionInstance = ctx.instance;
@@ -2097,7 +2162,13 @@ module.exports = function (Collection) {
 			next();
 		}
 	});
-
+	
+	/**
+	 * Get details of a collection from Blockchain
+	 * @param id : ID of the collection
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.etherInfo = function (id, req, cb) {
 		// Get from blockchain
 		request
@@ -2119,7 +2190,13 @@ module.exports = function (Collection) {
 				}
 			});
 	};
-
+	
+	/**
+	 * Add a Collection to Blockchain
+	 * @param id : ID of collection
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.addToEthereum = function (id, req, cb) {
 		// Find the collection by given ID
 		Collection.findById(id, { "include": [{ "owners": "profiles" }, { "assessment_models": ["assessment_rules", "assessment_na_rules"] }, "topics", { "contents": "schedules" }] }, function (err, collectionInstance) {
@@ -2208,11 +2285,11 @@ module.exports = function (Collection) {
 	};
 
 	/**
-	 * Add participant to Ethereum
-	 * @param id
-	 * @param participantId
-	 * @param req
-	 * @param cb
+	 * Add a participant to Blockchain
+	 * @param id : ID of collection
+	 * @param participantId : EthAddress of the participant
+	 * @param req : Http request
+	 * @param cb : Callback function
 	 */
 	Collection.addParticipantToEthereum = function (id, participantId, req, cb) {
 
@@ -2258,7 +2335,13 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
+	/**
+	 * Announce results for a Reward Bounty
+	 * @param id : ID of collection
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.announceResult = function (id, req, cb) {
 		const options = {
 			'include': [
@@ -2276,7 +2359,7 @@ module.exports = function (Collection) {
 					console.log(reward);
 					const emailTo = reward.winners[0].email;
 					const winnerName = reward.winners[0].profiles[0].first_name + ' ' + reward.winners[0].profiles[0].last_name;
-					// Send email to the student welcoming him to course
+					// Send email to the student informing about won reward
 					let message = {
 						winnerName: winnerName,
 						rewardPosition: reward.title,
@@ -2288,7 +2371,7 @@ module.exports = function (Collection) {
 					loopback.Email.send({
 						to: emailTo,
 						from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-						subject: 'You won a ' + reward.title + ' reward.',
+						subject: 'You have won a ' + reward.title + ' reward!',
 						html: html_body
 					}).then((response) => {
 						console.log('email sent! ');
@@ -2308,7 +2391,12 @@ module.exports = function (Collection) {
 		});
 
 	};
-
+	
+	/**
+	 * Fetch an array of cached trending collections
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.fetchTrending = function (req, cb) {
 		const queryObj = req.query;
 		let type = queryObj['type'];
@@ -2328,7 +2416,12 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
+	/**
+	 * Utility function to fix database to CustomUrl for each collection
+	 * @param req
+	 * @param cb
+	 */
 	Collection.fixDatabase = function (req, cb) {
 		Collection.find((err, collectionInstances) => {
 			Promise.each(collectionInstances, (collectionInstance) => {
@@ -2350,7 +2443,14 @@ module.exports = function (Collection) {
 			});
 		});
 	};
-
+	
+	/**
+	 * Check a user's participation in a Collection from Blockchain
+	 * @param id : ID of the course
+	 * @param fk : EthAddress of user
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.checkParticipantOnBlockchain = function (id, fk, req, cb) {
 		// Get from blockchain
 		request
@@ -2373,7 +2473,13 @@ module.exports = function (Collection) {
 				}
 			});
 	};
-
+	
+	/**
+	 * Get a list of course participants from Blockchain
+	 * @param id : ID of the course
+	 * @param req : Http request
+	 * @param cb : Callback function
+	 */
 	Collection.getBlockchainParticipants = function (id, req, cb) {
 		// Get participants from blockchain
 		request
@@ -2392,7 +2498,12 @@ module.exports = function (Collection) {
 				}
 			});
 	};
-
+	
+	/**
+	 * Set a CustomUrl for a collection
+	 * @param collectionInstance
+	 * @returns {Promise<*>}
+	 */
 	Collection.setCustomUrl = async (collectionInstance) => {
 		if (collectionInstance.title) {
 			console.log('setting custom url');
@@ -2431,7 +2542,12 @@ module.exports = function (Collection) {
 			return collectionInstance.customUrl;
 		}
 	};
-
+	
+	/**
+	 * Check if the customUrl is unique and the update the collection
+	 * @param collectionInstance
+	 * @returns {Promise<*>}
+	 */
 	Collection.checkSetUniqueUrl = async (collectionInstance) => {
 		console.log('checking if unique');
 		if (collectionInstance.customUrl && collectionInstance.customUrl.length > 0) {
@@ -2453,8 +2569,12 @@ module.exports = function (Collection) {
 			return Collection.setCustomUrl(collectionInstance);
 		}
 	};
-
-	//strip off loopback inserted preoperties from objects
+	
+	/**
+	 * Utility - Delete all loopback inseted properties from an object
+	 * @param rawObject
+	 * @returns {*}
+	 */
 	const sanitize = (rawObject) => {
 		// delete loopback inserted properties
 		delete rawObject.id;
@@ -2462,7 +2582,13 @@ module.exports = function (Collection) {
 		delete rawObject.updatedAt;
 		return rawObject;
 	};
-
+	
+	/**
+	 * Create a duplicate copy of an existing collection
+	 * @param collectionId
+	 * @param body
+	 * @returns {Promise<newCollection>}
+	 */
 	Collection.cloneCollection = async (collectionId, body) => {
 		console.log('Cloning Collection' + collectionId);
 		let oldCollectionData;
@@ -2717,6 +2843,7 @@ module.exports = function (Collection) {
 			});
 	};
 
+	
 	Collection.remoteMethod(
 		'submitForReview',
 		{

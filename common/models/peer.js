@@ -1291,6 +1291,56 @@ module.exports = function (Peer) {
 		});
 	};
 	
+	Peer.karmaRewardResult = function(body , cb) {
+		if (body && body.transactionId && !body.error) {
+			// Send email to admin about status
+			let message = {
+				result: JSON.stringify(body.result),
+				transactionId: body.transactionId,
+				error: ''
+			};
+			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/karmaRewardStatus.ejs'));
+			let html_body = renderer(message);
+			loopback.Email.send({
+				to: 'aakash@theblockchainu.com',
+				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+				subject: '[SUCCESS] KARMA Reward Daily Report',
+				html: html_body
+			})
+					.then(function (response) {
+						console.log('email sent! - ');
+					})
+					.catch(function (err) {
+						console.log('email error! - ' + err);
+					});
+			cb(null, {result: 'success'});
+		} else if (body && body.error) {
+			// Send email to admin about status
+			let message = {
+				result: '',
+				transactionId: '',
+				error: JSON.stringify(body.error)
+			};
+			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/karmaRewardStatus.ejs'));
+			let html_body = renderer(message);
+			loopback.Email.send({
+				to: 'aakash@theblockchainu.com',
+				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+				subject: '[FAILED] KARMA Reward Daily Report',
+				html: html_body
+			})
+					.then(function (response) {
+						console.log('email sent! - ');
+					})
+					.catch(function (err) {
+						console.log('email error! - ' + err);
+					});
+			cb(null, {result: 'success'});
+		} else {
+			cb(new Error('Invalid arguments for request.'));
+		}
+	};
+	
 	Peer.saveWallet = function(body, cb) {
 		if (body && body.ethAddress && body.userId && !body.error) {
 			Peer.findById(body.userId, {'include': ['profiles']})
@@ -1311,27 +1361,32 @@ module.exports = function (Peer) {
 									}
 							).then(function (scholarshipInstances) {
 								scholarshipInstances.forEach(function (scholarship) {
-									scholarship.__link__peers_joined(peerInstance.id, function (err, linkedPeerInstance) {
-										if (body.ethAddress && body.ethAddress > 0) {
-											// ADD USER'S SCHOLARSHIP PARTICIPATION ON BLOCKCHAIN
-											request.put({
-												url: protocolUrl + 'scholarships/' + scholarship.id + '/peers/rel/' + body.ethAddress,
-												json: true
-											}, function (err, response, result) {
-												if (err) {
-													console.error(err);
-												} else if (result && result.error) {
-													console.error(result.error);
+									let scholarshipRelationInstance = {};
+									return scholarship.__link__peers_joined(peerInstance.id)
+											.then((scholarshipRelInstance) => {
+												if (body.ethAddress && body.ethAddress > 0) {
+													scholarshipRelationInstance = scholarshipRelInstance;
+													// ADD USER'S SCHOLARSHIP PARTICIPATION ON BLOCKCHAIN
+													return requestPromise.put({
+														url: protocolUrl + 'scholarships/' + scholarship.id + '/peers/rel/' + body.ethAddress,
+														json: true
+													});
 												} else {
-													console.log('Added participant to scholarship on blockchain: ' + result);
+													return Promise.reject(new Error('Peer account creation failed'));
 												}
+											})
+											.then((scholarshipJoinResponse) => {
+												console.log('Added participant to scholarship on blockchain: ' + scholarshipJoinResponse);
+												Promise.resolve(scholarshipRelationInstance);
+											})
+											.catch((err) => {
+												console.error(err);
+												Promise.reject(err);
 											});
-										}
-									});
 								});
 								return Promise.all(scholarshipInstances);
-							}).then(function (scholarshipRelationInstances) {
-								if (scholarshipRelationInstances && scholarshipRelationInstances.length > 0) {
+							}).then(function (scholarshipInstances) {
+								if (scholarshipInstances && scholarshipInstances.length > 0) {
 									// Send email to user informing him about global scholarship
 									let message = {};
 									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/welcomeGlobalScholarship.ejs'));
@@ -1374,6 +1429,51 @@ module.exports = function (Peer) {
 												console.log('New user signup! email error! - ' + err);
 											});
 									
+									
+									// check if user had any peer_invites and whether those invites had a collection to join
+									Peer.app.models.peer_invite.find({ 'where': { 'email': peerInstance.email } })
+											.then((peerInviteInstances) => {
+												peerInviteInstances.forEach((peerInviteInstance) => {
+													if (peerInviteInstance.collectionId && peerInviteInstance.calendarId) {
+														let scholarshipId = 'NA';
+														peerInstance.scholarships_joined.getAsync({'where':{'type': 'public'}})
+																.then((scholarshipJoinedInstances) => {
+																	scholarshipId = scholarshipJoinedInstances[0].id;
+																	const relationBody = {
+																		calendarId: peerInviteInstance.calendarId,
+																		referrerId: false,
+																		scholarshipId: scholarshipId,
+																		joinedDate: moment().format()
+																	};
+																	return peerInstance.collections.add(peerInviteInstances.collectionId, relationBody);
+																})
+																.then((participantRelationInstance) => {
+																	return peerInstance.collections.findById(peerInviteInstance.collectionId);
+																})
+																.then((collectionInstance) => {
+																	return Peer.app.models.collection.addParticipant(collectionInstance, peerInstance.id, peerInviteInstances.calendarId, scholarshipId);
+																})
+																.then((result) => {
+																	console.log('New user added as participant to invited collection');
+																	console.log(result);
+																})
+																.catch((err) => {
+																	console.log(err);
+																	// TODO: send email to invitor about failed participation
+																});
+													}
+												});
+												return Promise.all(peerInviteInstances);
+											})
+											.then((peerInviteInstances) => {
+												console.log(peerInviteInstances);
+											})
+											.catch((err) => {
+												console.log(err);
+												// TODO: send email to invitor about failed participation
+											});
+									
+									
 									cb(null, peerInstance);
 								} else {
 									cb(new Error('Could not join user to global scholarship'));
@@ -1414,9 +1514,9 @@ module.exports = function (Peer) {
 						cb(new Error('Requested peer instance not found.'));
 					});
 		} else if (body && body.error) {
-			cb(body.error);
+			cb(null, {result: 'success'});
 			// Notify admin over email
-			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + body.error};
+			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + JSON.stringify(body.error)};
 			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
 			let html_body = renderer(message);
 			loopback.Email.send({
@@ -1792,7 +1892,7 @@ module.exports = function (Peer) {
 				.then((peerInstance) => {
 					updateProfile(remoteIp, peerInstance, profileObject)
 							.then((updatedProfileNode) => {
-								console.log(updatedProfileNode);
+								// console.log(updatedProfileNode);
 								cb(null, peerInstance, updatedProfileNode);
 							})
 							.catch((err) => {
@@ -2247,6 +2347,17 @@ module.exports = function (Peer) {
 					],
 					returns: { arg: 'result', type: 'object', root: true },
 					http: { path: '/save-wallet', verb: 'post' }
+				}
+		);
+		
+		PeerModel.remoteMethod(
+				'karmaRewardResult',
+				{
+					accepts: [
+						{ arg: 'body', type: 'object', required: true, http: { source: 'body' } }
+					],
+					returns: { arg: 'result', type: 'object', root: true },
+					http: { path: '/karma-reward-result', verb: 'post' }
 				}
 		);
 		

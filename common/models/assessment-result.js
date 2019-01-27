@@ -977,7 +977,7 @@ module.exports = function (Assessmentresult) {
 		} else if (body && body.error) {
 			cb(body.error);
 			// Notify admin over email
-			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + body.error};
+			let message = {heading: 'ETHEREUM WALLET ERROR for user: ' + body.userId + '\n\nError:\n\n' + JSON.stringify(body.error)};
 			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
 			let html_body = renderer(message);
 			loopback.Email.send({

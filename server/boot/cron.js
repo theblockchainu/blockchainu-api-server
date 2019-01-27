@@ -169,7 +169,7 @@ module.exports = function setupCron(server) {
 	);
 	
 	// Runs once every 24 hours
-	const collectionCompleteCron = new CronJob('00 00 00 * * *',
+	const twentyfourHourCron = new CronJob('00 00 00 * * *',
 			/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
 			function () {
 				console.info('\n\n********\nRunning midnight cron job. Functions: \n- Check for completed cohorts - mark them complete - send summary and reminders\n- Check upcoming cohorts and send reminder emails to student and teacher\n**********\n\n');
@@ -178,7 +178,11 @@ module.exports = function setupCron(server) {
 				request
 						.post({
 							url: protocolUrl + 'karma/mintRewards',
-							json: true
+							json: true,
+							body: {
+								successCallback: app.get('apiUrl') + '/api/peers/karma-reward-result',
+								failureCallback: app.get('apiUrl') + '/api/peers/karma-reward-result'
+							}
 						}, function (err, response, data1) {
 							if (err) {
 								console.error(err);
@@ -187,25 +191,6 @@ module.exports = function setupCron(server) {
 							} else {
 								console.log('Tried karma minting: ' + JSON.stringify(data1));
 							}
-							// Send email to admin about status
-							let message = {
-								result: JSON.stringify(data1),
-								error: err || data1.error
-							};
-							let renderer = loopback.template(path.resolve(__dirname, '../../server/views/karmaRewardStatus.ejs'));
-							let html_body = renderer(message);
-							loopback.Email.send({
-								to: 'aakash@theblockchainu.com',
-								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-								subject: 'Attempted Karma rewards',
-								html: html_body
-							})
-									.then(function (response) {
-										console.log('email sent! - ');
-									})
-									.catch(function (err) {
-										console.log('email error! - ' + err);
-									});
 						});
 				
 				server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': { 'neq': 'session' } }] }, 'include': ['calendars', { 'contents': 'schedules' }, 'topics', { 'comments': 'peer' }, 'participants', { 'owners': 'profiles' }] }, function (err, collectionInstances) {
@@ -481,13 +466,6 @@ module.exports = function setupCron(server) {
 			'4166c51a-4cb5-447d-bbaf-7d3539773182',
 			'ef6fbd67-d2d0-4b0f-aa0a-c728c954e98c'
 		];
-		
-		// prod paths
-		// const trendingLearningPathIds = [
-		// 	'a1b0b2f4-db47-4792-a300-afc1fe26a4fe',
-		// 	'4166c51a-4cb5-447d-bbaf-7d3539773182',
-		// 	'2224b149-fb86-4946-b93b-8d7f03dcc556',
-		// ];
 		
 		let query;
 		

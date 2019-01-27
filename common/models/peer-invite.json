@@ -32,6 +32,12 @@
     },
     "contactId": {
       "type": "string"
+    },
+    "collectionId": {
+      "type": "string"
+    },
+    "calendarId": {
+      "type": "string"
     }
   },
   "validations": [],

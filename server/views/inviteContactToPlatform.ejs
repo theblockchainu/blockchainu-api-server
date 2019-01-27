@@ -18,28 +18,22 @@
 		<!-- Body -->
 		<div>
 			<div style="font-size: 17px; margin-top: 25px;">
-				Hey
-				<%= inviteeName %>,
+				Hello <%= inviteeName %>,
 			</div>
 			<div style="font-size: 17px; margin-top: 10px; line-height: 24px">
 				<b>
 					<%= invitorName %>
-				</b> has invited you to join theblockchainu.com
+				</b> has invited you to join Blockchain University.
 				<br>
-				<br> The Blockchain University is a protocol built on blockchain technology and is transforming the education industry.
+				<br> Blockchain University is world's most secure and ethical Education company.
 				<br>
-				<br> theblockchainu.com empowers to you gain 100% control and ownership of your education data across all schools, colleges, workplaces
-				and online platforms. All your learning activity is instantly validated and can be shared easily with anyone with complete
-				privacy and control.
-				<br>
-				<br> That is not all, you get rewarded with Karma for all your efforts - across any partner platform - which can then be
-				used to pay for your classes. Join theblockchainu.com now to learn how blockchain and theblockchainu are creating a knowledge economy.
+				<br> What more? When you join today, you will receive <b>100 KARMA coins</b> for free in your Knowledge Wallet. These coins can be used towards course payments!
 				<br>
 				<br>
 				<br>
 				<div style="vertical-align: middle">
-					<div style="display: inline-block; width: 15%; vertical-align: middle;">
-						<img src="https://theblockchainu.com:3002<%= invitorImage %>" alt="Activity Image" style="width: 100%; border-radius: 200px;">
+					<div style="display: inline-block; width: 12%; vertical-align: middle;">
+						<img src="https://theblockchainu.com:3002<%= invitorImage %>" alt="Activity Image" style="width: 100%; border-radius: 500px;">
 					</div>
 					<div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
 						<b>
@@ -51,16 +45,19 @@
 				</div>
 			</div>
 			<div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-				<a style="color: white; text-decoration: none;" href="https://theblockchainu.com/sign-up/invite/<%= invitationCode %>">Accept Invitation</a>
+				<a style="color: white; text-decoration: none;" href="https://theblockchainu.com/sign-up/<%= invitationCode %>">Accept Your Invitation</a>
+				<!--<a style="color: white; text-decoration: none;" href="http://localhost:8080/sign-up/<%= invitationCode %>">Accept Invitation</a>-->
 			</div>
 		</div>
 		<!-- Signature -->
-		<div style="font-size: 13px; margin-top: 30px; line-height: 24px; text-align: center; color: #bbb; font-weight: 300">
-			You are receiving this email because you were listed in
-			<%=invitorFirstName %>’s
-				<%= invitorContactProvider %> Contacts and
-					<%=invitorFirstName %> requested to invite you to theblockchainu.com
-		</div>
+		<% if (invitorContactProvider && invitorContactProvider.length > 0) { %>
+			<div style="font-size: 13px; margin-top: 30px; line-height: 24px; text-align: center; color: #bbb; font-weight: 300">
+				You are receiving this email because you were listed in
+				<%=invitorFirstName %>’s
+					<%= invitorContactProvider %> contacts and
+						<%=invitorFirstName %> requested to invite you to theblockchainu.com
+			</div>
+		<% } %>
 		<!-- Footer -->
 		<hr style="margin-top: 40px; background-color: #dbdbdb;">
 		<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
