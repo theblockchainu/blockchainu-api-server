@@ -1438,9 +1438,9 @@ module.exports = function (Peer) {
 												peerInviteInstances.forEach((peerInviteInstance) => {
 													if (peerInviteInstance.collectionId && peerInviteInstance.calendarId) {
 														let scholarshipId = 'NA';
-														peerInstance.scholarships_joined.getAsync({'where':{'type': 'public'}})
-																.then((scholarshipJoinedInstances) => {
-																	scholarshipId = scholarshipJoinedInstances[0].id;
+														Peer.app.models.scholarship.find({'where':{'type': 'public'}})
+																.then((publicScholarshipInstances) => {
+																	scholarshipId = publicScholarshipInstances[0].id;
 																	const relationBody = {
 																		calendarId: peerInviteInstance.calendarId,
 																		referrerId: false,
