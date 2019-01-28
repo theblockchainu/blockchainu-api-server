@@ -12,6 +12,7 @@ module.exports = function(options) {
 		'api/assessment_results/join-collection-success',
 		'api/assessment_results/join-collection-failure',
 		'api/assessment_results/save-wallet',
+		'api/assessment_results/karma-reward-result',
 	];
 	
 	const exemptModels = [

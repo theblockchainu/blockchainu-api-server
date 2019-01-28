@@ -1450,6 +1450,7 @@ module.exports = function (Peer) {
 																	return peerInstance.collections.add(peerInviteInstances.collectionId, relationBody);
 																})
 																.then((participantRelationInstance) => {
+																	console.log(participantRelationInstance);
 																	return peerInstance.collections.findById(peerInviteInstance.collectionId);
 																})
 																.then((collectionInstance) => {
