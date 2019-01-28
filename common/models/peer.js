@@ -1447,7 +1447,7 @@ module.exports = function (Peer) {
 																		scholarshipId: scholarshipId,
 																		joinedDate: moment().format()
 																	};
-																	return peerInstance.collections.add(peerInviteInstances.collectionId, relationBody);
+																	return peerInstance.collections.add(peerInviteInstance.collectionId, relationBody);
 																})
 																.then((participantRelationInstance) => {
 																	console.log(participantRelationInstance);
