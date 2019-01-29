@@ -2206,7 +2206,6 @@ module.exports = function (Collection) {
 			// if collection exists and the user is logged in
 			if (!err && collectionInstance !== null) {
 				let ownerId = collectionInstance.toJSON().owners[0].id;
-				let userId = Collection.app.models.peer.getCookieUserId(req);
 				let assessmentRules = collectionInstance.toJSON().assessment_models[0].assessment_rules;
 				let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
 				let contents = collectionInstance.toJSON().contents;
