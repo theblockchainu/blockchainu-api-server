@@ -2238,7 +2238,8 @@ module.exports = function (Collection) {
 								learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
 							}
 						});
-						learningHours = learningHours === 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
+						
+						learningHours = learningHours <= 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
 						//console.log('total learning hours are: ' + learningHours);
 						const body = {
 							uniqueId: collectionInstance.id,
