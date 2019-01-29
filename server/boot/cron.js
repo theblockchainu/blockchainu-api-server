@@ -442,6 +442,16 @@ module.exports = function setupCron(server) {
 		return parseFloat((descriptionLength / 72000).toFixed(2)); // word per minute considering 6 char per word and 200 word per minute
 	};
 	
+	const calculateClassDuration = function (collection) {
+		let duration = 0;
+		collection.contents.forEach(content => {
+			if (content.type === 'video') {
+				duration += content.videoLength / 3600;
+			}
+		});
+		return collection.totalHours + duration;
+	};
+	
 	const calculateCollectionRating = function (collectionId, reviewArray) {
 		let reviewScore = 0;
 		for (const reviewObject of reviewArray) {
@@ -477,7 +487,7 @@ module.exports = function setupCron(server) {
 					{
 						'relation': 'contents',
 						'scope': {
-							'include': [{ 'courses': [{ 'owners': ['profiles'] }] }],
+							'include': [{ 'courses': [{ 'owners': ['profiles'] }, 'contents'] }],
 							'order': 'contentIndex ASC'
 						}
 					}
@@ -519,8 +529,12 @@ module.exports = function setupCron(server) {
 								if (content.courses && content.courses.length > 0) {
 									if (content.courses[0].type === 'guide') {
 										const guideHours = calculateDuration(content.courses[0].description.length);
-										console.log('guideHours' + guideHours);
+										console.log('guideHours: ' + guideHours);
 										totalHours += guideHours;
+									} else if (content.courses[0].type === 'class') {
+										const classHours = calculateClassDuration(content.courses[0]);
+										console.log('classHours: ' + classHours);
+										totalHours += classHours;
 									} else {
 										totalHours += content.courses[0].totalHours;
 									}
@@ -539,6 +553,7 @@ module.exports = function setupCron(server) {
 									let experienceLocation = 'Unknown location';
 									let lat = 37.5293864;
 									let lng = -122.008471;
+									let totalHours = collection.totalHours;
 									collection.contents.forEach(content => {
 										if (content.locations && content.locations.length > 0
 												&& content.locations[0].city !== undefined
@@ -549,16 +564,20 @@ module.exports = function setupCron(server) {
 											lat = parseFloat(content.locations[0].map_lat);
 											lng = parseFloat(content.locations[0].map_lng);
 										}
+										if (content.type === 'video') {
+											totalHours += content.videoLength / 3600;
+										}
 									});
 									collection.location = experienceLocation;
 									collection.lat = lat;
 									collection.lng = lng;
+									collection.totalHours = totalHours;
 								}
 								if (collection.calendars) {
 									collection.calendars.some(calendar => {
 										if (moment(calendar.endDate).diff(today, 'days') >= -1) {
 											hasActiveCalendar = true;
-											return;
+											return true;
 										}
 									});
 								}
