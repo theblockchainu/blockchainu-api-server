@@ -1623,7 +1623,7 @@ module.exports = function (Peer) {
 				if (topics.length > 0) {
 					responseObj.topics = topics;
 				} else {
-					topics.push('No topics selected');
+					topics.push('no topics yet');
 					responseObj.topics = topics;
 				}
 				peersList.push(responseObj);
