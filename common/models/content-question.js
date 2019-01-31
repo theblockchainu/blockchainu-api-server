@@ -51,7 +51,7 @@ module.exports = function(Contentquestion) {
 								ownerName: questionInstance.contents()[0].collections()[0].owners()[0].profiles()[0].first_name,
 								quizId: questionInstance.contents()[0].id,
 								collectionId: questionInstance.contents()[0].collections()[0].id,
-								calendarId: questionInstance.contents()[0].collections()[0].calendars[0].id,
+								calendarId: (questionInstance.contents()[0].collections()[0].calendars && questionInstance.contents()[0].collections()[0].calendars.length > 0) ? questionInstance.contents()[0].collections()[0].calendars[0].id : '',
 								collectionType: questionInstance.contents()[0].collections()[0].type,
 								quizTitle: questionInstance.contents()[0].title,
 								collectionTitle: questionInstance.contents()[0].collections()[0].title

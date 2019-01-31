@@ -13,9 +13,6 @@ module.exports = function (Corestacktoken) {
                 if (tokenInstances.length > 0) {
                     const tokenObject = JSON.parse(tokenInstances[0].stringifiedObject);
                     const endMoment = moment.utc(tokenObject.data.token.expires_at);
-                    //console.log(tokenObject);
-                    //console.log(moment(now).toDate());
-                    //console.log('moment ' + endMoment.isAfter(now.add(10, 'minutes')));
                     if (tokenObject.status === 'success' && tokenObject.data.token !== null && endMoment.isAfter(now.add(5, 'minutes'))) {
                         console.log('found valid corestack token in local DB');
                         return Promise.resolve(tokenObject);

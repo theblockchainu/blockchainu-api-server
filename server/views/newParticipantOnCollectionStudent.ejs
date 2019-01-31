@@ -5,38 +5,66 @@
 </head>
 
 <body>
-    <div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
-        <!-- Header -->
-        <div style="vertical-align: middle; ">
-            <img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>
+<div style="font-family: Helvetica; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+    <!-- Header -->
+    <div style="vertical-align: middle; ">
+        <img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px" >  <span style="position: relative; top: -14px; color: #33bd9e"></span>
+    </div>
+    <!-- Title -->
+    <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+        You've officially joined <%= title %> - congrats!
+    </div>
+    <!-- Body -->
+    <div>
+        <div style="font-size: 17px; margin-top: 25px;">
+            You're going to learn some really cool stuff, and hopefully have an awesome experience.  Who knows - afterwards you might even want to pass on what you've learned to others through your own <%= type %>.
         </div>
-        <!-- Title -->
-        <div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
-            You've officially joined <%= title %> - congrats!
+        <div style="font-size: 17px; margin-top: 25px;">
+            Here's a brief introduction of your instructor. Feel free to get in touch with them directly for any course related query.
         </div>
-        <!-- Body -->
-        <div>
-            <div style="font-size: 17px; margin-top: 25px;">
-                You're going to learn some really cool stuff, and hopefully have an awesome experience.  Who knows - afterwards you might even want to pass on what you've learned to others through your own <%= type %>.
+        <br><br>
+        <div style="vertical-align: middle">
+            <div style="display: inline-block; width: 12%; vertical-align: middle;">
+                <img src="https://theblockchainu.com:3002<%= owner.profiles[0].picture_url %>/100" alt="Teacher Image" style="width: 100%; border-radius: 500px;">
             </div>
-            <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
-                <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">Start learning</a>
+            <div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
+                <b>
+                    <%= owner.profiles[0].first_name %> <%= owner.profiles[0].last_name %>
+                </b>
+                <br>
+                <%= owner.profiles[0].headline %>
+                <br>
+                <%= owner.email %>
+                <% if (owner.profiles[0].phone_numbers && owner.profiles[0].phone_numbers.length > 0) { %>
+                    <div>
+                        <br>
+                        +<%= owner.profiles[0].phone_numbers[0].country_code %> <%= owner.profiles[0].phone_numbers[0].subscriber_number %>
+                    </div>
+                <% } %>
             </div>
         </div>
-        <!-- Signature -->
-        <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
-            Cheers,
-            <br>
-            The Blockchain U Team
-        </div>
-        <!-- Footer -->
-        <hr style="margin-top: 40px; background-color: #dbdbdb;">
-        <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
-            Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U
-            <br><br>
-            Blockchain University, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+        <div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+            <% if (calendarId && calendarId.length > 0) { %>
+            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= type %>/<%= collectionId %>/calendar/<%= calendarId%>">Start learning</a>
+            <% } else { %>
+            <a style="color: white; text-decoration: none;" href="https://theblockchainu.com/<%= type %>/<%= collectionId %>">Start learning</a>
+            <% } %>
         </div>
     </div>
+    <!-- Signature -->
+    <div style="font-size: 17px; margin-top: 30px; line-height: 24px;">
+        Cheers,
+        <br>
+        The Blockchain U Team
+    </div>
+    <!-- Footer -->
+    <hr style="margin-top: 40px; background-color: #dbdbdb;">
+    <div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+        Sent with <span style="font-size: 11px;">&hearts;</span> from The Blockchain U
+        <br><br>
+        Blockchain University, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+    </div>
+</div>
 </body>
 
 </html>

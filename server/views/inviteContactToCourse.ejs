@@ -1,0 +1,81 @@
+<html>
+
+<head>
+	<title>The Blockchain University</title>
+</head>
+
+<body>
+<div style="font-family: Helvetica,sans-serif; padding: 9%; background-color: #ffffff; color: #333333; font-size: 17px;">
+	<!-- Header -->
+	<div style="vertical-align: middle; ">
+		<img src="https://theblockchainu.com/assets/images/bu_logo.png" width="auto" height="35px">
+		<span style="position: relative; top: -14px; color: #33bd9e"></span>
+	</div>
+	<!-- Title -->
+	<div style="font-weight: 800; font-size: 30px; margin-top: 40px;">
+		Claim your Smart Certificate!
+	</div>
+	<!-- Body -->
+	<div>
+		<br><br>
+		<div style="vertical-align: middle">
+			<div style="display: inline-block; width: 12%; vertical-align: middle;">
+				<img src="https://theblockchainu.com:3002<%= invitorImage %>" alt="Invitor Image" style="width: 100%; border-radius: 500px;">
+			</div>
+			<div style="display: inline-block; width: 65%; padding-left: 20px; vertical-align: middle;">
+				<b>
+					<%= invitorName %>
+				</b>
+				<br>
+				<%= invitorHeadline %>
+			</div>
+		</div>
+		<div style="font-size: 17px; margin-top: 20px; line-height: 24px">
+			has added you as a participant for <b><a href="https://theblockchainu.com/<%= collection.type %>/<%= collection.customUrl %>/calendar/<%= calendar.id %>"><%= collection.title %></a></b>.
+			<br><br>
+			Here's a little preview of the course..
+			<br><br>
+			<div style="display: inline-block; width: 30%;">
+				<img src="https://theblockchainu.com:3002<%= collection.imageUrls[0] %>/300" alt="Cover Image" style="width: 100%;">
+			</div>
+			<div style="display: inline-block; width: 60%; padding-left: 20px; vertical-align: top;">
+				<b><%= collection.title.toUpperCase() %></b>
+				<br>
+				<%= moment(calendar.startDate).format('Do MMM, YYYY') %> - <%= moment(calendar.endDate).format('Do MMM, YYYY') %>
+				<br><br>
+				<b><%= collection.academicGyan %> Gyan</b> for academics.
+				<br>
+				<b><%= collection.nonAcademicGyan %> Gyan</b> for commitment / engagement.
+			</div>
+			<br><br>
+			<br> All you need to do now is create your account and claim your Smart Certificate. It only takes 15 seconds!
+			<br>
+			<br> What's more? When you join today, you will receive <b>100 KARMA coins</b> for free in your Knowledge Wallet. These coins can be used as money for your next course!
+			<br>
+		</div>
+		<div style="font-size: 21px; margin-top: 40px; line-height: 24px; background-color: #33bd9e; color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+			<a style="color: white; text-decoration: none;" href="https://theblockchainu.com/sign-up/<%= invitationCode %>">Claim Smart Certificate</a>
+			<!--<a style="color: white; text-decoration: none;" href="http://localhost:8080/sign-up/<%= invitationCode %>">Claim Smart Certificate</a>-->
+		</div>
+	</div>
+	<!-- Signature -->
+	<% if (invitorContactProvider && invitorContactProvider.length > 0) { %>
+	<div style="font-size: 13px; margin-top: 30px; line-height: 24px; text-align: center; color: #bbb; font-weight: 300">
+		You are receiving this email because you were listed in
+		<%=invitorFirstName %>’s
+		<%= invitorContactProvider %> contacts and
+		<%=invitorFirstName %> requested to invite you to theblockchainu.com
+	</div>
+	<% } %>
+	<!-- Footer -->
+	<hr style="margin-top: 40px; background-color: #dbdbdb;">
+	<div style="font-size: 13px; color: #bbbbbb; margin-top: 30px; font-weight: 300">
+		Sent with
+		<span style="font-size: 11px;">&hearts;</span> from The Blockchain U
+		<br>
+		<br> Blockchain University, Inc., 4580 Automall Pkwy, Fremont, CA 94538
+	</div>
+</div>
+</body>
+
+</html>

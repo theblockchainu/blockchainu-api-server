@@ -1436,35 +1436,38 @@ module.exports = function (Peer) {
 									Peer.app.models.peer_invite.find({ 'where': { 'email': peerInstance.email } })
 											.then((peerInviteInstances) => {
 												peerInviteInstances.forEach((peerInviteInstance) => {
-													if (peerInviteInstance.collectionId && peerInviteInstance.calendarId) {
-														let scholarshipId = 'NA';
-														Peer.app.models.scholarship.find({'where':{'type': 'public'}})
-																.then((publicScholarshipInstances) => {
-																	scholarshipId = publicScholarshipInstances[0].id;
-																	const relationBody = {
-																		calendarId: peerInviteInstance.calendarId,
-																		referrerId: false,
-																		scholarshipId: scholarshipId,
-																		joinedDate: moment().format()
-																	};
-																	return peerInstance.collections.add(peerInviteInstance.collectionId, relationBody);
-																})
-																.then((participantRelationInstance) => {
-																	console.log(participantRelationInstance);
-																	return peerInstance.collections.findById(peerInviteInstance.collectionId);
-																})
-																.then((collectionInstance) => {
-																	return Peer.app.models.collection.addParticipant(collectionInstance, peerInstance.id, peerInviteInstances.calendarId, scholarshipId);
-																})
-																.then((result) => {
-																	console.log('New user added as participant to invited collection');
-																	console.log(result);
-																})
-																.catch((err) => {
-																	console.log(err);
-																	// TODO: send email to invitor about failed participation
-																});
-													}
+													peerInviteInstance.updateAttributes({status: 'accepted'})
+															.then((updatedPeerInviteInstance) => {
+																if (peerInviteInstance.collectionId && peerInviteInstance.calendarId) {
+																	let scholarshipId = 'NA';
+																	Peer.app.models.scholarship.find({'where':{'type': 'public'}})
+																			.then((publicScholarshipInstances) => {
+																				scholarshipId = publicScholarshipInstances[0].id;
+																				const relationBody = {
+																					calendarId: peerInviteInstance.calendarId,
+																					referrerId: false,
+																					scholarshipId: scholarshipId,
+																					joinedDate: moment().format()
+																				};
+																				return peerInstance.collections.add(peerInviteInstance.collectionId, relationBody);
+																			})
+																			.then((participantRelationInstance) => {
+																				console.log(participantRelationInstance);
+																				return peerInstance.collections.findById(peerInviteInstance.collectionId);
+																			})
+																			.then((collectionInstance) => {
+																				return Peer.app.models.collection.addParticipant(collectionInstance, peerInstance.id, peerInviteInstances.calendarId, scholarshipId);
+																			})
+																			.then((result) => {
+																				console.log('New user added as participant to invited collection');
+																				console.log(result);
+																			})
+																			.catch((err) => {
+																				console.log(err);
+																				// TODO: send email to invitor about failed participation
+																			});
+																}
+															});
 												});
 												return Promise.all(peerInviteInstances);
 											})
@@ -1475,8 +1478,6 @@ module.exports = function (Peer) {
 												console.log(err);
 												// TODO: send email to invitor about failed participation
 											});
-									
-									
 									cb(null, peerInstance);
 								} else {
 									cb(new Error('Could not join user to global scholarship'));

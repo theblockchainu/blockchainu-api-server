@@ -67,20 +67,17 @@ module.exports = function (Collection) {
 			// if collection is a guide join participant to corestack
 			if (collectionInstance.type === 'guide') {
 				
-				const addToCoreStack = function () {
+				const registerOnCorestack = function () {
 					collectionInstance.__get__calendars({}, (error, calendarInstances) => {
 						const participantJSON = participantUserInstance.toJSON();
 						let username;
-						if (participantJSON.username) {
-							username = participantJSON.username;
+						if (participantJSON.id) {
+							username = participantJSON.id;
 							if (username.length > 10) {
 								username = username.slice(0, 9);
 							}
 						} else {
-							username = participantJSON.email.replace(/\W/g, '');
-							if (username.length > 10) {
-								username = username.slice(0, 9);
-							}
+							username = '';
 						}
 						console.log('corestack_username');
 						console.log(username);
@@ -88,15 +85,20 @@ module.exports = function (Collection) {
 						const student_id = participantJSON.id;
 						const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
 						const student_email = participantJSON.email;
-						const course_id = 'ETHEREUM';
+						const course_id = collectionInstance.corestackCourseId;
 						const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
-						const course_end_date = moment(calendar.endDate).add('2', 'years').format('YYYY-MM-DD');
+						const course_end_date = moment(calendar.endDate).add('30', 'days').format('YYYY-MM-DD');
 						console.log('EndDate' + course_end_date);
 						const corestackScriptPath = collectionInstance.corestackScriptPath;
 						Collection.app.models.corestack_student.registerStudent(
 								student_id,
-								student_name, student_email, course_id, course_start_date, username,
-								course_end_date, corestackScriptPath
+								student_name,
+								student_email,
+								course_id,
+								course_start_date,
+								username,
+								course_end_date,
+								corestackScriptPath
 						).then(corestackStudentInstance => {
 							console.log('connecting Corestack student');
 							collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
@@ -143,19 +145,23 @@ module.exports = function (Collection) {
 						console.log('Error in fetching students in DB');
 						Promise.reject(errorcorestackStudents);
 					} else {
-						const studentPresent = corestackStudents.find(student => {
+						const studentIsPresent = corestackStudents.find(student => {
 							const studentJSON = student.toJSON();
 							return studentJSON.peer[0].id === participantUserInstance.id;
 						});
-						const presentStudent = studentPresent ? studentPresent.toJSON() : false;
-						if (presentStudent) {
-							const sameCollection = presentStudent.collections.some(collection => collection.id === collectionInstance.id);
-							if (sameCollection) {
-								console.log('already added to the collection');
+						const existingStudent = studentIsPresent ? studentIsPresent.toJSON() : false;
+						if (!existingStudent) {
+							// If student is not registered on corestack
+							registerOnCorestack();
+						} else {
+							// If student is already registered on corestack
+							const hasJoinedThisCollection = existingStudent.collections.some(collection => collection.id === collectionInstance.id);
+							if (hasJoinedThisCollection) {
+								console.log('student already added to the collection');
 								Promise.resolve({'result': 'success'});
 							} else {
-								console.log('link the new collection');
-								collectionInstance.__link__corestackStudents(presentStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+								console.log('add this collection to the existing student\s record');
+								collectionInstance.__link__corestackStudents(existingStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
 									if (corestackStudentRelationerr) {
 										console.log('corestackStudentRelationerr');
 										console.log(corestackStudentRelationerr);
@@ -166,8 +172,6 @@ module.exports = function (Collection) {
 								});
 								Promise.resolve({'result': 'success'});
 							}
-						} else {
-							addToCoreStack();
 						}
 					}
 				});
@@ -203,7 +207,7 @@ module.exports = function (Collection) {
 				.then((ownerInstances) => {
 					console.log(ownerInstances);
 					const inst = ownerInstances[0];
-					return collectionInstance.owners.findById(inst.id, {'include': 'profiles'});
+					return collectionInstance.owners.findById(inst.id, {'include': {'profiles' : 'phone_numbers'}});
 				})
 				.then((collectionOwnerInstance) => {
 					ownerInstance = collectionOwnerInstance;
@@ -257,7 +261,13 @@ module.exports = function (Collection) {
 					console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ' + blockchainResponse);
 					
 					// Send email to the student welcoming him to course
-					let message = { type: collectionInstance.type, title: collectionInstance.title, owner: ownerInstance.toJSON().profiles[0].first_name + ' ' + ownerInstance.toJSON().profiles[0].last_name, collectionId: collectionInstance.id, calendarId: calendarId };
+					let message = {
+						type: collectionInstance.type,
+						title: collectionInstance.title,
+						owner: ownerInstance.toJSON(),
+						collectionId: collectionInstance.id,
+						calendarId: calendarId,
+					};
 					let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newParticipantOnCollectionStudent.ejs'));
 					let html_body = renderer(message);
 					loopback.Email.send({

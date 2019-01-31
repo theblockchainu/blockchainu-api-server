@@ -720,8 +720,10 @@ module.exports = function (Assessmentresult) {
 											})
 											.then((response) => {
 												console.log('email sent! - ' + response);
+												cb(null, {result: 'success'});
 											}).catch(function (err) {
 										console.log('email error! - ' + err);
+										cb(err);
 									});
 								}
 							});

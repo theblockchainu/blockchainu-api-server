@@ -128,8 +128,7 @@ module.exports = function (Corestackstudent) {
 	Corestackstudent.deregisterStudent = async function (student_id, course_id) {
 		return Corestackstudent.app.models.corestack_token.getTokenObject().then(tokenObject => {
 			return request.post({
-				url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
-					+ '/cloudlab/deregister_student',
+				url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/cloudlab/deregister_student',
 				json: true,
 				headers: {
 					'X-Auth-Token': tokenObject.data.token.key,
@@ -168,8 +167,7 @@ module.exports = function (Corestackstudent) {
 		return Corestackstudent.app.models.corestack_token.getTokenObject()
 			.then(tokenObject => {
 				return request.post({
-					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
-						+ '/cloudlab/register_student',
+					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/cloudlab/register_student',
 					json: true,
 					headers: {
 						'X-Auth-Token': tokenObject.data.token.key,
@@ -212,8 +210,7 @@ module.exports = function (Corestackstudent) {
 				console.log('tokenObjectReceived');
 				console.log(tokenObject);
 				return request.get({
-					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id
-						+ '/cloudlab/access_details/' + student_id + '/' + course_id,
+					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/cloudlab/access_details/' + student_id + '/' + course_id,
 					json: true,
 					headers: {
 						'X-Auth-Token': tokenObject.data.token.key,
@@ -264,8 +261,7 @@ module.exports = function (Corestackstudent) {
 			.getTokenObject()
 			.then(tokenObject => {
 				return request.get({
-					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/'
-						+ student_id + '/' + course_id,
+					url: Corestackstudent.app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/' + student_id + '/' + course_id,
 					json: true,
 					headers: {
 						'X-Auth-Token': tokenObject.data.token.key,
@@ -278,8 +274,7 @@ module.exports = function (Corestackstudent) {
 			});
 	};
 
-	Corestackstudent.updateStudent = async function (student_id, course_id,
-		student_name, course_end_date) {
+	Corestackstudent.updateStudent = async function (student_id, course_id, student_name, course_end_date) {
 		// const user_script_path = await this.getUserScriptPath(githubUrl);
 		const query = {
 			where: {
@@ -298,12 +293,12 @@ module.exports = function (Corestackstudent) {
 					studentData.course_end_date = course_end_date;
 				}
 
-				// if (user_script_path) {
-				//     studentData.custom_options = {
-				//         user_script_path: user_script_path // provide the path to user script
-				//     };
-				// }
-
+				/*if (user_script_path) {
+					studentData.custom_options = {
+					user_script_path: user_script_path // provide the path to user script
+					};
+				}*/
+				
 				console.log('studentData');
 				console.log(studentData);
 
@@ -402,8 +397,7 @@ module.exports = function (Corestackstudent) {
 	};
 
 	Corestackstudent.updateStudentAPI = async function (student_id, course_id, body) {
-		return Corestackstudent.updateStudent(student_id, course_id,
-			body.student_name, body.course_end_date);
+		return Corestackstudent.updateStudent(student_id, course_id, body.student_name, body.course_end_date);
 	};
 
 	Corestackstudent.remoteMethod(

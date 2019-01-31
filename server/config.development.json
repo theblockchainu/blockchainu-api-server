@@ -41,7 +41,7 @@
   "ccavenueWorkingKey": "5E4DD2288BD2458F6EC225B206D362F7",
   "ccavenueAccessCode": "AVDX80FH10CK81XDKC",
   "ccavenueMerchantId": "188304",
-  "corestackUrl": "http://claas-v2.corestack.io:18080",
-  "corestackUserName": "blockchain_poc@corestack.io",
+  "corestackUrl": "https://claas.corestack.io:50000",
+  "corestackUserName": "blockchainu@corestack.io",
   "corestackPassword": "Bl0ck@123"
 }
