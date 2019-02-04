@@ -510,7 +510,7 @@ module.exports = function (Collection) {
 											}
 											else {
 
-												// Record student dropping from a collection on blockchain
+												// Drop student from collection on blockchain
 												request
 													.delete({
 														url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,

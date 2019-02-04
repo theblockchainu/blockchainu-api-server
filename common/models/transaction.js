@@ -11,6 +11,7 @@ var loopback = require('../../node_modules/loopback/lib/loopback');
 var crypto = require('crypto');
 var qs = require('querystring');
 var clientUrl = app.get('clientUrl');
+const Promise = require('bluebird');
 
 module.exports = function (Transaction) {
 	
@@ -353,6 +354,7 @@ module.exports = function (Transaction) {
 					charge.outcome = JSON.stringify(charge.outcome);
 					charge.created = currTime;
 					charge.modified = currTime;
+					charge.gateway = 'stripe';
 					//console.log(JSON.stringify(charge));
 					
 					Transaction.app.models.peer.findById(loggedinPeer, { 'include': 'profiles' }, function (err, peerInstance) {
@@ -452,7 +454,7 @@ module.exports = function (Transaction) {
 	};
 	
 	/**
-	 * Transfer the ammount from stripe to card or bank account
+	 * Transfer the amount from stripe to card or bank account
 	 * data - https://stripe.com/docs/api#transfer_object
 	 */
 	Transaction.transferFund = function (req, data, cb) {
@@ -469,6 +471,7 @@ module.exports = function (Transaction) {
 					delete transfer.id;
 					transfer.metadata = JSON.stringify(transfer.metadata);
 					transfer.reversals = JSON.stringify(transfer.reversals);
+					transfer.gateway = 'stripe';
 					Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
 						if (!err && peerInstance !== null) {
 							peerInstance.transactions.create(transfer, function (err, transferInstance) {
@@ -534,7 +537,7 @@ module.exports = function (Transaction) {
 	 */
 	Transaction.ccavenueResponse = function (req, res, data, cb) {
 		
-		var loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
+		const loggedinPeer = Transaction.app.models.peer.getCookieUserId(req);
 		
 		//if user is logged in
 		if (loggedinPeer) {
@@ -547,39 +550,39 @@ module.exports = function (Transaction) {
 			let decoded = decipher.update(data.encResp, 'hex', 'utf8');
 			decoded += decipher.final('utf8');
 			const responseData = qs.parse(decoded);
+			responseData.gateway = 'ccavenue';
 			console.log(responseData);
 			
 			Transaction.app.models.peer.findById(loggedinPeer, function (err, peerInstance) {
 				if (!err && peerInstance !== null) {
-					peerInstance.transactions.create(responseData, function (err, transferInstance) {
+					peerInstance.transactions.create(responseData, function (err, transactionInstance) {
 						if (err) {
-							transferInstance.destroy();
-							res.redirect(clientUrl + '/paymentError');
+							transactionInstance.destroy();
+							res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
 						} else {
-							Transaction.app.models.collection.findById(responseData.merchant_param1.split('/')[3], function (err, collection) {
-								if (!err && collection !== null) {
-									collection.__link__payments(transferInstance.id, function (err, collectionPaymentInstance) {
-										if (!err && collectionPaymentInstance !== null) {
-											console.log('Payment made for collection');
+							transactionInstance.collections.add(responseData.merchant_param1.split('/')[3])
+									.then(collectionLinkInst => {
+										console.log('linked transaction node to collection');
+										if (responseData.order_status === 'Success') {
+											// txn success
+											if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
+												res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transactionInstance.id);
+											} else {
+												res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
+											}
+										} else {
+											res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
 										}
+									})
+									.catch(err => {
+										console.log('Error linking transaction to collection');
+										res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
 									});
-								}
-								if (responseData.order_status === 'Success') {
-									// txn success
-									if (responseData.merchant_param2 && responseData.merchant_param2.length > 3) {
-										res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message + '&paymentBatch=' + responseData.merchant_param2 + '&transactionId=' + transferInstance.id);
-									} else {
-										res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&statusMessage=' + responseData.status_message);
-									}
-								} else {
-									res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
-								}
-							});
 						}
 					});
 				}
 				else {
-					res.redirect(clientUrl + '/paymentError');
+					res.redirect(clientUrl + responseData.merchant_param1 + '?paymentStatus=' + responseData.order_status + '&failureMessage=' + responseData.failure_message + '&statusMessage=' + responseData.status_message);
 				}
 			});
 			

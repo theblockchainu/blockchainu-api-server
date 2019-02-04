@@ -18,6 +18,9 @@
     "id": {
       "type": "string",
       "id": true
+    },
+    "gateway": {
+      "type": "string"
     }
   },
   "validations": [],
