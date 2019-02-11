@@ -1,6 +1,7 @@
 'use strict';
 let request = require('request-promise-native');
 let moment = require('moment');
+let Promise = require('bluebird');
 
 module.exports = function (Corestacktoken) {
 

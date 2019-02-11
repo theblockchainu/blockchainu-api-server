@@ -79,7 +79,7 @@ module.exports = function (Collection) {
 						} else {
 							username = '';
 						}
-						console.log('corestack_username');
+						console.log('registering on corestack with username: ');
 						console.log(username);
 						const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
 						const student_id = participantJSON.id;
@@ -88,7 +88,7 @@ module.exports = function (Collection) {
 						const course_id = collectionInstance.corestackCourseId;
 						const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
 						const course_end_date = moment(calendar.endDate).add('30', 'days').format('YYYY-MM-DD');
-						console.log('EndDate' + course_end_date);
+						console.log('EndDate: ' + course_end_date);
 						const corestackScriptPath = collectionInstance.corestackScriptPath;
 						Collection.app.models.corestack_student.registerStudent(
 								student_id,
@@ -106,15 +106,15 @@ module.exports = function (Collection) {
 									console.log('corestackStudentRelationerr');
 									console.log(corestackStudentRelationerr);
 								} else {
-									console.log('corestackStudentRelation');
+									console.log('corestackStudentRelation SUCCESS');
 									console.log(corestackStudentRelation);
 								}
 								participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
 									if (peerCorestackRelationInstanceerr) {
-										console.log('peerCorestackRelationInstanceerr');
+										console.log('peerCorestackRelationInstanceErr');
 										console.log(peerCorestackRelationInstanceerr);
 									} else {
-										console.log('peerCorestackRelationInstance');
+										console.log('peerCorestackRelationInstance SUCCESS');
 										console.log(peerCorestackRelationInstance);
 									}
 								});

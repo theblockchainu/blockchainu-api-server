@@ -2,6 +2,7 @@
 
 const request = require('request-promise-native');
 const moment = require('moment');
+let Promise = require('bluebird');
 
 module.exports = function (Corestackstudent) {
 
@@ -27,7 +28,7 @@ module.exports = function (Corestackstudent) {
 			};
 		}
 
-		console.log('studentData');
+		console.log('Registering student on corestack with studentData: ');
 		console.log(studentData);
 
 		return Corestackstudent.app.models.corestack_token.getTokenObject()

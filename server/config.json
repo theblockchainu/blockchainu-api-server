@@ -34,7 +34,7 @@
   "twilioSecret": "AQALVDcDLXIjB3O7Lio1zsrlhnOg1idZ",
   "currencyLayerKey": "2a9f7fba082073623957827eb418edd3",
   "uniqueDeveloperCode": "dev",
-  "protocolUrl": "https://one0x.com/v1/",
+  "protocolUrl": "https://api.one0x.com/v1/",
   "clientUrl": "https://theblockchainu.com",
   "apiUrl": "https://theblockchainu.com:3002",
   "karmaRate": 400000,
