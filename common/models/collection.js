@@ -72,9 +72,9 @@ module.exports = function (Collection) {
 						const participantJSON = participantUserInstance.toJSON();
 						let username;
 						if (participantJSON.id) {
-							username = participantJSON.id;
-							if (username.length > 10) {
-								username = username.slice(0, 9);
+							username = 'tbu-' + participantJSON.id;
+							if (username.length > 15) {
+								username = username.slice(0, 15);
 							}
 						} else {
 							username = '';
