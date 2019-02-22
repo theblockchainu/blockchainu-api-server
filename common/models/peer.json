@@ -115,6 +115,14 @@
     "isAdmin": {
       "type": "boolean",
       "default": false
+    },
+    "gyanScore": {
+      "type": "number",
+      "default": 0
+    },
+    "karmaBalance": {
+      "type": "number",
+      "default": 0
     }
   },
   "validations": [],

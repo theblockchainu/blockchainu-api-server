@@ -24,7 +24,7 @@ module.exports = function (Corestackstudent) {
 			};
 		} else {
 			studentData.custom_options = {
-				user_script_path: 'https://ethereumlabstorage.blob.core.windows.net/ethereum-userdata/ethereum_userdata_script_jan7.sh' // provide the path to user script
+				user_script_path: 'https://blockchainethereum.blob.core.windows.net/ethereum-blockchain-userdata/ethereum_userdata_script_jan7.sh' // provide the path to user script
 			};
 		}
 

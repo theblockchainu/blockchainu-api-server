@@ -768,7 +768,7 @@ module.exports = function (Collection) {
 	 * @param cb: Callback function
 	 */
 	const getCorestackScriptPath = (collectionId, githubUrl, cb) => {
-		const templateShellFilePath = path.resolve(__dirname, '../../server/scripts/corestack_seed_script.sh');
+		const templateShellFilePath = path.resolve(__dirname, '../../server/scripts/corestack_seed_script_new.sh');
 		fs.readFile(templateShellFilePath, (err, data) => {
 			if (err) {
 				console.log(err);

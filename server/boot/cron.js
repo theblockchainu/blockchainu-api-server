@@ -193,6 +193,55 @@ module.exports = function setupCron(server) {
 							}
 						});
 				
+				// Update Gyan scores & Karma balance of each user
+				server.models.peer.find({'where': {'ethAddress': {'neq': ''}}}, function(err, peerInstances) {
+					peerInstances.forEach(peerInstance => {
+						request
+								.get({
+									url: protocolUrl + 'gyan/' + peerInstance.ethAddress + '/fixed',
+									json: true
+								}, function (err, response, data1) {
+									if (err) {
+										console.error(err);
+									} else if (data1 && data1.error) {
+										console.error(data1.error);
+									} else {
+										peerInstance.updateAttributes({'gyanScore': data1})
+												.then(result => {
+													console.log('Updated gyan score of user');
+												})
+												.catch(e => {
+													console.log(e);
+												});
+									}
+								});
+						
+						request
+								.get({
+									url: protocolUrl + 'karma/' + peerInstance.ethAddress,
+									json: true
+								}, function (err, response, data1) {
+									if (err) {
+										console.error(err);
+									} else if (data1 && data1.error) {
+										console.error(data1.error);
+									} else {
+										if (peerInstance.karmaBalance !== data1) {
+											// KARMA balance has changed. Send email to user.
+											// TODO: send email to user
+											peerInstance.updateAttributes({'karmaBalance': data1})
+													.then(result => {
+														console.log('Updated KARMA balance of user');
+													})
+													.catch(e => {
+														console.log(e);
+													});
+										}
+									}
+								});
+					});
+				});
+				
 				server.models.collection.find({ 'where': { 'and': [{ 'status': 'active' }, { 'type': { 'neq': 'session' } }] }, 'include': ['calendars', { 'contents': 'schedules' }, 'topics', { 'comments': 'peer' }, 'participants', { 'owners': 'profiles' }] }, function (err, collectionInstances) {
 					collectionInstances.forEach(collection => {
 						if (collection.calendars() !== undefined) {
