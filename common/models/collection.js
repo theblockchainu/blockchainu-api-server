@@ -117,9 +117,9 @@ module.exports = function (Collection) {
 										console.log('peerCorestackRelationInstance SUCCESS');
 										console.log(peerCorestackRelationInstance);
 									}
+									Promise.resolve({'result': 'success'});
 								});
 							});
-							Promise.resolve({'result': 'success'});
 						}).catch(err => {
 							console.log('registerStudentError');
 							console.log(err);

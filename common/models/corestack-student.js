@@ -31,7 +31,7 @@ module.exports = function (Corestackstudent) {
 		console.log('Registering student on corestack with studentData: ');
 		console.log(studentData);
 
-		return Corestackstudent.app.models.corestack_token.getTokenObject()
+		Corestackstudent.app.models.corestack_token.getTokenObject()
 			.then(tokenObject => {
 				console.log('tokenObject');
 				console.log(tokenObject);
