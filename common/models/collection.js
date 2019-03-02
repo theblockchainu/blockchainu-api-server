@@ -2220,78 +2220,90 @@ module.exports = function (Collection) {
 				let assessmentNARules = collectionInstance.toJSON().assessment_models[0].assessment_na_rules;
 				let contents = collectionInstance.toJSON().contents;
 				let topics = collectionInstance.toJSON().topics;
-
-				Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
-					if (!err) {
-						// Add this collection to blockchain.
-						const assessmentRuleKeys = [];
-						const assessmentRuleValues = [];
-						const nonAcademicRules = [];
-						const topicArray = [];
-						let learningHours = 0;
-						assessmentRules.forEach(assessmentRule => {
-							assessmentRuleKeys.push(assessmentRule.value);
-							assessmentRuleValues.push(assessmentRule.gyan);
-						});
-						assessmentNARules.forEach(assessmentNARule => {
-							if (assessmentNARule.value === 'engagement') {
-								nonAcademicRules[0] = assessmentNARule.gyan;
-							} else if (assessmentNARule.value === 'commitment') {
-								nonAcademicRules[1] = assessmentNARule.gyan;
-							}
-						});
-						topics.forEach(topic => {
-							topicArray.push(topic.name);
-						});
-						contents.forEach(content => {
-							if (content.schedules && content.schedules.length > 0) {
-								learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
-							}
-						});
-						
-						learningHours = learningHours <= 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
-						//console.log('total learning hours are: ' + learningHours);
-						const body = {
-							uniqueId: collectionInstance.id,
-							teacherAddress: ownerInstance.ethAddress,
-							type: collectionInstance.type,
-							learningHours: learningHours,
-							activityHash: 'NA',
-							academicGyan: collectionInstance.academicGyan,
-							nonAcademicGyan: collectionInstance.nonAcademicGyan,
-							assessmentRuleKeys: assessmentRuleKeys,
-							assessmentRuleValues: assessmentRuleValues,
-							nonAcademicRules: nonAcademicRules,
-							topics: topicArray
-						};
-						console.log(body);
-						// Add to blockchain
-						request
-							.post({
-								url: protocolUrl + 'collections',
-								body: body,
-								json: true
-							}, function (err, response, data) {
-								if (err) {
-									console.error(err);
-									cb(err);
-								} else if (response.body.error) {
-									cb(response.body.error);
-								} else if (data && data.error) {
-									cb(data.error);
-								} else {
-									console.log('Add collection to blockchain: ');
-									console.log(response);
-									cb(null, data);
+				
+				if (contents && assessmentRules && assessmentNARules && topics) {
+					Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
+						if (!err) {
+							// Add this collection to blockchain.
+							const assessmentRuleKeys = [];
+							const assessmentRuleValues = [];
+							const nonAcademicRules = [];
+							const topicArray = [];
+							let learningHours = 0;
+							assessmentRules.forEach(assessmentRule => {
+								assessmentRuleKeys.push(assessmentRule.value);
+								assessmentRuleValues.push(assessmentRule.gyan);
+							});
+							assessmentNARules.forEach(assessmentNARule => {
+								if (assessmentNARule.value === 'engagement') {
+									nonAcademicRules[0] = assessmentNARule.gyan;
+								} else if (assessmentNARule.value === 'commitment') {
+									nonAcademicRules[1] = assessmentNARule.gyan;
 								}
 							});
-					}
-				});
+							topics.forEach(topic => {
+								topicArray.push(topic.name);
+							});
+							contents.forEach(content => {
+								if (content.schedules && content.schedules.length > 0) {
+									learningHours += moment(content.schedules[0].endTime).diff(content.schedules[0].startTime, 'hours');
+								}
+							});
+							
+							learningHours = learningHours <= 0 ? (collectionInstance.academicGyan + collectionInstance.nonAcademicGyan) : learningHours;    // make sure learning hours is never zero.
+							//console.log('total learning hours are: ' + learningHours);
+							const body = {
+								uniqueId: collectionInstance.id,
+								teacherAddress: ownerInstance.ethAddress,
+								type: collectionInstance.type,
+								learningHours: learningHours,
+								activityHash: 'NA',
+								academicGyan: collectionInstance.academicGyan,
+								nonAcademicGyan: collectionInstance.nonAcademicGyan,
+								assessmentRuleKeys: assessmentRuleKeys,
+								assessmentRuleValues: assessmentRuleValues,
+								nonAcademicRules: nonAcademicRules,
+								topics: topicArray
+							};
+							console.log(body);
+							// Add to blockchain
+							request
+									.post({
+										url: protocolUrl + 'collections',
+										body: body,
+										json: true
+									}, function (err, response, data) {
+										if (err) {
+											console.error(err);
+											cb(err);
+										} else if (response.body.error) {
+											cb(response.body.error);
+										} else if (data && data.error) {
+											cb(data.error);
+										} else {
+											console.log('Add collection to blockchain: ');
+											console.log(response);
+											cb(null, data);
+										}
+									});
+						} else {
+							err = new Error(g.f('Invalid owner with ID: %s', ownerId));
+							err.statusCode = 402;
+							err.code = 'REQUEST_FAILED';
+							cb(err);
+						}
+					});
+				} else {
+					err = new Error(g.f('Required data missing for this course.'));
+					err.statusCode = 402;
+					err.code = 'REQUEST_FAILED';
+					cb(err);
+				}
 			}
 			else {
 				err = new Error(g.f('Invalid Collection with ID: %s', id));
 				err.statusCode = 400;
-				err.code = 'INVALID_COLLECTION';
+				err.code = 'BAD_REQUEST';
 				cb(err);
 			}
 		});
@@ -2629,11 +2641,12 @@ module.exports = function (Collection) {
 				console.log(newCollection);
 				newCollection = sanitize(newCollection);
 				// assign fresh values to new collection
-				newCollection.title = 'Cloned:' + newCollection.title;
+				newCollection.title = newCollection.title + ' [COPY]';
 				newCollection.status = 'draft';
 				newCollection.isCanceled = false;
 				newCollection.isApproved = false;
 				newCollection.isNewInstance = false;
+				newCollection.disableHasOneCreate = true;
 				return Collection.create(newCollection);
 			})
 			.then((newCollectionInstanceData) => {
@@ -2744,7 +2757,6 @@ module.exports = function (Collection) {
 				});
 
 				// Copy payoutrules from old collection to new collection
-
 				const newPayoutRules = oldCollectionData.payoutrules.map(payoutrule => sanitize(payoutrules));
 				const linkPayoutRules = newCollectionInstance.payoutrules
 					.create(newPayoutRules)
@@ -2799,9 +2811,8 @@ module.exports = function (Collection) {
 						console.log('Rewards Linked');
 						console.log(linked);
 					});
-
-				// { 'assessment_models': ['assessment_na_rules', 'assessment_rules'] }
-
+				
+				// Copy assessment models
 				const assessment_models_promises = [];
 				oldCollectionData.assessment_models.forEach(assessment_model => {
 					assessment_model = sanitize(assessment_model);
