@@ -19,10 +19,10 @@ let debug = require('debug')('loopback:peer');
 let moment = require('moment');
 let momenttz = require('moment-timezone');
 let passcode = require("passcode");
-let twilio = require('twilio');
-let app = require('../../server/server');
 let twilioSid = app.get('twilioSID');
 let twilioToken = app.get('twilioToken');
+let twilioclient = require('twilio')(twilioSid, twilioToken);
+let app = require('../../server/server');
 let twilioPhone = app.get('twilioPhone');
 let protocolUrl = app.get('protocolUrl');
 let request = require('request');
@@ -443,8 +443,6 @@ module.exports = function (Peer) {
 			counter: Date.now()
 		});
 		
-		let client = new twilio(twilioSid, twilioToken);
-		
 		let message = "Verify your mobile number with The Blockchain University using code: " + phoneToken;
 		const twiliopayload = {
 			body: message,
@@ -452,58 +450,58 @@ module.exports = function (Peer) {
 			from: twilioPhone // From a valid Twilio number
 		};
 		console.log(twiliopayload);
-		client.messages.create(twiliopayload, function (err, message) {
-			if (err) {
-				console.error(err);
-				fn(err);
-			}
-			else {
-				//console.log(message);
-				let User = app.models.peer;
-				User.findById(loggedinPeer, { 'include': 'profiles' }, function (err, peerInstance) {
-					if (err) {
-						fn(err);
-					} else {
-						Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
-							if (err) {
-								fn(err);
-							} else {
-								let phoneNumber = {
-									country_code: countryCode,
-									subscriber_number: phone,
-									isPrimary: true
-								};
-								profileInstance.__delete__phone_numbers({}, { 'where': { 'isPrimary': true } }, function (err, deletedNumbers) {
-									if (err) {
-										fn(err);
-									} else {
-										profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
-											if (err) {
-												fn(err);
-											} else {
-												console.log('Added new phone number');
-												delete peerInstance.toJSON().profiles;
-												peerInstance.phoneVerificationToken = phoneToken;
-												peerInstance.phoneVerified = false;
-												//console.log(peerInstance);
-												User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
-													if (err) {
-														fn(err);
-													}
-													else {
-														fn(null, { result: 'OTP SMS sent' });
-													}
-												});
-											}
-										});
-									}
-								});
-							}
-						});
-					}
+		twilioclient.messages
+				.create(twiliopayload)
+				.then(message => {
+					console.log(message);
+					let User = app.models.peer;
+					User.findById(loggedinPeer, { 'include': 'profiles' }, function (err, peerInstance) {
+						if (err) {
+							fn(err);
+						} else {
+							Peer.app.models.profile.findById(peerInstance.toJSON().profiles[0].id, {}, function (err, profileInstance) {
+								if (err) {
+									fn(err);
+								} else {
+									let phoneNumber = {
+										country_code: countryCode,
+										subscriber_number: phone,
+										isPrimary: true
+									};
+									profileInstance.__delete__phone_numbers({}, { 'where': { 'isPrimary': true } }, function (err, deletedNumbers) {
+										if (err) {
+											fn(err);
+										} else {
+											profileInstance.__create__phone_numbers(phoneNumber, function (err, phoneNumberInstance) {
+												if (err) {
+													fn(err);
+												} else {
+													console.log('Added new phone number');
+													delete peerInstance.toJSON().profiles;
+													peerInstance.phoneVerificationToken = phoneToken;
+													peerInstance.phoneVerified = false;
+													//console.log(peerInstance);
+													User.upsert(peerInstance.toJSON(), function (err, modifiedPeerInstance) {
+														if (err) {
+															fn(err);
+														}
+														else {
+															fn(null, { result: 'OTP SMS sent' });
+														}
+													});
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+					});
+				})
+				.catch(err => {
+					console.error(err);
+					fn(err);
 				});
-			}
-		});
 	};
 	
 	/**
