@@ -12,13 +12,13 @@ let _ = require('lodash');
 const fs = require('fs');
 
 module.exports = function (Collection) {
-
+	
 	Collection.validatesUniquenessOf('genericId');
-
-
+	
+	
 	Collection.validatesInclusionOf('subCategory', {
 		in:
-			['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab', 'bug', 'competitive', 'hackathon', 'hiring', 'token']
+				['workshop', 'hackathon', 'meetup', 'bootcamp', 'self paced', 'instructor led', 'lab', 'bug', 'competitive', 'hackathon', 'hiring', 'token', 'hands on', 'learning']
 	});
 	
 	Collection.afterRemote('prototype.__link__participants', function (ctx, participantInstance, next) {
@@ -45,14 +45,14 @@ module.exports = function (Collection) {
 	
 	/**
 	 *  1. Link all collection topics to peer
-	    2. Create a notification for the owner
-	    3. Add user to the collection's chat room
-	    4. Create a User Joined system message in chat room
-	    5. Add user participation on Blockchain
-	    6. Send email to user and owner
-	    7. If Guide - check if user has an existing corestack course subscription
-	    8. If Guide - register user on Corestack for this course
-	    9. Send response back to client
+	 2. Create a notification for the owner
+	 3. Add user to the collection's chat room
+	 4. Create a User Joined system message in chat room
+	 5. Add user participation on Blockchain
+	 6. Send email to user and owner
+	 7. If Guide - check if user has an existing corestack course subscription
+	 8. If Guide - register user on Corestack for this course
+	 9. Send response back to client
 	 * @param collectionInstance
 	 * @param participantId
 	 * @param calendarId
@@ -63,122 +63,126 @@ module.exports = function (Collection) {
 		// New participant added to collection. Notify collection owner.
 		let participantUserInstance, notificationInstance, roomInstance, ownerInstance;
 		
-		const checkAndAddtoCorestack = function (params) {
-			// if collection is a guide join participant to corestack
-			if (collectionInstance.type === 'guide') {
-				
-				const registerOnCorestack = function () {
-					collectionInstance.__get__calendars({}, (error, calendarInstances) => {
-						const participantJSON = participantUserInstance.toJSON();
-						let username;
-						if (participantJSON.id) {
-							username = 'tbu-' + participantJSON.id;
-							if (username.length > 15) {
-								username = username.slice(0, 15);
-							}
-						} else {
-							username = '';
-						}
-						console.log('registering on corestack with username: ');
-						console.log(username);
-						const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
-						const student_id = participantJSON.id;
-						const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
-						const student_email = participantJSON.email;
-						const course_id = collectionInstance.corestackCourseId;
-						const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
-						const course_end_date = moment(calendar.endDate).add('30', 'days').format('YYYY-MM-DD');
-						console.log('EndDate: ' + course_end_date);
-						const corestackScriptPath = collectionInstance.corestackScriptPath;
-						Collection.app.models.corestack_student.registerStudent(
-								student_id,
-								student_name,
-								student_email,
-								course_id,
-								course_start_date,
-								username,
-								course_end_date,
-								corestackScriptPath
-						).then(corestackStudentInstance => {
-							console.log('connecting Corestack student');
-							collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
-								if (corestackStudentRelationerr) {
-									console.log('corestackStudentRelationerr');
-									console.log(corestackStudentRelationerr);
-								} else {
-									console.log('corestackStudentRelation SUCCESS');
-									console.log(corestackStudentRelation);
+		const checkAndAddtoCorestack = function () {
+			
+			return new Promise((resolve, reject) => {
+				// if collection is a guide join participant to corestack
+				if (collectionInstance.type === 'guide') {
+					
+					const registerOnCorestack = function () {
+						collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+							const participantJSON = participantUserInstance.toJSON();
+							let username;
+							if (participantJSON.id) {
+								username = 'tbu-' + participantJSON.id;
+								if (username.length > 15) {
+									username = username.slice(0, 15);
 								}
-								participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
-									if (peerCorestackRelationInstanceerr) {
-										console.log('peerCorestackRelationInstanceErr');
-										console.log(peerCorestackRelationInstanceerr);
-									} else {
-										console.log('peerCorestackRelationInstance SUCCESS');
-										console.log(peerCorestackRelationInstance);
-									}
-									Promise.resolve({'result': 'success'});
-								});
-							});
-						}).catch(err => {
-							console.log('registerStudentError');
-							console.log(err);
-							Promise.reject(err);
-						});
-					});
-				};
-				
-				const query = {
-					where: {
-						student_id: participantUserInstance.id
-					},
-					include: [
-						'peer',
-						'collections'
-					]
-				};
-				
-				Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
-					console.log('corestackStudents');
-					console.log(corestackStudents);
-					if (errorcorestackStudents) {
-						console.log('Error in fetching students in DB');
-						Promise.reject(errorcorestackStudents);
-					} else {
-						const studentIsPresent = corestackStudents.find(student => {
-							const studentJSON = student.toJSON();
-							return studentJSON.peer[0].id === participantUserInstance.id;
-						});
-						const existingStudent = studentIsPresent ? studentIsPresent.toJSON() : false;
-						if (!existingStudent) {
-							// If student is not registered on corestack
-							registerOnCorestack();
-						} else {
-							// If student is already registered on corestack
-							const hasJoinedThisCollection = existingStudent.collections.some(collection => collection.id === collectionInstance.id);
-							if (hasJoinedThisCollection) {
-								console.log('student already added to the collection');
-								Promise.resolve({'result': 'success'});
 							} else {
-								console.log('add this collection to the existing student\s record');
-								collectionInstance.__link__corestackStudents(existingStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+								username = '';
+							}
+							console.log('registering on corestack with username: ');
+							console.log(username);
+							const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
+							const student_id = participantJSON.id;
+							const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+							const student_email = participantJSON.email;
+							const course_id = collectionInstance.corestackCourseId;
+							const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+							const course_end_date = moment(calendar.endDate).add('7', 'days').format('YYYY-MM-DD');
+							console.log('EndDate: ' + course_end_date);
+							const corestackScriptPath = collectionInstance.corestackScriptPath;
+							Collection.app.models.corestack_student.registerStudent(
+									student_id,
+									student_name,
+									student_email,
+									course_id,
+									course_start_date,
+									username,
+									course_end_date,
+									corestackScriptPath
+							).then(corestackStudentInstance => {
+								console.log('connecting Corestack student');
+								collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
 									if (corestackStudentRelationerr) {
 										console.log('corestackStudentRelationerr');
 										console.log(corestackStudentRelationerr);
 									} else {
-										console.log('corestackStudentRelation');
+										console.log('corestackStudentRelation SUCCESS');
 										console.log(corestackStudentRelation);
 									}
+									participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
+										if (peerCorestackRelationInstanceerr) {
+											console.log('peerCorestackRelationInstanceErr');
+											console.log(peerCorestackRelationInstanceerr);
+										} else {
+											console.log('peerCorestackRelationInstance SUCCESS');
+											console.log(peerCorestackRelationInstance);
+										}
+										resolve({'result': 'success'});
+									});
 								});
-								Promise.resolve({'result': 'success'});
+							}).catch(err => {
+								console.log('registerStudentError');
+								console.log(err);
+								reject(err);
+							});
+						});
+					};
+					
+					const query = {
+						where: {
+							student_id: participantUserInstance.id
+						},
+						include: [
+							'peer',
+							'collections'
+						]
+					};
+					
+					// Check if student already is registered on corestack
+					Collection.app.models.corestack_student.find(query, (errorcorestackStudents, corestackStudents) => {
+						console.log('corestackStudents');
+						console.log(corestackStudents);
+						if (errorcorestackStudents) {
+							console.log('Error in fetching students in DB');
+							reject(errorcorestackStudents);
+						} else {
+							const studentIsPresent = corestackStudents.find(student => {
+								const studentJSON = student.toJSON();
+								return studentJSON.peer[0].id === participantUserInstance.id;
+							});
+							const existingStudent = studentIsPresent ? studentIsPresent.toJSON() : false;
+							if (!existingStudent || (existingStudent && existingStudent.student_course_status === 'deregistered')) {
+								// If student is not registered on corestack
+								registerOnCorestack();
+							} else {
+								// If student is already registered on corestack
+								const hasJoinedThisCollection = existingStudent.collections.some(collection => collection.id === collectionInstance.id);
+								if (hasJoinedThisCollection) {
+									console.log('student already added to the collection');
+									resolve({'result': 'success'});
+								} else {
+									console.log('add this collection to the existing student\s record');
+									collectionInstance.__link__corestackStudents(existingStudent.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+										if (corestackStudentRelationerr) {
+											console.log('corestackStudentRelationerr');
+											console.log(corestackStudentRelationerr);
+										} else {
+											console.log('corestackStudentRelation');
+											console.log(corestackStudentRelation);
+										}
+									});
+									resolve({'result': 'success'});
+								}
 							}
 						}
-					}
-				});
-				
-			} else {
-				Promise.resolve({'result': 'success'});
-			}
+					});
+					
+				} else {
+					resolve({'result': 'success'});
+				}
+			});
 		};
 		
 		return Collection.app.models.peer.findById(participantId, { "include": ["profiles", "scholarships_joined"] })
@@ -250,15 +254,19 @@ module.exports = function (Collection) {
 					
 					// Record student participation in an experience on blockchain
 					return requestPromise.put({
-								url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
-								body: {
-									scholarshipId: scholarshipId
-								},
-								json: true
-							});
+						url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+						body: {
+							scholarshipId: scholarshipId
+						},
+						json: true
+					});
 				})
 				.then((blockchainResponse) => {
-					console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ' + blockchainResponse);
+					// Add student to CodeLabs and resolve the promise based on that.
+					return checkAndAddtoCorestack();
+				})
+				.finally(() => {
+					console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS: ');
 					
 					// Send email to the student welcoming him to course
 					let message = {
@@ -299,10 +307,9 @@ module.exports = function (Collection) {
 							.catch(function (err) {
 								console.log('email error! - ' + err);
 							});
-					
-					// Add student to CodeLabs and resolve the promise based on that.
-					checkAndAddtoCorestack();
-					
+				})
+				.then(res => {
+					Promise.resolve({result: 'success'});
 				})
 				.catch((err) => {
 					console.log(err);
@@ -334,12 +341,12 @@ module.exports = function (Collection) {
 										subject: 'New announcement from teacher',
 										html: html_body
 									})
-										.then(function (response) {
-											console.log('email sent! - ' + response);
-										})
-										.catch(function (err) {
-											console.log('email error! - ' + err);
-										});
+											.then(function (response) {
+												console.log('email sent! - ' + response);
+											})
+											.catch(function (err) {
+												console.log('email error! - ' + err);
+											});
 								});
 								next();
 							}
@@ -382,68 +389,68 @@ module.exports = function (Collection) {
 				]
 			};
 			Collection.app.models.calendar.findById(calendarObj.id, query,
-				function (err, calendarInstanceObject) {
-					if (err) {
-						console.log('err');
-						console.log(err);
-					} else if (calendarInstanceObject) {
-						const calendarInstance = calendarInstanceObject.toJSON();
-						const now = moment();
-						const upComingCalendars = [];
-						calendarInstance.collection[0].calendars.forEach(calendar => {
-							const startMoment = moment(calendar.startDate);
-							if (startMoment.isAfter(now)) {
-								upComingCalendars.push(
-									{
-										formated: startMoment.format('dddd, MMMM Do YYYY, h:mm a'),
-										startDate: calendar.startDate
-									});
-							}
-						});
-
-						if (upComingCalendars.length > 0) {
-							upComingCalendars.sort((a, b) => {
-								const startMomentA = moment(a.startDate);
-								const startMomentB = moment(b.startDate);
-								return startMomentA.diff(startMomentB);
+					function (err, calendarInstanceObject) {
+						if (err) {
+							console.log('err');
+							console.log(err);
+						} else if (calendarInstanceObject) {
+							const calendarInstance = calendarInstanceObject.toJSON();
+							const now = moment();
+							const upComingCalendars = [];
+							calendarInstance.collection[0].calendars.forEach(calendar => {
+								const startMoment = moment(calendar.startDate);
+								if (startMoment.isAfter(now)) {
+									upComingCalendars.push(
+											{
+												formated: startMoment.format('dddd, MMMM Do YYYY, h:mm a'),
+												startDate: calendar.startDate
+											});
+								}
 							});
-
-							if (calendarInstance.collection[0] && calendarInstance.collection[0].peersFollowing) {
-								calendarInstance.collection[0].peersFollowing.forEach((peer) => {
-									let message = {
-										participantName: peer.profiles[0].first_name + ' ' + peer.profiles[0].last_name,
-										calendars: upComingCalendars,
-										collectionId: calendarInstance.collection[0].id,
-										type: calendarInstance.collection[0].type,
-										collectionTitle: calendarInstance.collection[0].title
-									};
-									console.log(message);
-									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newCohortAdded.ejs'));
-									let html_body = renderer(message);
-									console.info('fetching peers');
-
-									// console.log(peerInstances);
-
-									loopback.Email.send({
-										to: peer.email,
-										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-										subject: 'Announcing new batches for course ' + calendarInstance.collection[0].title + '!',
-										html: html_body
-									},
-										(err, mail) => {
-											console.log('email sent to' + peer.email);
-										}
-									);
-
+							
+							if (upComingCalendars.length > 0) {
+								upComingCalendars.sort((a, b) => {
+									const startMomentA = moment(a.startDate);
+									const startMomentB = moment(b.startDate);
+									return startMomentA.diff(startMomentB);
 								});
+								
+								if (calendarInstance.collection[0] && calendarInstance.collection[0].peersFollowing) {
+									calendarInstance.collection[0].peersFollowing.forEach((peer) => {
+										let message = {
+											participantName: peer.profiles[0].first_name + ' ' + peer.profiles[0].last_name,
+											calendars: upComingCalendars,
+											collectionId: calendarInstance.collection[0].id,
+											type: calendarInstance.collection[0].type,
+											collectionTitle: calendarInstance.collection[0].title
+										};
+										console.log(message);
+										let renderer = loopback.template(path.resolve(__dirname, '../../server/views/newCohortAdded.ejs'));
+										let html_body = renderer(message);
+										console.info('fetching peers');
+										
+										// console.log(peerInstances);
+										
+										loopback.Email.send({
+													to: peer.email,
+													from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+													subject: 'Announcing new batches for course ' + calendarInstance.collection[0].title + '!',
+													html: html_body
+												},
+												(err, mail) => {
+													console.log('email sent to' + peer.email);
+												}
+										);
+										
+									});
+								}
 							}
+						} else {
+							console.log('calendar not found');
+							
 						}
-					} else {
-						console.log('calendar not found');
-
-					}
-
-				});
+						
+					});
 		}
 		next();
 	});
@@ -454,7 +461,7 @@ module.exports = function (Collection) {
 	 * @returns {string}
 	 */
 	Collection.getCookieUserId = function (req) {
-
+		
 		let cookieArray = req.headers.cookie.split(';');
 		let cookie = '';
 		for (let i = 0; i < cookieArray.length; i++) {
@@ -509,25 +516,25 @@ module.exports = function (Collection) {
 												next(err);
 											}
 											else {
-
+												
 												// Drop student from collection on blockchain
 												request
-													.delete({
-														url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
-														body: {
-															scholarshipId: ctx.req.body.scholarshipId
-														},
-														json: true
-													}, function (err, response, data) {
-														if (err) {
-															console.error(err);
-														} else if (data && data.error) {
-															console.error(data);
-														} else {
-															console.log('DROPPED STUDENT PARTICIPATION ON BLOCKCHAIN ' + data);
-														}
-													});
-
+														.delete({
+															url: Collection.app.get('protocolUrl') + 'collections/' + collectionInstance.id + '/peers/rel/' + participantUserInstance.ethAddress,
+															body: {
+																scholarshipId: ctx.req.body.scholarshipId
+															},
+															json: true
+														}, function (err, response, data) {
+															if (err) {
+																console.error(err);
+															} else if (data && data.error) {
+																console.error(data);
+															} else {
+																console.log('DROPPED STUDENT PARTICIPATION ON BLOCKCHAIN ' + data);
+															}
+														});
+												
 												// Send email to the user confirming cancellation
 												let message = { heading: "You have cancelled your participation for - " + collectionInstance.title + ". \n\n If you are eligible for a refund, it'll be credited to your account in 7 working days." };
 												let renderer = loopback.template(path.resolve(__dirname, '../../server/views/notificationEmail.ejs'));
@@ -538,13 +545,13 @@ module.exports = function (Collection) {
 													subject: 'Participation cancelled for ' + collectionInstance.title,
 													html: html_body
 												})
-													.then(function (response) {
-														console.log('email sent! - ');
-													})
-													.catch(function (err) {
-														console.log('email error! - ' + err);
-													});
-
+														.then(function (response) {
+															console.log('email sent! - ');
+														})
+														.catch(function (err) {
+															console.log('email error! - ' + err);
+														});
+												
 												// Send email to the teacher informing about cancelled student
 												message = { heading: participantUserInstance.toJSON().profiles[0].first_name + " " + participantUserInstance.toJSON().profiles[0].last_name + " has dropped out of " + collectionInstance.title };
 												html_body = renderer(message);
@@ -554,13 +561,13 @@ module.exports = function (Collection) {
 													subject: 'A student un-enrolled from course ' + collectionInstance.title,
 													html: html_body
 												})
-													.then(function (response) {
-														console.log('email sent! - ');
-													})
-													.catch(function (err) {
-														console.log('email error! - ' + err);
-													});
-
+														.then(function (response) {
+															console.log('email sent! - ');
+														})
+														.catch(function (err) {
+															console.log('email error! - ' + err);
+														});
+												
 												// Remove the user from chat room
 												collectionInstance.__get__rooms({}, function (err, roomInstances) {
 													if (!err) {
@@ -604,58 +611,62 @@ module.exports = function (Collection) {
 						});
 					}
 				});
-
+				
 				// if collection is a guide unlink participant from corestack
-				// if (collectionInstance.type === 'guide') {
-				// 	console.log('deregistering_corestack_student');
-				// 	const removeFromCoreStack = (corestackStudent) => {
-				// 		const participantJSON = participantUserInstance.toJSON();
-				// 		Collection.app.models.corestack_student.deregisterStudent(
-				// 			corestackStudent.student_id, 'ETHEREUM'
-				// 		).then(corestackStudentInstance => {
-				// 			console.log('Email Corestack student the he has been de registered');
-				// 			let message = {
-				// 				guideUrl: 'https://theblockchainu.com/guide/' + collectionInstance.customUrl,
-				// 				guideTitle: collectionInstance.title.toUpperCase()
-				// 			};
-				// 			let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackDeActivated.ejs'));
-				// 			let html_body = renderer(message);
-				// 			return loopback.Email.send({
-				// 				to: participantJSON.email,
-				// 				from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-				// 				subject: 'Code Labs DeActivated!',
-				// 				html: html_body
-				// 			});
-				// 		}).then(emailInstance => {
-				// 			console.log('Email Sent!');
-				// 		}).catch(err => {
-				// 			console.log('registerStudentError');
-				// 			console.log(err);
-				// 		});
-				// 		return true;
-				// 	};
-				// 	const query = {
-				// 		where: {
-				// 			student_id: participantUserInstance.id
-				// 		}
-				// 	};
-				// 	collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
-				// 		console.log('corestackStudents');
-				// 		console.log(corestackStudents);
-				// 		if (errorcorestackStudents) {
-				// 			// removeFromCoreStack();
-				// 			console.log('Error in fetching students in DB');
-				// 		} else {
-				// 			if (corestackStudents) {
-				// 				removeFromCoreStack(corestackStudents[0]);
-				// 			} else {
-				// 				console.log('Student Not added to the collection');
-				// 			}
-				// 		}
-				// 	});
-
-				// }
-
+				if (collectionInstance.type === 'guide') {
+					console.log('de-registering_corestack_student');
+					const removeFromCoreStack = (corestackStudent) => {
+						const participantJSON = participantUserInstance.toJSON();
+						Collection.app.models.corestack_student.deregisterStudent(
+								corestackStudent.student_id, corestackStudent.course_id
+						).then(corestackStudentInstance => {
+							collectionInstance.__unlink__corestackStudents(corestackStudentInstance.id, (unlinkErr, unlinkResult) => {
+								if (unlinkErr) {
+									console.error('Could not unlink corestack student from this collection');
+								} else {
+									console.log('Email Corestack student the he has been de registered');
+									console.log(corestackStudentInstance);
+									let message = {
+										guideUrl: 'https://theblockchainu.com/guide/' + collectionInstance.customUrl,
+										guideTitle: collectionInstance.title.toUpperCase()
+									};
+									let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackDeActivated.ejs'));
+									let html_body = renderer(message);
+									return loopback.Email.send({
+										to: participantJSON.email,
+										from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+										subject: 'CodeLab DeActivated',
+										html: html_body
+									});
+								}
+							});
+						}).then(emailInstance => {
+							console.log('Email Sent!');
+						}).catch(err => {
+							console.log('de-register Corestack Student Error');
+							console.error(err);
+						});
+					};
+					const query = {
+						where: {
+							student_id: participantUserInstance.id
+						}
+					};
+					collectionInstance.__get__corestackStudents(query, (errorcorestackStudents, corestackStudents) => {
+						console.log('corestackStudents');
+						console.log(corestackStudents);
+						if (errorcorestackStudents) {
+							// removeFromCoreStack();
+							console.log('Error in fetching students in DB');
+						} else {
+							if (corestackStudents && corestackStudents.length > 0) {
+								removeFromCoreStack(corestackStudents[0]);
+							} else {
+								console.log('Student not added to the collection');
+							}
+						}
+					});
+				}
 			}
 		});
 	});
@@ -677,19 +688,19 @@ module.exports = function (Collection) {
 				collectionInstance.isApproved = false;
 				if (collectionInstance.type !== 'session') {
 					Collection.checkSetUniqueUrl(collectionInstance)
-						.then(res => {
-							console.log('collectionInstance updated');
-							if (collectionInstance.type === 'guide' && collectionInstance.githubUrl !== undefined) {
-								console.log('Setting corestack script');
-								setCorestackScriptPath(collectionInstance);
-							}
-						}).catch(err => {
-							console.log(err);
-							err = new Error(g.f('Error updating collection.'));
-							err.statusCode = 400;
-							err.code = 'DB_ERROR';
-							cb(err);
-						});
+							.then(res => {
+								console.log('collectionInstance updated');
+								if (collectionInstance.type === 'guide' && collectionInstance.githubUrl !== undefined && collectionInstance.corestackCourseTemplate !== undefined) {
+									console.log('Setting corestack script');
+									setCorestackScriptPath(collectionInstance, loggedinPeer);
+								}
+							}).catch(err => {
+						console.log(err);
+						err = new Error(g.f('Error updating collection.'));
+						err.statusCode = 400;
+						err.code = 'DB_ERROR';
+						cb(err);
+					});
 				} else {
 					collectionInstance.save();
 				}
@@ -714,42 +725,40 @@ module.exports = function (Collection) {
 				}
 				let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionSubmitted.ejs'));
 				let html_body = renderer(message);
-
+				
 				// Create payout rule for this collection
 				Collection.app.models.peer.findById(loggedinPeer, { "include": ["payoutaccs"] },
-					function (err, peerInstance) {
-						loopback.Email.send({
-							to: peerInstance.toJSON().email,
-							from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-							subject: subject,
-							html: html_body
-						}).then(function (response) {
-							console.log('email sent! - ');
-						}).catch(function (err) {
-							console.log('email error! - ' + err);
-						});
-
-						let peerPayoutAccs = peerInstance.toJSON().payoutaccs;
-						if (peerPayoutAccs && peerPayoutAccs.length) {
-
-							peerPayoutAccs.forEach(function (payoutaccs) {
-
-								if (payoutaccs.is_default) {
-									let payoutRule = {};
-									payoutRule.percentage1 = 100;
-									payoutRule.payoutId1 = payoutaccs.id;
-
-									collectionInstance.payoutrules.create(payoutRule,
-										function (err, payoutRulesInstance) {
-											if (err) {
-												payoutRulesInstance.destroy();
-												cb(err);
-											}
-										});
-								}
+						function (err, peerInstance) {
+							loopback.Email.send({
+								to: peerInstance.toJSON().email,
+								from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+								subject: subject,
+								html: html_body
+							}).then(function (response) {
+								console.log('email sent! - ');
+							}).catch(function (err) {
+								console.log('email error! - ' + err);
 							});
-						}
-					});
+							
+							let peerPayoutAccs = peerInstance.toJSON().payoutaccs;
+							if (peerPayoutAccs && peerPayoutAccs.length) {
+								peerPayoutAccs.forEach(function (payoutaccs) {
+									if (payoutaccs.is_default) {
+										let payoutRule = {};
+										payoutRule.percentage1 = 100;
+										payoutRule.payoutId1 = payoutaccs.id;
+										
+										collectionInstance.payoutrules.create(payoutRule,
+												function (err, payoutRulesInstance) {
+													if (err) {
+														payoutRulesInstance.destroy();
+														cb(err);
+													}
+												});
+									}
+								});
+							}
+						});
 				cb(null, 'Submitted for review. Email sent to user.');
 			}
 			else {
@@ -775,7 +784,9 @@ module.exports = function (Collection) {
 				cb(err);
 			} else {
 				const script_string = data.toString();
-				const replaced_script_string = script_string.replace('{{GIT_CLONE_URL}}', githubUrl);
+				let replaced_script_string = script_string.replace('{{GIT_CLONE_URL}}', githubUrl);
+				const gitRepoName = githubUrl.split('/')[githubUrl.split('/').length - 1];
+				replaced_script_string = replaced_script_string.replace('{{GIT_REPO_NAME}}', gitRepoName);
 				const new_script_buffer = Buffer.from(replaced_script_string);
 				const fileName = collectionId + '.sh';
 				Collection.app.models.media.uploadBuffer(fileName, new_script_buffer, (awsError, awsData) => {
@@ -793,31 +804,122 @@ module.exports = function (Collection) {
 	/**
 	 * Update a collection with the new custom shell script URL from AWS S3
 	 * @param collectionInstance Collection Instance
+	 * @param loggedinPeer ID of logged in user
 	 */
-	const setCorestackScriptPath = (collectionInstance) => {
-		if (!collectionInstance.corestackScriptPath || collectionInstance.corestackScriptPath.length === 0) {
-			getCorestackScriptPath(
-				collectionInstance.id,
-				collectionInstance.githubUrl,
-				(getCorestackScriptPathErr, newPath) => {
-					if (getCorestackScriptPathErr) {
-						console.log('getCorestackScriptPath');
-						console.log(getCorestackScriptPath);
-					} else {
-						console.log(newPath);
-						const obj = { corestackScriptPath: newPath };
-						Collection.upsertWithWhere({ id: collectionInstance.id }, obj, (saveErr, savedInstance) => {
-							if (saveErr) {
-								console.log(saveErr);
+	const setCorestackScriptPath = (collectionInstance, loggedinPeer) => {
+		
+		const registerOnCorestack = function (collectionInstance) {
+			Collection.app.models.peer.findById(loggedinPeer, { "include": ["profiles"] })
+					.then(participantUserInstance => {
+						collectionInstance.__get__calendars({}, (error, calendarInstances) => {
+							const participantJSON = participantUserInstance.toJSON();
+							let username;
+							if (participantJSON.id) {
+								username = 'tbu-' + participantJSON.id;
+								if (username.length > 15) {
+									username = username.slice(0, 15);
+								}
 							} else {
-								console.log('Corestack Script saved');
-								console.log(savedInstance);
+								username = '';
 							}
+							console.log('registering on corestack with username: ');
+							console.log(username);
+							const calendar = calendarInstances[0].toJSON(); // assuming there's only one calendar in guides
+							const student_id = participantJSON.id;
+							const student_name = participantJSON.profiles[0].first_name + ' ' + participantJSON.profiles[0].last_name;
+							const student_email = participantJSON.email;
+							const course_id = collectionInstance.corestackCourseId;
+							const course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+							const course_end_date = moment(calendar.endDate).add('7', 'days').format('YYYY-MM-DD');
+							console.log('EndDate: ' + course_end_date);
+							const corestackScriptPath = collectionInstance.corestackScriptPath;
+							Collection.app.models.corestack_student.registerStudent(
+									student_id,
+									student_name,
+									student_email,
+									course_id,
+									course_start_date,
+									username,
+									course_end_date,
+									corestackScriptPath
+							).then(corestackStudentInstance => {
+								console.log('connecting Corestack student');
+								collectionInstance.__link__corestackStudents(corestackStudentInstance.id, (corestackStudentRelationerr, corestackStudentRelation) => {
+									if (corestackStudentRelationerr) {
+										console.log('corestackStudentRelationerr');
+										console.log(corestackStudentRelationerr);
+									} else {
+										console.log('corestackStudentRelation SUCCESS');
+										console.log(corestackStudentRelation);
+									}
+									participantUserInstance.__link__corestackStudent(corestackStudentInstance.id, (peerCorestackRelationInstanceerr, peerCorestackRelationInstance) => {
+										if (peerCorestackRelationInstanceerr) {
+											console.log('peerCorestackRelationInstanceErr');
+											console.log(peerCorestackRelationInstanceerr);
+										} else {
+											console.log('peerCorestackRelationInstance SUCCESS');
+											console.log(peerCorestackRelationInstance);
+										}
+									});
+								});
+							}).catch(err => {
+								console.log('registerStudentError');
+								console.log(err);
+							});
 						});
-					}
-				});
+					})
+					.catch(err => {
+						console.log('Invalid teacher account ID. Error: ' + err);
+					});
+		};
+		
+		if (!collectionInstance.corestackScriptPath || collectionInstance.corestackScriptPath.length === 0 || collectionInstance.corestackCourseId === 'BC0001' || collectionInstance.corestackCourseId === '') {
+			getCorestackScriptPath(
+					collectionInstance.id,
+					collectionInstance.githubUrl,
+					(getCorestackScriptPathErr, newPath) => {
+						if (getCorestackScriptPathErr) {
+							console.log('getCorestackScriptPathError: ' + getCorestackScriptPathErr);
+						} else {
+							console.log('New Corestack Script Path: ' + newPath);
+							
+							// Create a new corestack course clone and add its ID to collection.
+							let new_course_id, course_start_date, course_end_date;
+							new_course_id = 'tbu-' + moment().unix();
+							if (new_course_id.length > 15) {
+								new_course_id = new_course_id.slice(0, 15);
+							}
+							course_start_date = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+							course_end_date = moment(course_start_date).add('365', 'days').format('YYYY-MM-DD');
+							Collection.app.models.corestack_student.cloneCourse(
+									collectionInstance.corestackCourseTemplate,
+									new_course_id,
+									collectionInstance.title,
+									new_course_id,
+									course_start_date,
+									course_end_date
+							).then(result => {
+								const obj = {
+									corestackScriptPath: newPath,
+									corestackCourseId: result.clonned_course_id
+								};
+								Collection.upsertWithWhere({ id: collectionInstance.id }, obj, (saveErr, savedInstance) => {
+									if (saveErr) {
+										console.log(saveErr);
+									} else {
+										console.log('Corestack Script Path and new lab ID saved to collection');
+										console.log(savedInstance);
+										// Register teacher on the new corestack lab
+										registerOnCorestack(savedInstance);
+									}
+								});
+							}).catch(err => {
+								console.log(err);
+							});
+						}
+					});
 		} else {
-			console.log('Corestack Script alredy present');
+			console.log('Corestack Script already present');
 			console.log(collectionInstance.corestackScriptPath);
 		}
 	};
@@ -868,19 +970,25 @@ module.exports = function (Collection) {
 							case 'class':
 								subject = 'Online course approved';
 								title = 'Online course approved!';
-								description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+								description = "%collectionType% %collectionName% has been approved. Add a payout method and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
 								break;
 							case 'experience':
 								subject = 'In-person workshop approved';
 								title = 'In-person workshop approved!';
-								description = "%collectionType% %collectionName% has been approved. Add finishing touches and invite students now.";
+								description = "%collectionType% %collectionName% has been approved. Add a payout method and invite students now.";
+								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
+								break;
+							case 'guide':
+								subject = 'Learning guide approved';
+								title = 'Learning guide approved!';
+								description = "%collectionType% %collectionName% has been approved. Add a payout method and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "18"];
 								break;
 							case 'session':
 								subject = 'Account Approved for Mentor Sessions';
 								title = 'Account Approved for Mentor Sessions!';
-								description = "Your account has been approved for sessions. Add finishing touches and invite students now.";
+								description = "Your account has been approved for sessions. Add a payout method and invite students now.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "17"];
 								break;
 							default:
@@ -892,10 +1000,10 @@ module.exports = function (Collection) {
 						}
 						let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionApproved.ejs'));
 						let html_body = renderer(message);
-
+						
 						// Send email to owner of this collection
 						Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
-
+							
 							if (!err) {
 								// Send notification to owner
 								ownerInstance.__create__notifications({
@@ -943,7 +1051,7 @@ module.exports = function (Collection) {
 																			newRoomInstance.__create__messages(messageObject, function (err, newMessageInstance) {
 																				if (!err) {
 																					Collection.app.io.in(newRoomInstance.id).emit('message', newMessageInstance.toJSON());
-
+																					
 																					// Add this collection to blockchain.
 																					const assessmentRuleKeys = [];
 																					const assessmentRuleValues = [];
@@ -985,33 +1093,33 @@ module.exports = function (Collection) {
 																					//console.log('total learning hours are: ' + learningHours);
 																					// Add to blockchain
 																					request
-																						.post({
-																							url: Collection.app.get('protocolUrl') + 'collections',
-																							body: {
-																								uniqueId: collectionInstance.id,
-																								teacherAddress: ownerInstance.ethAddress,
-																								type: collectionInstance.type,
-																								learningHours: learningHours,
-																								activityHash: 'NA',
-																								academicGyan: collectionInstance.academicGyan,
-																								nonAcademicGyan: collectionInstance.nonAcademicGyan,
-																								assessmentRuleKeys: assessmentRuleKeys,
-																								assessmentRuleValues: assessmentRuleValues,
-																								nonAcademicRules: nonAcademicRules,
-																								topics: topicArray
-																							},
-																							json: true
-																						}, function (err, response, data) {
-																							if (err) {
-																								console.error(err);
-																							} else if (data && data.error) {
-																								console.error(data.error);
-																							} else {
-																								console.log('Add collection to blockchain: ');
-																								console.log(data);
-																							}
-																						});
-
+																							.post({
+																								url: Collection.app.get('protocolUrl') + 'collections',
+																								body: {
+																									uniqueId: collectionInstance.id,
+																									teacherAddress: ownerInstance.ethAddress,
+																									type: collectionInstance.type,
+																									learningHours: learningHours,
+																									activityHash: 'NA',
+																									academicGyan: collectionInstance.academicGyan,
+																									nonAcademicGyan: collectionInstance.nonAcademicGyan,
+																									assessmentRuleKeys: assessmentRuleKeys,
+																									assessmentRuleValues: assessmentRuleValues,
+																									nonAcademicRules: nonAcademicRules,
+																									topics: topicArray
+																								},
+																								json: true
+																							}, function (err, response, data) {
+																								if (err) {
+																									console.error(err);
+																								} else if (data && data.error) {
+																									console.error(data.error);
+																								} else {
+																									console.log('Add collection to blockchain: ');
+																									console.log(data);
+																								}
+																							});
+																					
 																					cb(null, { result: 'Collection approved. Email sent to owner.' });
 																				}
 																				else {
@@ -1035,19 +1143,19 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-
+								
 								loopback.Email.send({
 									to: ownerInstance.email,
 									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 									subject: subject,
 									html: html_body
 								})
-									.then(function (response) {
-										console.log('email sent! - ');
-									})
-									.catch(function (err) {
-										console.log('email error! - ' + err);
-									});
+										.then(function (response) {
+											console.log('email sent! - ');
+										})
+										.catch(function (err) {
+											console.log('email error! - ' + err);
+										});
 							}
 							else {
 								cb(err);
@@ -1122,10 +1230,10 @@ module.exports = function (Collection) {
 						}
 						let renderer = loopback.template(path.resolve(__dirname, '../../server/views/collectionRejected.ejs'));
 						let html_body = renderer(message);
-
+						
 						// Send email to owner of this class
 						Collection.app.models.peer.findById(ownerId, { "include": "profiles" }, function (err, ownerInstance) {
-
+							
 							if (!err) {
 								// Send notification to owner
 								ownerInstance.__create__notifications({
@@ -1155,19 +1263,19 @@ module.exports = function (Collection) {
 										});
 									}
 								});
-
+								
 								loopback.Email.send({
 									to: ownerInstance.email,
 									from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
 									subject: subject,
 									html: html_body
 								})
-									.then(function (response) {
-										console.log('email sent! - ');
-									})
-									.catch(function (err) {
-										console.log('email error! - ' + err);
-									});
+										.then(function (response) {
+											console.log('email sent! - ');
+										})
+										.catch(function (err) {
+											console.log('email error! - ' + err);
+										});
 							}
 							else {
 								cb(err);
@@ -1220,12 +1328,12 @@ module.exports = function (Collection) {
 							subject: collectionInstance.type + ' cancelled : ' + collectionInstance.title,
 							html: html_body
 						})
-							.then(function (response) {
-								console.log('email sent! - ');
-							})
-							.catch(function (err) {
-								console.log('email error! - ' + err);
-							});
+								.then(function (response) {
+									console.log('email sent! - ');
+								})
+								.catch(function (err) {
+									console.log('email error! - ' + err);
+								});
 					});
 					next();
 				}
@@ -1234,10 +1342,10 @@ module.exports = function (Collection) {
 				}
 			});
 		} else {
-
+			
 			// ctx.args.data.status = 'draft';
 			next();
-
+			
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -1249,15 +1357,15 @@ module.exports = function (Collection) {
 			// 			// This collection has existing participants on it. It cannot be edited without branching out.
 			// 			// Create a new collection by copying all the data of this collection
 			// 			let newCollection = collectionInstance.toJSON();
-
+			
 			// 			let updatedContentKeys = Object.keys(ctx.args.data);
 			// 			updatedContentKeys.forEach(function (updatedContentKey) {
 			// 				newCollection[updatedContentKey] = ctx.args.data[updatedContentKey];
 			// 			});
-
+			
 			// 			//newCollection.title = '[COPY] ' + newCollection.title;
 			// 			newCollection.disableHasOneCreate = true;
-
+			
 			// 			delete newCollection.id;
 			// 			delete newCollection.status;
 			// 			delete newCollection.isCanceled;
@@ -1265,7 +1373,7 @@ module.exports = function (Collection) {
 			// 			delete newCollection.updatedAt;
 			// 			delete newCollection.isApproved;
 			// 			delete newCollection.isNewInstance;
-
+			
 			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
 			// 				if (err) {
 			// 					next(err);
@@ -1274,7 +1382,7 @@ module.exports = function (Collection) {
 			// 					delete ctx.args.data;
 			// 					ctx.args.data = {};
 			// 					newCollectionInstance.isNewInstance = true;
-
+			
 			// 					// Create a relation between logged in user and this new collection node
 			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
 			// 						if (!err && oldOwnerInstances !== null) {
@@ -1293,7 +1401,7 @@ module.exports = function (Collection) {
 			// 							next(err);
 			// 						}
 			// 					});
-
+			
 			// 					// Copy all contents from oldInstance to new instance
 			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
 			// 						if (!err && oldContentInstances !== null) {
@@ -1310,7 +1418,7 @@ module.exports = function (Collection) {
 			// 							console.log(err);
 			// 						}
 			// 					});
-
+			
 			// 					// Copy calendars from old collection to new collection
 			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
 			// 						if (!err && oldCalendarInstances !== null) {
@@ -1343,7 +1451,7 @@ module.exports = function (Collection) {
 			// 							}
 			// 						}
 			// 					});
-
+			
 			// 					// Copy topics from old collection to new collection
 			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
 			// 						if (!err && oldTopicInstances !== null) {
@@ -1352,11 +1460,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied topic for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy payoutrules from old collection to new collection
 			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
 			// 						if (!err && oldPayoutInstances !== null) {
@@ -1365,11 +1473,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied payoutrules for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy certificate templates
 			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 			// 						if (!err && oldCertificateTemplates !== null) {
@@ -1378,11 +1486,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied certificate template for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy promo codes
 			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 			// 						if (!err && oldPromoCodes !== null) {
@@ -1391,11 +1499,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied promo codes for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy rewards
 			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
 			// 						if (!err && oldRewards !== null) {
@@ -1404,11 +1512,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied rewards for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy Assessment models
 			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 			// 						if (!err && oldAssessmentModels !== null) {
@@ -1417,11 +1525,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied assessment model for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					ctx.res.json(newCollectionInstance.toJSON());
 			// 				}
 			// 			});
@@ -1457,10 +1565,10 @@ module.exports = function (Collection) {
 			next();
 		}
 		else {
-
+			
 			// ctx.args.data.status = 'draft';
 			next();
-
+			
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -1469,9 +1577,9 @@ module.exports = function (Collection) {
 			// 			next(err);
 			// 		}
 			// 		else if (participantInstances !== null && participantInstances.length > 0) {
-
+			
 			// 			// This collection has existing participants on it. It cannot be edited without branching out.
-
+			
 			// 			// Create a new collection by copying all the data of this collection
 			// 			let newCollection = collectionInstance.toJSON();
 			// 			delete newCollection.id;
@@ -1483,14 +1591,14 @@ module.exports = function (Collection) {
 			// 			delete newCollection.isNewInstance;
 			// 			//newCollection.title = '[COPY] ' + newCollection.title;
 			// 			newCollection.disableHasOneCreate = true;
-
+			
 			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
 			// 				if (err) {
 			// 					next(err);
 			// 				}
 			// 				else {
 			// 					newCollectionInstance.isNewInstance = true;
-
+			
 			// 					// Get all owners of this collection and link them to cloned collection
 			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
 			// 						if (!err && oldOwnerInstances !== null) {
@@ -1503,9 +1611,9 @@ module.exports = function (Collection) {
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					let resultContents = [];
-
+			
 			// 					// Copy all contents from oldInstance to new instance
 			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
 			// 						if (!err && oldContentInstances !== null) {
@@ -1532,28 +1640,28 @@ module.exports = function (Collection) {
 			// 								else {
 			// 									let newContent = {};
 			// 									newContent = oldContentInstances[i].toJSON();
-
+			
 			// 									let updatedContentKeys = Object.keys(ctx.args.data);
 			// 									updatedContentKeys.forEach(function (updatedContentKey) {
 			// 										newContent[updatedContentKey] = ctx.args.data[updatedContentKey];
 			// 									});
-
+			
 			// 									delete newContent.id;
 			// 									delete newContent.schedules;
 			// 									delete newContent.locations;
 			// 									newContent.disableHasOneCreate = true;
 			// 									newContent.isNewInstance = true;
-
+			
 			// 									// Create clone of dirty content for new collection
 			// 									newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
 			// 										if (!err && newCreatedContentInstance !== null) {
 			// 											console.log('Cloned content for collection');
 			// 											let oldContentInstance = oldContentInstances[m].__data;
-
+			
 			// 											delete newCreatedContentInstance.isNewInstance;
 			// 											// Add content to array to pass in result
 			// 											resultContents.push(newCreatedContentInstance);
-
+			
 			// 											// Copy locations from old content to new content
 			// 											let newContentLocation = oldContentInstance.locations[0].toJSON();
 			// 											if (typeof newContentLocation === 'object' && newContentLocation !== undefined) {
@@ -1563,8 +1671,8 @@ module.exports = function (Collection) {
 			// 													console.log('Cloned location for content');
 			// 												});
 			// 											}
-
-
+			
+			
 			// 											// Copy schedules from old content to new content
 			// 											let newContentSchedule = oldContentInstance.schedules[0].toJSON();
 			// 											if (typeof newContentSchedule === 'object' && newContentSchedule !== undefined) {
@@ -1574,7 +1682,7 @@ module.exports = function (Collection) {
 			// 													console.log('Cloned schedule for content');
 			// 												});
 			// 											}
-
+			
 			// 										}
 			// 										m++;
 			// 										if (m === oldContentInstances.length) {
@@ -1591,7 +1699,7 @@ module.exports = function (Collection) {
 			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
 			// 						}
 			// 					});
-
+			
 			// 					// Copy calendars from old collection to new collection
 			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
 			// 						if (!err && oldCalendarInstances !== null) {
@@ -1625,7 +1733,7 @@ module.exports = function (Collection) {
 			// 							}
 			// 						}
 			// 					});
-
+			
 			// 					// Copy topics from old collection to new collection
 			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
 			// 						if (!err && oldTopicInstances !== null) {
@@ -1634,11 +1742,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied topic for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy payoutrules from old collection to new collection
 			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
 			// 						if (!err && oldPayoutInstances !== null) {
@@ -1647,11 +1755,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied payoutrules for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy certificate templates
 			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 			// 						if (!err && oldCertificateTemplates !== null) {
@@ -1660,11 +1768,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied certificate template for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy promo codes
 			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 			// 						if (!err && oldPromoCodes !== null) {
@@ -1673,11 +1781,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied promo codes for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy rewards
 			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
 			// 						if (!err && oldRewards !== null) {
@@ -1686,11 +1794,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied rewards for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy Assessment models
 			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 			// 						if (!err && oldAssessmentModels !== null) {
@@ -1699,7 +1807,7 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied assessment model for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
@@ -1734,10 +1842,10 @@ module.exports = function (Collection) {
 			next();
 		}
 		else {
-
+			
 			// ctx.args.data.status = 'draft';
 			next();
-
+			
 			// User is trying to update a non draft collection
 			// We need to check if this collection is active and if it has any participants.
 			// if (collectionInstance.status === 'active') {
@@ -1747,7 +1855,7 @@ module.exports = function (Collection) {
 			// 		}
 			// 		else if (participantInstances !== null && participantInstances.length > 0) {
 			// 			// This collection has existing participants on it. It cannot be edited without branching out.
-
+			
 			// 			// Create a new collection by copying all the data of this collection
 			// 			let newCollection = collectionInstance.toJSON();
 			// 			delete newCollection.id;
@@ -1758,14 +1866,14 @@ module.exports = function (Collection) {
 			// 			delete newCollection.isApproved;
 			// 			delete newCollection.isNewInstance;
 			// 			newCollection.disableHasOneCreate = true;
-
+			
 			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
 			// 				if (err) {
 			// 					next(err);
 			// 				}
 			// 				else {
 			// 					newCollectionInstance.isNewInstance = true;
-
+			
 			// 					// Get all owners of this collection and link them to cloned collection
 			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
 			// 						if (!err && oldOwnerInstances !== null) {
@@ -1778,10 +1886,10 @@ module.exports = function (Collection) {
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					let resultContents = [];
-
-
+			
+			
 			// 					// Copy all contents from oldInstance to new instance
 			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
 			// 						if (!err && oldContentInstances !== null) {
@@ -1797,7 +1905,7 @@ module.exports = function (Collection) {
 			// 									m++;
 			// 								});
 			// 								if (m === oldContentInstances.length) {
-
+			
 			// 									// Create new content for this collection
 			// 									let newContent = {};
 			// 									let updatedContentKeys = Object.keys(ctx.args.data);
@@ -1809,7 +1917,7 @@ module.exports = function (Collection) {
 			// 									newCollectionInstance.__create__contents(newContent, function (err, newCreatedContentInstance) {
 			// 										if (!err && newCreatedContentInstance !== null) {
 			// 											console.log('Created content for collection');
-
+			
 			// 											delete newCreatedContentInstance.isNewInstance;
 			// 											// Add content to array to pass as result
 			// 											resultContents.push(newCreatedContentInstance.toJSON());
@@ -1830,7 +1938,7 @@ module.exports = function (Collection) {
 			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
 			// 						}
 			// 					});
-
+			
 			// 					// Copy calendars from old collection to new collection
 			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
 			// 						if (!err && oldCalendarInstances !== null) {
@@ -1864,7 +1972,7 @@ module.exports = function (Collection) {
 			// 							}
 			// 						}
 			// 					});
-
+			
 			// 					// Copy topics from old collection to new collection
 			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
 			// 						if (!err && oldTopicInstances !== null) {
@@ -1873,11 +1981,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied topic for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy payoutrules from old collection to new collection
 			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
 			// 						if (!err && oldPayoutInstances !== null) {
@@ -1886,11 +1994,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied payoutrules for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy certificate templates
 			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 			// 						if (!err && oldCertificateTemplates !== null) {
@@ -1899,11 +2007,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied certificate template for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy promo codes
 			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 			// 						if (!err && oldPromoCodes !== null) {
@@ -1912,11 +2020,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied promo codes for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy rewards
 			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
 			// 						if (!err && oldRewards !== null) {
@@ -1925,11 +2033,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied rewards for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy Assessment models
 			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 			// 						if (!err && oldAssessmentModels !== null) {
@@ -1938,11 +2046,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied assessment model for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 				}
 			// 			});
 			// 		}
@@ -1981,9 +2089,9 @@ module.exports = function (Collection) {
 			// 		}
 			// 		else if (participantInstances !== null && participantInstances.length > 0) {
 			// 			console.log('***** DELETING CONTENT OF ACTIVE COLLECTION WITH PARTICIPANTS');
-
+			
 			// 			// This collection has existing participants on it. It cannot be edited without branching out.
-
+			
 			// 			// Create a new collection by copying all the data of this collection
 			// 			let newCollection = collectionInstance.toJSON();
 			// 			delete newCollection.id;
@@ -1994,14 +2102,14 @@ module.exports = function (Collection) {
 			// 			delete newCollection.isApproved;
 			// 			delete newCollection.isNewInstance;
 			// 			newCollection.disableHasOneCreate = true;
-
+			
 			// 			Collection.create(newCollection, function (err, newCollectionInstance) {
 			// 				if (err) {
 			// 					next(err);
 			// 				}
 			// 				else {
 			// 					newCollectionInstance.isNewInstance = true;
-
+			
 			// 					// Get all owners of this collection and link them to cloned collection
 			// 					collectionInstance.__get__owners(function (err, oldOwnerInstances) {
 			// 						if (!err && oldOwnerInstances !== null) {
@@ -2014,15 +2122,15 @@ module.exports = function (Collection) {
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					let resultContents = [];
-
+			
 			// 					// Copy all contents from oldInstance to new instance
 			// 					collectionInstance.__get__contents({ "include": ["schedules", "locations"] }, function (err, oldContentInstances) {
 			// 						if (!err && oldContentInstances !== null) {
 			// 							let m = 0;
 			// 							for (let i = 0; i < oldContentInstances.length; i++) {
-
+			
 			// 								if (oldContentInstances[i].id !== ctx.args.fk) {
 			// 									// Add content to array to pass as result
 			// 									// Link new clone to all non-dirty contents.
@@ -2046,7 +2154,7 @@ module.exports = function (Collection) {
 			// 							next(new Error(g.f('Cannot update collection. Error: ' + err)));
 			// 						}
 			// 					});
-
+			
 			// 					// Copy calendars from old collection to new collection
 			// 					collectionInstance.__get__calendars(function (err, oldCalendarInstances) {
 			// 						if (!err && oldCalendarInstances !== null) {
@@ -2079,7 +2187,7 @@ module.exports = function (Collection) {
 			// 							}
 			// 						}
 			// 					});
-
+			
 			// 					// Copy topics from old collection to new collection
 			// 					collectionInstance.__get__topics(function (err, oldTopicInstances) {
 			// 						if (!err && oldTopicInstances !== null) {
@@ -2088,11 +2196,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied topic for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy payoutrules from old collection to new collection
 			// 					collectionInstance.__get__payoutrules(function (err, oldPayoutInstances) {
 			// 						if (!err && oldPayoutInstances !== null) {
@@ -2101,11 +2209,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied payoutrules for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy certificate templates
 			// 					collectionInstance.__get__certificate_templates(function (err, oldCertificateTemplates) {
 			// 						if (!err && oldCertificateTemplates !== null) {
@@ -2114,11 +2222,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied certificate template for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy promo codes
 			// 					collectionInstance.__get__promoCodes(function (err, oldPromoCodes) {
 			// 						if (!err && oldPromoCodes !== null) {
@@ -2127,11 +2235,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied promo codes for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy rewards
 			// 					collectionInstance.__get__rewards(function (err, oldRewards) {
 			// 						if (!err && oldRewards !== null) {
@@ -2140,11 +2248,11 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied rewards for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
-
+			
 			// 					// Copy Assessment models
 			// 					collectionInstance.__get__assessment_models(function (err, oldAssessmentModels) {
 			// 						if (!err && oldAssessmentModels !== null) {
@@ -2153,7 +2261,7 @@ module.exports = function (Collection) {
 			// 									// Do nothing here.
 			// 									console.log('Copied assessment model for new collection');
 			// 								});
-
+			
 			// 							});
 			// 						}
 			// 					});
@@ -2170,7 +2278,7 @@ module.exports = function (Collection) {
 			// 	// Collection status is neither draft or active.
 			// 	next(new Error(g.f('Cannot delete content in state: ' + collectionInstance.status)));
 			// }
-
+			
 			// ctx.args.data.status = 'draft';
 			next();
 		}
@@ -2185,23 +2293,23 @@ module.exports = function (Collection) {
 	Collection.etherInfo = function (id, req, cb) {
 		// Get from blockchain
 		request
-			.get({
-				url: protocolUrl + 'collections/' + id,
-			}, function (err, response, data) {
-				if (err) {
-					console.error(err);
-					cb(err);
-				} else if (data && data.error) {
-					cb(data.error);
-				} else {
-					console.log('Got details of collection: ' + data);
-					try {
-						cb(null, JSON.parse(data));
-					} catch (e) {
-						cb(new Error('Failed'));
+				.get({
+					url: protocolUrl + 'collections/' + id,
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(err);
+					} else if (data && data.error) {
+						cb(data.error);
+					} else {
+						console.log('Got details of collection: ' + data);
+						try {
+							cb(null, JSON.parse(data));
+						} catch (e) {
+							cb(new Error('Failed'));
+						}
 					}
-				}
-			});
+				});
 	};
 	
 	/**
@@ -2308,7 +2416,7 @@ module.exports = function (Collection) {
 			}
 		});
 	};
-
+	
 	/**
 	 * Add a participant to Blockchain
 	 * @param id : ID of collection
@@ -2317,7 +2425,7 @@ module.exports = function (Collection) {
 	 * @param cb : Callback function
 	 */
 	Collection.addParticipantToEthereum = function (id, participantId, req, cb) {
-
+		
 		Collection.app.models.peer.findById(participantId, { "include": ["profiles", "scholarships_joined"] }, function (err, participantUserInstance) {
 			if (err) {
 				cb(err);
@@ -2336,24 +2444,24 @@ module.exports = function (Collection) {
 						}
 					}
 					request
-						.put({
-							url: Collection.app.get('protocolUrl') + 'collections/' + id + '/peers/rel/' + participantUserInstance.ethAddress,
-							body: {
-								scholarshipId: scholarshipId
-							},
-							json: true
-						}, function (err, response, data) {
-							if (err) {
-								console.error(err);
-							} else if (data && data.error) {
-								cb(data.error);
-							}
-							else {
-								console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS');
-								console.log(data);
-								cb(null, data);
-							}
-						});
+							.put({
+								url: Collection.app.get('protocolUrl') + 'collections/' + id + '/peers/rel/' + participantUserInstance.ethAddress,
+								body: {
+									scholarshipId: scholarshipId
+								},
+								json: true
+							}, function (err, response, data) {
+								if (err) {
+									console.error(err);
+								} else if (data && data.error) {
+									cb(data.error);
+								}
+								else {
+									console.log('STUDENT PARTICIPATION ON BLOCKCHAIN IN PROGRESS');
+									console.log(data);
+									cb(null, data);
+								}
+							});
 				} else {
 					cb(new Error('Could not find participant with this ID.'));
 				}
@@ -2404,7 +2512,7 @@ module.exports = function (Collection) {
 						console.log('email error! - ' + err);
 					});
 				});
-
+				
 				Collection.upsertWithWhere({ id: collectionJSON.id }, { resultsAnnounced: true }, (err, model) => {
 					if (err) {
 						cb(err);
@@ -2414,7 +2522,7 @@ module.exports = function (Collection) {
 				});
 			}
 		});
-
+		
 	};
 	
 	/**
@@ -2479,24 +2587,24 @@ module.exports = function (Collection) {
 	Collection.checkParticipantOnBlockchain = function (id, fk, req, cb) {
 		// Get from blockchain
 		request
-			.get({
-				url: protocolUrl + 'collections/' + id + '/peers',
-			}, function (err, response, data) {
-				if (err) {
-					console.error(err);
-					cb(null, { result: false, participantId: fk.toLowerCase() });
-				} else if (data && data.error) {
-					cb(null, { result: false, participantId: fk.toLowerCase() });
-				} else {
-					console.log('Got list of participants for this collection: ' + data);
-					const peers = JSON.parse(data);
-					if (_.find(peers, (peer) => peer === fk.toLowerCase())) {
-						cb(null, { result: true, participantId: fk.toLowerCase() });
-					} else {
+				.get({
+					url: protocolUrl + 'collections/' + id + '/peers',
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
 						cb(null, { result: false, participantId: fk.toLowerCase() });
+					} else if (data && data.error) {
+						cb(null, { result: false, participantId: fk.toLowerCase() });
+					} else {
+						console.log('Got list of participants for this collection: ' + data);
+						const peers = JSON.parse(data);
+						if (_.find(peers, (peer) => peer === fk.toLowerCase())) {
+							cb(null, { result: true, participantId: fk.toLowerCase() });
+						} else {
+							cb(null, { result: false, participantId: fk.toLowerCase() });
+						}
 					}
-				}
-			});
+				});
 	};
 	
 	/**
@@ -2508,20 +2616,20 @@ module.exports = function (Collection) {
 	Collection.getBlockchainParticipants = function (id, req, cb) {
 		// Get participants from blockchain
 		request
-			.get({
-				url: protocolUrl + 'collections/' + id + '/peers',
-			}, function (err, response, data) {
-				if (err) {
-					console.error(err);
-					cb(null, { result: false, participants: [] });
-				} else if (data && data.error) {
-					cb(null, { result: false, participants: [] });
-				} else {
-					console.log('Got list of participants for this collection: ' + data);
-					const peers = JSON.parse(data);
-					cb(null, { result: true, participants: peers });
-				}
-			});
+				.get({
+					url: protocolUrl + 'collections/' + id + '/peers',
+				}, function (err, response, data) {
+					if (err) {
+						console.error(err);
+						cb(null, { result: false, participants: [] });
+					} else if (data && data.error) {
+						cb(null, { result: false, participants: [] });
+					} else {
+						console.log('Got list of participants for this collection: ' + data);
+						const peers = JSON.parse(data);
+						cb(null, { result: true, participants: peers });
+					}
+				});
 	};
 	
 	/**
@@ -2540,7 +2648,7 @@ module.exports = function (Collection) {
 				}
 			};
 			const data = await Collection.find(query);
-
+			
 			if (!data || data.length === 0) {
 				collectionInstance.customUrl = titleUrl;
 				collectionInstance.save();
@@ -2633,378 +2741,378 @@ module.exports = function (Collection) {
 			]
 		};
 		return Collection
-			.findById(collectionId, collecitonQuery)
-			.then((oldCollectionInstanceData) => {
-				oldCollectionInstance = oldCollectionInstanceData;
-				oldCollectionData = oldCollectionInstanceData.toJSON();
-				let newCollection = oldCollectionData;
-				console.log(newCollection);
-				newCollection = sanitize(newCollection);
-				// assign fresh values to new collection
-				newCollection.title = newCollection.title + ' [COPY]';
-				newCollection.status = 'draft';
-				newCollection.isCanceled = false;
-				newCollection.isApproved = false;
-				newCollection.isNewInstance = false;
-				newCollection.disableHasOneCreate = true;
-				return Collection.create(newCollection);
-			})
-			.then((newCollectionInstanceData) => {
-				newCollectionInstance = newCollectionInstanceData;
-				// Create a relation between logged in user and this new collection node
-				const linkOwnerPromises = [];
-				oldCollectionData.owners.forEach((oldOwnerInstance) => {
-					linkOwnerPromises.push(
-						new Promise((res, rej) => {
-							newCollectionInstance.__link__owners(oldOwnerInstance.id, (err, data) => {
-								if (err) {
-									rej(err);
-								} else {
-									res(data);
-								}
-							});
-						})
-					);
-				});
-				const linkOwners = Promise.all(linkOwnerPromises).map(linked => {
-					console.log('linkedOwner');
-					return linked;
-				});
-
-				// Copy all contents from oldInstance to new instance
-				const contentPromises = [];
-				oldCollectionData.contents.forEach(content => {
-					content = sanitize(content);
-					let schedules = content.schedules;
-					let locations = content.locations;
-					delete content.schedules;
-					delete content.locations;
-					const contentPromise = newCollectionInstance.contents.create(content)
-						.then(newContentInstance => {
-							const relationPromises = [];
-							if (schedules && schedules.length > 0) {
-								schedules = schedules.map(schedule => sanitize(schedule));
-								relationPromises.push(
-									newContentInstance.schedules.create(schedules)
-								);
-							}
-							if (locations && locations.length > 0) {
-								locations = locations.map(location => sanitize(location));
-								relationPromises.push(
-									newContentInstance.locations.create(locations)
-								);
-							}
-							return Promise.all(relationPromises);
-						});
-					contentPromises.push(contentPromise);
-				});
-				const linkContents = Promise.all(contentPromises)
-					.catch((exception) => {
-						console.error('linkContents:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('contents linked');
-						console.log(linked);
+				.findById(collectionId, collecitonQuery)
+				.then((oldCollectionInstanceData) => {
+					oldCollectionInstance = oldCollectionInstanceData;
+					oldCollectionData = oldCollectionInstanceData.toJSON();
+					let newCollection = oldCollectionData;
+					console.log(newCollection);
+					newCollection = sanitize(newCollection);
+					// assign fresh values to new collection
+					newCollection.title = newCollection.title + ' [COPY]';
+					newCollection.status = 'draft';
+					newCollection.isCanceled = false;
+					newCollection.isApproved = false;
+					newCollection.isNewInstance = false;
+					newCollection.disableHasOneCreate = true;
+					return Collection.create(newCollection);
+				})
+				.then((newCollectionInstanceData) => {
+					newCollectionInstance = newCollectionInstanceData;
+					// Create a relation between logged in user and this new collection node
+					const linkOwnerPromises = [];
+					oldCollectionData.owners.forEach((oldOwnerInstance) => {
+						linkOwnerPromises.push(
+								new Promise((res, rej) => {
+									newCollectionInstance.__link__owners(oldOwnerInstance.id, (err, data) => {
+										if (err) {
+											rej(err);
+										} else {
+											res(data);
+										}
+									});
+								})
+						);
+					});
+					const linkOwners = Promise.all(linkOwnerPromises).map(linked => {
+						console.log('linkedOwner');
 						return linked;
 					});
-
-				// link calendars
-				const newCalendards = oldCollectionData.calendars.map(calendar => sanitize(calendar));
-				const linkCalendars = newCollectionInstance.calendars
-					.create(newCalendards)
-					.catch((exception) => {
-						console.error('linkCalendars:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('Calendars Created');
-						console.log(linked);
-						return linked;
+					
+					// Copy all contents from oldInstance to new instance
+					const contentPromises = [];
+					oldCollectionData.contents.forEach(content => {
+						content = sanitize(content);
+						let schedules = content.schedules;
+						let locations = content.locations;
+						delete content.schedules;
+						delete content.locations;
+						const contentPromise = newCollectionInstance.contents.create(content)
+								.then(newContentInstance => {
+									const relationPromises = [];
+									if (schedules && schedules.length > 0) {
+										schedules = schedules.map(schedule => sanitize(schedule));
+										relationPromises.push(
+												newContentInstance.schedules.create(schedules)
+										);
+									}
+									if (locations && locations.length > 0) {
+										locations = locations.map(location => sanitize(location));
+										relationPromises.push(
+												newContentInstance.locations.create(locations)
+										);
+									}
+									return Promise.all(relationPromises);
+								});
+						contentPromises.push(contentPromise);
 					});
-
-				// Copy topics from old collection to new collection
-				const linkTopics = new Promise((resolve, reject) => {
-					oldCollectionInstance.__get__topics((error, oldTopicInstances) => {
-						if (error) {
-							console.log('linkTopicsError');
-							console.log(error);
-							reject(error);
-						} else {
-							const linkTopicPromises = [];
-							oldTopicInstances.forEach((oldTopicInstance) => {
-								linkTopicPromises.push(
-									new Promise((res, rej) => {
-										newCollectionInstance.__link__topics(oldTopicInstance.id, (err, data) => {
-											if (err) {
-												rej(err);
-											} else {
-												res(data);
-											}
-										});
-									})
-								);
+					const linkContents = Promise.all(contentPromises)
+							.catch((exception) => {
+								console.error('linkContents:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('contents linked');
+								console.log(linked);
+								return linked;
 							});
-							Promise.all(linkTopicPromises)
-								.then(result => {
-									console.log('linkTopic_copied');
-									resolve(result);
-								}).catch(err => {
+					
+					// link calendars
+					const newCalendards = oldCollectionData.calendars.map(calendar => sanitize(calendar));
+					const linkCalendars = newCollectionInstance.calendars
+							.create(newCalendards)
+							.catch((exception) => {
+								console.error('linkCalendars:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('Calendars Created');
+								console.log(linked);
+								return linked;
+							});
+					
+					// Copy topics from old collection to new collection
+					const linkTopics = new Promise((resolve, reject) => {
+						oldCollectionInstance.__get__topics((error, oldTopicInstances) => {
+							if (error) {
+								console.log('linkTopicsError');
+								console.log(error);
+								reject(error);
+							} else {
+								const linkTopicPromises = [];
+								oldTopicInstances.forEach((oldTopicInstance) => {
+									linkTopicPromises.push(
+											new Promise((res, rej) => {
+												newCollectionInstance.__link__topics(oldTopicInstance.id, (err, data) => {
+													if (err) {
+														rej(err);
+													} else {
+														res(data);
+													}
+												});
+											})
+									);
+								});
+								Promise.all(linkTopicPromises)
+										.then(result => {
+											console.log('linkTopic_copied');
+											resolve(result);
+										}).catch(err => {
 									reject(err);
 								});
-						}
-					});
-				});
-
-				// Copy payoutrules from old collection to new collection
-				const newPayoutRules = oldCollectionData.payoutrules.map(payoutrule => sanitize(payoutrules));
-				const linkPayoutRules = newCollectionInstance.payoutrules
-					.create(newPayoutRules)
-					.catch((exception) => {
-						console.error('linkPayoutRules:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('Payout Rules Created');
-						console.log(linked);
-						return linked;
-					});
-
-				// Copy certificate templates
-				const newCertificateTemplates = oldCollectionData.certificate_templates
-					.map(certificate_template => sanitize(certificate_template));
-				const linkCertificateTemplate = newCollectionInstance
-					.certificate_templates.create(newCertificateTemplates)
-					.catch((exception) => {
-						console.error('certificate_templates:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('Certificate templates linked');
-						console.log(linked);
-						return linked;
-					});
-
-				// Copy Promo Codes
-				const newpromoCodes = oldCollectionData.promoCodes.map(promoCode => sanitize(promoCode));
-				const linkPromoCodes = newCollectionInstance.promoCodes
-					.create(newpromoCodes)
-					.catch((exception) => {
-						console.error('linkPromoCodes:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('Promocodes linked');
-						console.log(linked);
-						return linked;
-					});
-
-				// Copy rewards
-				const newReward = oldCollectionData.rewards.map(reward => sanitize(reward));
-				const linkRewards = newCollectionInstance.rewards
-					.create(newReward)
-					.catch((exception) => {
-						console.error('linkRewards:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('Rewards Linked');
-						console.log(linked);
-					});
-				
-				// Copy assessment models
-				const assessment_models_promises = [];
-				oldCollectionData.assessment_models.forEach(assessment_model => {
-					assessment_model = sanitize(assessment_model);
-					let assessment_na_rules = assessment_model.assessment_na_rules;
-					let assessment_rules = assessment_model.assessment_rules;
-					delete assessment_model.assessment_na_rule;
-					delete assessment_model.assessment_rules;
-					const relationPromises = [];
-					const createAssessmentModel = newCollectionInstance.assessment_models
-						.create(assessment_model).then(newAssessmentInstance => {
-							if (assessment_na_rules && assessment_na_rules.length > 0) {
-								assessment_na_rules = assessment_na_rules.map(assessment_na_rule => sanitize(assessment_na_rule));
-								relationPromises.push(
-									newAssessmentInstance.assessment_na_rules.create(assessment_na_rules)
-								);
 							}
-							if (assessment_rules && assessment_rules.length > 0) {
-								assessment_rules = assessment_rules.map(assessment_rule => sanitize(assessment_rule));
-								relationPromises.push(
-									newAssessmentInstance.assessment_rules.create(assessment_rules)
-								);
-							}
-							return Promise.all(relationPromises);
 						});
-					assessment_models_promises.push(createAssessmentModel);
-				});
-				const linkAssessment = Promise.all(assessment_models_promises)
-					.catch((exception) => {
-						console.error('linkAssessment:', exception);
-						return Promise.reject(exception);
-					})
-					.map(linked => {
-						console.log('ASsessments created');
-						console.log(linked);
-						return linked;
 					});
-
-				return Promise.all([
-					linkOwners, linkContents, linkCalendars, linkTopics, linkPayoutRules, linkCertificateTemplate,
-					linkPromoCodes, linkRewards, linkAssessment
-				]);
-			}).then((dataCopied => {
-				console.log('All data copied successfully sending response');
-				return Promise.resolve({
-					status: 'success',
-					newCollectionId: newCollectionInstance.id
+					
+					// Copy payoutrules from old collection to new collection
+					const newPayoutRules = oldCollectionData.payoutrules.map(payoutrule => sanitize(payoutrules));
+					const linkPayoutRules = newCollectionInstance.payoutrules
+							.create(newPayoutRules)
+							.catch((exception) => {
+								console.error('linkPayoutRules:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('Payout Rules Created');
+								console.log(linked);
+								return linked;
+							});
+					
+					// Copy certificate templates
+					const newCertificateTemplates = oldCollectionData.certificate_templates
+							.map(certificate_template => sanitize(certificate_template));
+					const linkCertificateTemplate = newCollectionInstance
+							.certificate_templates.create(newCertificateTemplates)
+							.catch((exception) => {
+								console.error('certificate_templates:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('Certificate templates linked');
+								console.log(linked);
+								return linked;
+							});
+					
+					// Copy Promo Codes
+					const newpromoCodes = oldCollectionData.promoCodes.map(promoCode => sanitize(promoCode));
+					const linkPromoCodes = newCollectionInstance.promoCodes
+							.create(newpromoCodes)
+							.catch((exception) => {
+								console.error('linkPromoCodes:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('Promocodes linked');
+								console.log(linked);
+								return linked;
+							});
+					
+					// Copy rewards
+					const newReward = oldCollectionData.rewards.map(reward => sanitize(reward));
+					const linkRewards = newCollectionInstance.rewards
+							.create(newReward)
+							.catch((exception) => {
+								console.error('linkRewards:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('Rewards Linked');
+								console.log(linked);
+							});
+					
+					// Copy assessment models
+					const assessment_models_promises = [];
+					oldCollectionData.assessment_models.forEach(assessment_model => {
+						assessment_model = sanitize(assessment_model);
+						let assessment_na_rules = assessment_model.assessment_na_rules;
+						let assessment_rules = assessment_model.assessment_rules;
+						delete assessment_model.assessment_na_rule;
+						delete assessment_model.assessment_rules;
+						const relationPromises = [];
+						const createAssessmentModel = newCollectionInstance.assessment_models
+								.create(assessment_model).then(newAssessmentInstance => {
+									if (assessment_na_rules && assessment_na_rules.length > 0) {
+										assessment_na_rules = assessment_na_rules.map(assessment_na_rule => sanitize(assessment_na_rule));
+										relationPromises.push(
+												newAssessmentInstance.assessment_na_rules.create(assessment_na_rules)
+										);
+									}
+									if (assessment_rules && assessment_rules.length > 0) {
+										assessment_rules = assessment_rules.map(assessment_rule => sanitize(assessment_rule));
+										relationPromises.push(
+												newAssessmentInstance.assessment_rules.create(assessment_rules)
+										);
+									}
+									return Promise.all(relationPromises);
+								});
+						assessment_models_promises.push(createAssessmentModel);
+					});
+					const linkAssessment = Promise.all(assessment_models_promises)
+							.catch((exception) => {
+								console.error('linkAssessment:', exception);
+								return Promise.reject(exception);
+							})
+							.map(linked => {
+								console.log('ASsessments created');
+								console.log(linked);
+								return linked;
+							});
+					
+					return Promise.all([
+						linkOwners, linkContents, linkCalendars, linkTopics, linkPayoutRules, linkCertificateTemplate,
+						linkPromoCodes, linkRewards, linkAssessment
+					]);
+				}).then((dataCopied => {
+					console.log('All data copied successfully sending response');
+					return Promise.resolve({
+						status: 'success',
+						newCollectionId: newCollectionInstance.id
+					});
+				})).catch(err => {
+					console.log('Error in copying data');
+					console.log(err);
+					return Promise.reject(new Error(g.f(err)));
 				});
-			})).catch(err => {
-				console.log('Error in copying data');
-				console.log(err);
-				return Promise.reject(new Error(g.f(err)));
-			});
 	};
-
+	
 	
 	Collection.remoteMethod(
-		'submitForReview',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'string' },
-			http: { path: '/:id/submitForReview', verb: 'post' }
-		}
+			'submitForReview',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'string' },
+				http: { path: '/:id/submitForReview', verb: 'post' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'approve',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/approve', verb: 'post' }
-		}
+			'approve',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/approve', verb: 'post' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'reject',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/reject', verb: 'post' }
-		}
+			'reject',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/reject', verb: 'post' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'etherInfo',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/ether', verb: 'get' }
-		}
+			'etherInfo',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/ether', verb: 'get' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'addToEthereum',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/ether', verb: 'post' }
-		}
+			'addToEthereum',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/ether', verb: 'post' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'fetchTrending',
-		{
-			accepts: [
-				{ arg: 'req', type: 'object', http: { source: 'req' } },
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/trending', verb: 'get' }
-		}
+			'fetchTrending',
+			{
+				accepts: [
+					{ arg: 'req', type: 'object', http: { source: 'req' } },
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/trending', verb: 'get' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'announceResult',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/announceResult', verb: 'post' }
-		}
+			'announceResult',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/announceResult', verb: 'post' }
+			}
 	);
-
+	
 	Collection.remoteMethod(
-		'fixDatabase',
-		{
-			accepts: [
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/fixDatabase', verb: 'get' }
-		});
-
+			'fixDatabase',
+			{
+				accepts: [
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/fixDatabase', verb: 'get' }
+			});
+	
 	Collection.remoteMethod(
-		'checkParticipantOnBlockchain',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'fk', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/peers/:fk/ether', verb: 'get' }
-		});
-
+			'checkParticipantOnBlockchain',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'fk', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/:fk/ether', verb: 'get' }
+			});
+	
 	Collection.remoteMethod(
-		'getBlockchainParticipants',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/peers/ether', verb: 'get' }
-		});
-
+			'getBlockchainParticipants',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/ether', verb: 'get' }
+			});
+	
 	Collection.remoteMethod(
-		'addParticipantToEthereum',
-		{
-			accepts: [
-				{ arg: 'id', type: 'string', required: true },
-				{ arg: 'participantId', type: 'string', required: true },
-				{ arg: 'req', type: 'object', http: { source: 'req' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/:id/peers/:participantId/ether', verb: 'post' }
-		});
-
+			'addParticipantToEthereum',
+			{
+				accepts: [
+					{ arg: 'id', type: 'string', required: true },
+					{ arg: 'participantId', type: 'string', required: true },
+					{ arg: 'req', type: 'object', http: { source: 'req' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/:id/peers/:participantId/ether', verb: 'post' }
+			});
+	
 	Collection.remoteMethod(
-		'cloneCollection',
-		{
-			accepts: [
-				{ arg: 'collectionId', type: 'string', required: true },
-				{ arg: 'body', type: 'object', http: { source: 'body' } }
-			],
-			returns: { arg: 'result', type: 'object', root: true },
-			http: { path: '/clone/:collectionId', verb: 'post' }
-		});
-
+			'cloneCollection',
+			{
+				accepts: [
+					{ arg: 'collectionId', type: 'string', required: true },
+					{ arg: 'body', type: 'object', http: { source: 'body' } }
+				],
+				returns: { arg: 'result', type: 'object', root: true },
+				http: { path: '/clone/:collectionId', verb: 'post' }
+			});
+	
 };

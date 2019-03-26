@@ -103,3 +103,12 @@ sudo /usr/bin/node /root/wetty/app.js --sslkey /etc/letsencrypt/live/$HOST_NAME/
 
 crontab -l | { cat; echo "@reboot /usr/bin/node /root/wetty/app.js --sslkey /etc/letsencrypt/live/$HOST_NAME/privkey.pem --sslcert /etc/letsencrypt/live/$HOST_NAME/cert.pem -p 3000 &"; } | crontab -
 
+#-----------------------------------------------------------------------
+#Copy Client Folder from boiler plate code to WebIDE so it can be accessed over browser
+#-----------------------------------------------------------------------
+
+cp -r /var/www/corestack/solidity/{{GIT_REPO_NAME}}/client /var/www/WebIDE
+
+cd /var/www/WebIDE
+
+chmod -R 777 client

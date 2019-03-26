@@ -178,6 +178,10 @@
     "corestackCourseId": {
       "type": "string",
       "default": "BC0001"
+    },
+    "corestackCourseTemplate": {
+      "type": "string",
+      "default": "BC0001"
     }
   },
   "validations": [],
