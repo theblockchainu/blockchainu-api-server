@@ -757,11 +757,12 @@ module.exports = function (Assessmentresult) {
 					return page.setContent(html);
 				}).then(() => {
 					const pageBuffer = page.pdf({
+						format: 'A4',
 						margin: {
-							top: '70px',
-							left: '70px',
-							right: '70px',
-							bottom: '70px'
+							top: '10px',
+							left: '10px',
+							right: '10px',
+							bottom: '10px'
 						}
 					});
 					return Promise.resolve(pageBuffer);
