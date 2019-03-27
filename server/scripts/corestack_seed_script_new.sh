@@ -107,8 +107,8 @@ crontab -l | { cat; echo "@reboot /usr/bin/node /root/wetty/app.js --sslkey /etc
 #Copy Client Folder from boiler plate code to WebIDE so it can be accessed over browser
 #-----------------------------------------------------------------------
 
-cp -r /var/www/corestack/solidity/{{GIT_REPO_NAME}}/client /var/www/WebIDE
+cp -r /var/www/corestack/solidity/{{GIT_REPO_NAME}}/client /var/www
 
-cd /var/www/WebIDE
+cd /var/www
 
 chmod -R 777 client
