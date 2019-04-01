@@ -1134,7 +1134,7 @@ module.exports = function setupCron(server) {
 															console.log('email sent! - ');
 														})
 														.catch(function (err) {
-															console.log('email error! - ' + err);
+															console.error('email error! - ' + err);
 														});
 											}
 										} else {
@@ -1144,7 +1144,7 @@ module.exports = function setupCron(server) {
 									}
 								});
 							} catch (err) {
-								console.log(err);
+								console.error(err);
 							}
 						}
 					});
@@ -1167,49 +1167,68 @@ module.exports = function setupCron(server) {
 						})
 						.then(corestack_students => {
 							corestack_students.forEach(corestack_student => {
-								const promise = requestPromise.get({
-									url: app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/'
-									+ corestack_student.student_id + '/' + corestack_student.course_id,
+								// Describe student registered on corestack
+								requestPromise.get({
+									url: app.get('corestackUrl') + '/v1/' + tokenObject.data.projects[0].id + '/student/' + corestack_student.student_id + '/' + corestack_student.course_id,
 									json: true,
 									headers: {
 										'X-Auth-Token': tokenObject.data.token.key,
 										'X-Auth-User': app.get('corestackUserName')
 									},
-								}).then(student_detail => {
-									if (student_detail.data.student_course_status === 'active') {
-										const updatedData = { student_course_status: 'active' };
+								}).then(updated_student_detail => {
+									const oldStatus = corestack_student.student_course_status;
+									const newStatus = updated_student_detail.student_course_status;
+									// If status has changed on corestack, update status on local DB
+									if (oldStatus !== newStatus) {
+										const updatedData = { student_course_status: newStatus };
 										const corestack_student_json = corestack_student.toJSON();
 										app.models.corestack_student.upsertWithWhere({ id: corestack_student.id }, updatedData)
 												.then(savedinstance => {
-													let message = {
-														guideUrl: 'https://theblockchainu.com/guide/' + corestack_student_json.collections[0].customUrl,
-														guideTitle: corestack_student_json.collections[0].title.toUpperCase()
-													};
-													let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackActivated.ejs'));
-													let html_body = renderer(message);
-													return loopback.Email.send({
-														to: corestack_student_json.student_email,
-														from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
-														subject: 'Your CodeLab™ is up and running!',
-														html: html_body
-													});
-												}).then(function (response) {
-											console.log('email sent! - ');
-										})
+													// If new status is active, send an email to student with link to lab.
+													if (newStatus === 'active') {
+														let message = {
+															guideUrl: 'https://theblockchainu.com/guide/' + corestack_student_json.collections[0].customUrl,
+															guideTitle: corestack_student_json.collections[0].title.toUpperCase()
+														};
+														let renderer = loopback.template(path.resolve(__dirname, '../../server/views/corestackActivated.ejs'));
+														let html_body = renderer(message);
+														return loopback.Email.send({
+															to: corestack_student_json.student_email,
+															from: 'The Blockchain University <noreply@mx.theblockchainu.com>',
+															subject: 'Your CodeLab™ is up and running!',
+															html: html_body
+														});
+													} else {
+														return Promise.resolve({result: 'success'});
+													}
+												})
+												.then(function (response) {
+													console.log('email sent! - ');
+												})
 												.catch(function (err) {
 													console.log('email error! - ' + err);
 												});
 										
 									}
 								}).catch(err => {
-									console.log('Error in processing ' + corestack_student.student_email);
-									console.log(err);
+									console.error('Error in processing ' + corestack_student.student_email);
+									console.error(err);
+									// Error from corestack. Update the status to error.
+									const updatedData = { student_course_status: 'error' };
+									const corestack_student_json = corestack_student.toJSON();
+									app.models.corestack_student.upsertWithWhere({ id: corestack_student.id }, updatedData)
+											.then(savedinstance => {
+												console.log('Updated corestack student status to error.');
+											})
+											.catch(function (err) {
+												console.log('Corestack student status update error! - ' + err);
+											});
 								});
 							});
 						})
 						.catch(err => {
-							console.log('Error in corestack student cron');
-							console.log(err);
+							console.error('Error in corestack student cron');
+							console.error(err);
 						});
 			},
 			function () {
@@ -1223,7 +1242,7 @@ module.exports = function setupCron(server) {
 	
 	// Runs once every 7 days
 	const weeklyCron = new CronJob('0 0 0 * * Sun',
-	//const weeklyCron = new CronJob('*/20 * * * * *',
+			//const weeklyCron = new CronJob('*/20 * * * * *',
 			function () {
 				console.info('Running Weekly Cron');
 				const query = {
