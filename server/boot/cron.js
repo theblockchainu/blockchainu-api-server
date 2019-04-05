@@ -764,7 +764,7 @@ module.exports = function setupCron(server) {
 							// Remove the sender from this list
 							_.remove(messageParticipants, (p) => { return p.id === messageInstance.peer()[0].id;});
 							const unreadRecipients = _.filter(messageParticipants, (r) => {
-								return _.find(messageInstance.readReceipts(), (o) => o.peer && o.peer.length > 0 && o.peer[0].id === r.id) === undefined;
+								return _.find(messageInstance.readReceipts(), (o) => o.peer && o.peer.length > 0 && o.peer()[0] && o.peer()[0].id === r.id) === undefined;
 							});
 							if (unreadRecipients && unreadRecipients.length > 0) {
 								unreadRecipients.forEach(unreadRecipient => {
