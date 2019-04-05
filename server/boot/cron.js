@@ -168,9 +168,42 @@ module.exports = function setupCron(server) {
 			'UTC'
 	);
 	
+	
+	
+	// Runs once every 24 hours
+	const testCron = new CronJob('*!/20 * * * * *',
+			
+			function () {
+				// Try Karma Rewards
+				request
+						.post({
+							url: protocolUrl + 'karma/mintRewards',
+							json: true,
+							body: {
+								successCallback: app.get('apiUrl') + '/api/peers/karma-reward-result',
+								failureCallback: app.get('apiUrl') + '/api/peers/karma-reward-result'
+							}
+						}, function (err, response, data1) {
+							if (err) {
+								console.error(err);
+							} else if (data1 && data1.error) {
+								console.error(data1.error);
+							} else {
+								console.log('Tried karma minting: ' + JSON.stringify(data1));
+							}
+						});
+			},
+			function () {
+			
+			},
+			true,
+			'UTC'
+	);
+	
 	// Runs once every 24 hours
 	const twentyfourHourCron = new CronJob('00 00 00 * * *',
-			/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
+	/*const collectionCompleteCron = new CronJob('*!/20 * * * * *',*/
+			
 			function () {
 				console.info('\n\n********\nRunning midnight cron job. Functions: \n- Check for completed cohorts - mark them complete - send summary and reminders\n- Check upcoming cohorts and send reminder emails to student and teacher\n**********\n\n');
 				

@@ -1221,8 +1221,20 @@ module.exports = function (Collection) {
 								description = "Your account has been rejected for mentor sessions. Edit your details and submit again.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "15"];
 								break;
+							case 'guide':
+								subject = 'Learning guide rejected';
+								title = 'Learning guide rejected!';
+								description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "15"];
+								break;
+							case 'bounty':
+								subject = 'Reward bounty rejected';
+								title = 'Reward bounty rejected!';
+								description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
+								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "15"];
+								break;
 							default:
-								subject = 'Collection Rejected';
+								subject = 'Collection rejected';
 								title = 'Collection Rejected!';
 								description = "%collectionType% %collectionName% has been rejected. Edit your details and submit again.";
 								actionUrl = [collectionInstance.type, collectionInstance.id, "edit", "16"];
