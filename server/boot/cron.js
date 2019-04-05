@@ -170,8 +170,8 @@ module.exports = function setupCron(server) {
 	
 	
 	
-	// Runs once every 24 hours
-	const testCron = new CronJob('*/20 * * * * *',
+	/*// Runs once every 24 hours
+	const testCron = new CronJob('*!/20 * * * * *',
 			
 			function () {
 				// Try Karma Rewards
@@ -198,7 +198,7 @@ module.exports = function setupCron(server) {
 			},
 			true,
 			'UTC'
-	);
+	);*/
 	
 	// Runs once every 24 hours
 	const twentyfourHourCron = new CronJob('00 00 00 * * *',
