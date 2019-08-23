@@ -79,7 +79,7 @@
     "yaqrcode": "^0.2.1"
   },
   "devDependencies": {
-    "eslint": "^2.13.1",
+    "eslint": "^4.18.2",
     "eslint-config-loopback": "^4.0.0",
     "nsp": "^2.7.0",
     "@types/loopback": "^3.2.6",
