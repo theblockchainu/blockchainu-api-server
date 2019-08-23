@@ -118,7 +118,7 @@ GEM
       test-kitchen (~> 1.4)
     libyajl2 (1.2.0)
     mini_portile2 (2.4.0)
-    minitar (0.5.4)
+    minitar (0.8)
     mixlib-authentication (1.4.0)
       mixlib-log
       rspec-core (~> 3.2)
