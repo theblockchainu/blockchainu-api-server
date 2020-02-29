@@ -172,7 +172,7 @@ GEM
     proxifier (1.0.3)
     rack (1.6.4)
     rainbow (2.1.0)
-    rake (11.1.2)
+    rake (13.0.1)
     retryable (2.0.3)
     ridley (4.5.0)
       addressable
