@@ -10,7 +10,7 @@
     "@sentry/node": "^4.4.2",
     "aws-sdk": "^2.279.1",
     "base64-img": "^1.0.4",
-    "bcrypt": "^3.0.0",
+    "bcrypt": "^5.0.0",
     "bcryptjs": "latest",
     "bluebird": "^3.5.3",
     "body-parser": "^1.17.2",
