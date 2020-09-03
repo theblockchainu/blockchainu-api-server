@@ -58,7 +58,7 @@
     "passport-oauth2": "^1.1.2",
     "passport-twitter": "^1.0.0",
     "path": "^0.12.7",
-    "puppeteer": "^1.11.0",
+    "puppeteer": "^1.13.0",
     "qrcode": "^1.2.0",
     "raven-js": "^3.22.3",
     "request": "latest",
