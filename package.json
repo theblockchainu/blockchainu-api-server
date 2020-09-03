@@ -33,7 +33,7 @@
     "js-sha256": "^0.9.0",
     "json-bignum": "0.0.3",
     "lodash": "^4.17.4",
-    "loopback": "^3.9.0",
+    "loopback": "^3.25.1",
     "loopback-boot": "^2.26.0",
     "loopback-component-explorer": "^4.0.0",
     "loopback-component-passport-neo4j": "^1.0.1",
